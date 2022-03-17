@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>OpenBox</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="all,follow">
+    <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/vendor/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/style.default.css" id="theme-stylesheet">
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        p {
+            font-size:2px;
+            background: linear-gradient(to right, #4fbfa8, #016cbe);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-align:center
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-form" style="width:30%">
+    <div class="box form-area">
+        <div align="center">
+             <img src="/static/img/logo-big.jpg" alt="Obaju logo" class="d-none d-md-inline-block" width="70%">
+        </div>
+        <p>Generalized and Efficient Blackbox Optimization System.</p>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="text" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" class="form-control">
+        </div>
+        <div class="text-center">
+            <button id="login" class="btn btn-primary" onclick="login()"><i class="fa fa-user-md"></i>Login</button>
+            <a type="button" class="btn btn-primary" href="/user_board/register"><i
+                    class="fa fa-sign-in"></i>Register</a>
+            <a type="button" class="btn btn-primary" href="/user_board/reset_password/send_mail/"><i
+                    class="fa fa-sign-in"></i>Forgot password?</a>
+        </div>
+    </div>
+</div>
+
+<script src="/static/vendor/jquery/jquery.js"></script>
+<script src="/static/vendor/jquery/jquery.md5.js"></script>
+<script src="/static/vendor/jquery.cookie/jquery.cookie.js"></script>
+<script src="/static/js/common.js"></script>
+<script>
+
+    $(function () {
+        if ("{{is_register}}" == "1") {
+            alert("Verify Successfully, Please Login!");
+        }
+    });
+    function login() {
+        var email = $("#email").val();
+        var password = $("#password").val();
+        if (!isAvailableEmail(email)) {
+            alert("Email format is incorrect！");
+            return false;
+        }
+        if (email == "") {
+            alert("Email is required！");
+            return false;
+        }
+        if (password == "") {
+            alert("Password is required！");
+            return false;
+        }
+        password = $.md5(password);
+        $.ajax({
+            url: "/user_board/api/login/",
+            type: "POST",
+            data: "email=" + email + "&password=" + password,
+            success: function (data) {
+                if (data['code'] == 0) {
+                    alert(data['msg']);
+                } else {
+                    window.location.href = '/user_board/'  + 'show_task/'+ data['user_id'] + '/';
+                }
+            },
+            error: function () {
+                alert('Network Error');
+            }
+        });
+    }
+</script>
+</body>
+
+</html>

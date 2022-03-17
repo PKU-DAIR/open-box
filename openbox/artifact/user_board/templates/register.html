@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>register</title>
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="all,follow">
+  <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/vendor/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,700">
+  <link rel="stylesheet" href="/static/css/style.default.css" id="theme-stylesheet">
+  <link rel="stylesheet" href="/static/css/custom.css">
+  <link rel="shortcut icon" href="/static/favicon.png">
+</head>
+<style>
+  html,
+  body {
+    margin: 0;
+    height: 100%;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  p {
+        font-size:2px;
+        background: linear-gradient(to right, #4fbfa8, #016cbe);
+        -webkit-background-clip: text;
+        color: transparent;
+        text-align:center
+   }
+</style>
+
+<body>
+  <div class="login-form" style="width:30%">
+    <div class="box form-area">
+      <div align="center">
+      <img src="/static/img/logo-big.jpg" alt="logo" class="d-none d-md-inline-block" width="70%">
+      </div>
+      <p>Generalized and Efficient Blackbox Optimization System.</p>
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input id="name" type="text" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="text" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="password">Confirm Password</label>
+        <input id="repassword" type="password" class="form-control">
+      </div>
+      <div class="text-center">
+        <button id="register" class="btn btn-primary" onclick='register()'><i class="fa fa-sign-in"></i>Register</button>
+        <a class="btn btn-primary" href="/user_board/index/"><i class="fa fa-user-md"></i>Log in</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/vendor/jquery/jquery.js"></script>
+  <script src="/static/vendor/jquery/jquery.md5.js"></script>
+  <script src="/static/vendor/jquery.cookie/jquery.cookie.js"></script>
+  <script src="/static/js/common.js"></script>
+  <script>
+    function register() {
+      var name = $("#name").val();
+      var email = $("#email").val();
+      var password = $("#password").val();
+      var repsword = $("#repassword").val();
+      if (name == "") {
+        alert("Name is required！");
+        return false;
+      }
+      if (email == "") {
+        alert("Email is required！");
+        return false;
+      }
+      else {
+        if (!isAvailableEmail(email)) {
+          alert("Email format is incorrect！");
+          return false;
+        }
+      }
+      if (password == "" ) {
+        alert("Password is required！");
+        return false;
+      }
+      if(password.length < 6){
+        alert('Make sure password\'s length at least 6 characters');
+        return;
+      }
+     if (repsword == "") {
+        alert("Confirm Password is required！");
+        return false;
+      } 
+      if (password != repsword) {
+        alert("Password and Confirm password must be the same!");
+        return false;
+      }
+      password = $.md5(password);
+     $('#register').attr('disabled',true);
+      $.ajax({
+        url:  "/user_board/api/register/",
+        type: "POST",
+        data: "user_name=" + name + "&email=" + email + "&password=" + password,
+        success: function (data) {
+          if (data['code'] == 0) {
+            $('#register').removeAttr('disabled');
+            alert(data['msg']);
+          } else {
+
+            alert(data['msg']);
+          }
+        },
+        error: function () {
+          alert('Network Error');
+        }
+      });
+    };
+
+
+  </script>
+</body>
+
+</html>

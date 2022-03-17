@@ -1,0 +1,13 @@
+{% autoescape off %}
+Hi {{ user_name }},
+{% if reset_password == 1%}
+We heard that you lost your password. Sorry about that!
+But don’t worry! You can use the following link to reset your password:
+http://{{ domain }}{% url 'user_board:reset_password' param=token %}
+If you don’t use this link within 1 hour, it will expire.
+{% else %}
+Please click on the link to confirm your registration,
+http://{{ domain }}{% url 'user_board:activate' token=token %}
+If you don’t use this link within 1 hour, it will expire.
+{% endif %}
+{% endautoescape %}

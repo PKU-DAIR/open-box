@@ -1,0 +1,4 @@
+django>=2.2.17
+pymongo<4.0
+bson
+pyjwt

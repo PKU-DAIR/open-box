@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>OpenBox</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="all,follow">
+    <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.default.css" id="theme-stylesheet">
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap-icons.css">
+    <link rel="shortcut icon" href="favicon.png">
+</head>
+
+<body>
+<div id="all">
+    <div id="header">
+        {% include 'header.html' %}
+    </div>
+    <div id="content" style="zoom:0.8">
+        <div class="container">
+            <div class="row">
+
+                <div class="col-lg-10">
+                    <div class="box">
+                        <table id="pipeline_table" class="table table-striped"
+                               style="table-layout:fixed;word-break:break-all;">
+                            <!---->
+                            <thead>
+                            <tr>
+                                {% for field in task_field %}
+
+                                <th>{{field}}</th>
+
+                                {% endfor %}
+                                <th>Operation</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        </br></br></br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- pipeline detail modal -->
+<div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
+     aria-hidden="true">
+    <!--modal start -->
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Task Config Space</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id='task_config_div'>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--modal end -->
+<script src="/static/vendor/jquery/jquery.min.js"></script>
+<script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/vendor/jquery.cookie/jquery.cookie.js"></script>
+<script src="/static/vendor/datatables/js/datatables.js"></script>
+<script src="/static/js/common.js"></script>
+<script>
+    var task_config = {};
+    $('#pipeline_table').DataTable({
+        "bAutoWidth": false,
+        "serverSide": true,
+        "processing": true,
+        "destroy": true,
+        "ajax": {
+            url: "/user_board/api/" + "show_task/" + "{{ user_id}}" + '/',
+            type: "post",
+        },
+        "columnDefs": [{
+            "targets": 1,
+            "data": "",
+            "render": function (data, type, full) {
+                task_config[full[5]] = full[6];
+                return full[1] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_config"  onclick="show_config(\'' + full[5] + '\')"><strong>...</strong></a>'
+            }
+        },
+            {
+                "targets": 5,
+                "render": function (data, type, full) {
+
+                    let stop = '<button type="button" id = stop_' + full[5] + '  onclick="task_action(\'' + full[5] + '\',0)" class="btn btn-outline-secondary"  style="color:black" title="Stop"><i class="bi bi-stop-circle" style="color:red "></i></button> ';
+                    let resume = '<button type="button" id = resume_' + full[5] + ' onclick="task_action(\'' + full[5] + '\',1)" class="btn btn-outline-secondary" style="color:black;" title="Resume"><i class="bi bi-play"></i></button>';
+                    if (full[3] == 'stopped') {
+                        stop = '<button type="button" disabled id = stop_' + full[5] + '  onclick="task_action(\'' + full[5] + '\',0)" class="btn btn-outline-secondary"  style="color:black" title="Stop"><i class="bi bi-stop-circle" style="color:red "></i></button> ';
+                    }
+                    return '<a href="/user_board/task_detail/' + full[5] + '/" class="btn btn-outline-secondary" style="color:black" title="Detail"><i class="bi bi-clock-history"></i></a>' + stop + resume;
+
+                }
+            }
+        ],
+
+    });
+
+
+    function show_config(task_id) {
+        $('#task_config_div').html('');
+        $('#task_config_div').append("<pre>" + JSON.stringify(task_config[task_id], null, 2) + "</pre>");
+        $('#myModal').modal('show');
+    }
+
+    function task_action(task_id, action) {
+
+        $.ajax({
+            url: '/user_board/api/' + 'task_action/' + task_id + '/' + action + '/',
+            type: 'get',
+            success: function (data) {
+                if (data['code'] == 0) {
+                    alert(data['msg']);
+                } else {
+                    if (action == 1) {
+                        $('#resume_' + task_id).attr('disabled', true);
+                        $('#stop_' + task_id).attr('disabled', false);
+                    } else {
+                        $('#stop_' + task_id).attr('disabled', true);
+                        $('#resume_' + task_id).attr('disabled', false);
+                    }
+                    alert(data['msg']);
+
+
+                }
+            },
+            error: function () {
+                alert("Network Error！")
+            }
+        });
+    }
+</script>
+</body>
+
+</html>

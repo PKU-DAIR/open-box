@@ -1,0 +1,5 @@
+[database]
+database_address=127.0.0.1
+database_port=27017
+user=xxxx
+password=xxxx

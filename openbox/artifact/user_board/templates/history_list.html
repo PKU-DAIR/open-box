@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>OpenBox</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="all,follow">
+    <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/style.default.css" id="theme-stylesheet">
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <link rel="shortcut icon" href="favicon.png">
+</head>
+
+<body>
+<div id="all">
+    <div id="header">
+        {% include 'header.html' %}
+    </div>
+
+        <div class="container" style="zoom:0.8">
+            <div class="row">
+                <div class="col-lg-10">
+                    <div class="box">
+                        <div class="row" style="float: right">
+                                <button  onclick="refresh()" class="btn btn-outline-secondary" style="background: #4fbfa8;color: white"> Refresh</button>
+                        </div>
+                        <br/>
+                        <div class="row">
+                        <table class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>　　
+                                        {% for h in task_field %}
+
+                                        <th>{{ h }}</th>
+                                        {% endfor %}
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr >
+                                       {% for t in task %}
+                                        <td>{{ t }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="row">
+
+                            <div class="col-md-6  col-lg-12" id="line" style="height: 400px;zoom:1.25"></div>
+
+                        </div>
+                        <br>
+                        <div class="row">
+
+                            <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;zoom:1.25"></div>
+
+                        </div>
+                        <table id="pipeline_table" class="table table-striped">
+                            <thead>
+                            <tr>
+                                {% for field in rh_field %}
+                                        <th> {{field}}</th>
+                                {% endfor %}
+
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+</div>
+<!-- pipeline detail modal -->
+<div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
+     aria-hidden="true">
+    <!--modal start -->
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Run History List</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id = 'rh_config_div'>
+
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--modal end -->
+<script src="/static/vendor/jquery/jquery.min.js"></script>
+<script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/static/vendor/jquery.cookie/jquery.cookie.js"></script>
+<script src="/static/vendor/datatables/js/datatables.js"></script>
+<script src="/static/js/echarts.min.js"></script>
+<script src="/static/js/common.js"></script>
+<script>
+    var history_table = $('#pipeline_table').DataTable({
+         "aaSorting": [],
+        "destroy": true,
+        "searching":false
+    });
+    var rh_config = {};
+    var task_id = "{{ task_id | safe}}";
+    function show_config(rh_id) {
+        $('#rh_config_div').html('');
+        $('#rh_config_div').append("<pre>"+JSON.stringify(rh_config[rh_id], null, 2)+"</pre>")
+        $('#myModal').modal('show');
+    }
+    var parallel_coordinates_chart = echarts.init($('#parallel_coordinates')[0]);
+
+    var parallel_coordinates_option;
+    var line_chart = echarts.init($('#line')[0]);
+    var line_option;
+    get_history( );
+    function refresh() {
+        location.reload();
+    }
+    function get_history( ) {
+        setTimeout(get_history,60*1000);
+        $.ajax({
+            url: '/user_board/api/'+ 'history/' +task_id+'/',
+            type: 'get',
+
+            success: function (data) {
+                if (data['code'] == 0) {
+                    alert(data['msg']);
+                } else {
+                    let parallel_option = data['option'];
+                    let parallel_parallelAxis = [];
+                    $.each(parallel_option['schema'],function (i, text) {
+                        let item = {};
+                        if(i === 0){
+                           item = {dim: 0, name: text, inverse: true, max: 31, nameLocation: 'start'}
+                        }else{
+                            item['name'] = text;
+                            item['dim'] = i;
+                        }
+                        parallel_parallelAxis.push(item)
+                    });
+
+                    parallel_coordinates_option['parallelAxis'] = parallel_parallelAxis;
+                    parallel_coordinates_option['series'][0]['data'] = parallel_option['data'];
+                    parallel_coordinates_option['visualMap']['min'] = parallel_option['visualMap']['min'];
+                    parallel_coordinates_option['visualMap']['max'] = parallel_option['visualMap']['max'];
+                    parallel_coordinates_option['visualMap']['dimension'] = parallel_option['visualMap']['dimension'];
+                    line_option['series'][0]['data'] =  data['line_data']['min'];
+                    line_option['series'][1]['data'] =  data['line_data']['over'];
+                    line_option['series'][2]['data'] =  data['line_data']['scat'];
+                    parallel_coordinates_option && parallel_coordinates_chart.setOption(parallel_coordinates_option);
+                    line_option && line_chart.setOption(line_option);
+
+                    rh_config = data['rh_config'];
+                    let table_list = data['table_list'];
+                    let rows = [];
+                    let config_str = '';
+                    let trial_info = '';
+                    for(let r in table_list){
+                        config_str = table_list[r][2] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_config"+ onclick="show_config(\''+table_list[r][0]+'\')"><strong>...</strong></a>';
+                        trial_info =   table_list[r][4] == null ?  'Null' :table_list[r][4]
+                        rows.push([table_list[r][1],config_str,table_list[r][3],trial_info,table_list[r][5]  ,table_list[r][6]])
+                    }
+                    history_table.clear().draw();
+                    history_table.rows.add(rows).draw();
+
+                }
+            },
+            error: function () {
+                alert("Network Error！")
+            }
+        });
+    }
+
+    var lineStyle = {
+        normal: {
+            width: 1,
+            opacity: 0.75
+        }
+    };
+
+    parallel_coordinates_option = {
+        visualMap: {
+        show: true,
+        seriesIndex: 0,
+        inRange: {
+            color: ['#d94e5d','#eac736','#50a3ba'],
+        }
+    },
+
+        series: [
+            {
+                type: 'parallel',
+                lineStyle: lineStyle,
+                inactiveOpacity: 0.1,
+                activeOpacity: 1,
+                data: ''
+            },
+
+        ]
+    };
+    line_option = {
+        tooltip : {
+            trigger: 'axis',
+            axisPointer: {
+                animation: false
+            }
+        },
+        dataZoom: [
+            {
+                type: 'slider',
+                xAxisIndex: 0,
+                start: 0,
+                end: 100
+            },
+            {
+                type: 'inside',
+                xAxisIndex: 0,
+                start: 0,
+                end: 100
+            },
+        ],
+        legend: {
+            left: 10
+        },
+        xAxis: {
+
+            name : 'Number of iterations n',
+            boundaryGap: false,
+            nameLocation:'center',
+            nameRotate:'0',
+            nameTextStyle:{
+                padding :[20,0,0,0],
+                fontSize  : 16
+            },
+            splitLine: {
+                show: true,
+                lineStyle: {
+                    color: ['black'],
+                    width: 1,
+                    type: 'solid'
+                }
+            }
+        },
+        yAxis: {
+            type: 'value',
+            name : 'Min objective value after n iterations',
+            nameLocation:'center',
+            nameRotate:'90',
+            nameTextStyle:{
+                padding :[0,0,50,50],
+                fontSize  : 16
+            },
+            splitLine: {
+                show: true,
+                lineStyle: {
+                    color: ['black'],
+                    width: 1,
+                    type: 'solid'
+                }
+            }
+        },
+        series: [
+            {
+            name: '折线图',
+            type: 'line',
+            smooth: false,
+            color : '#4fbfa8',
+            symbol: 'none',
+        }, {
+            name:'散点图',
+            color:'grey',
+            type:'scatter',
+        },
+        {
+            type:'scatter',
+            color:'#4fbfa8',
+        },
+        ]
+    };
+
+</script>
+</body>
+
+</html>

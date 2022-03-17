@@ -1,0 +1,4 @@
+include openbox/utils/logging.yaml
+recursive-include openbox *.pyx
+include requirements/main.txt
+include requirements/dev.txt
