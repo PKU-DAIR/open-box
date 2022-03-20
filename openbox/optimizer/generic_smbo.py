@@ -1,8 +1,6 @@
 # License: MIT
 
-import sys
 import time
-import traceback
 import math
 from typing import List
 from collections import OrderedDict
@@ -171,18 +169,32 @@ class SMBO(BOBase):
             assert num_objs == 1 and num_constraints == 0
             self.config_advisor = TPE_Advisor(config_space, task_id=task_id, random_state=random_state,
                                               **advisor_kwargs)
-        elif advisor_type == 'ea':
-            from openbox.core.ea_advisor import EA_Advisor
+        elif advisor_type in {'ea', 'rea'}:
+            from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
             assert num_objs == 1 and num_constraints == 0
-            self.config_advisor = EA_Advisor(config_space,
-                                             num_objs=num_objs,
-                                             num_constraints=num_constraints,
-                                             optimization_strategy=sample_strategy,
-                                             batch_size=1,
-                                             task_id=task_id,
-                                             output_dir=logging_dir,
-                                             random_state=random_state,
-                                             **advisor_kwargs)
+
+            self.config_advisor = RegularizedEAAdvisor(config_space=config_space,
+                                                       num_objs=num_objs,
+                                                       num_constraints=num_constraints,
+                                                       optimization_strategy=sample_strategy,
+                                                       batch_size=1,
+                                                       task_id=task_id,
+                                                       output_dir=logging_dir,
+                                                       random_state=random_state,
+                                                       **advisor_kwargs)
+        elif advisor_type == 'dea':
+            from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
+            assert num_objs == 1 and num_constraints == 0
+
+            self.config_advisor = DifferentialEAAdvisor(config_space=config_space,
+                                                       num_objs=num_objs,
+                                                       num_constraints=num_constraints,
+                                                       optimization_strategy=sample_strategy,
+                                                       batch_size=1,
+                                                       task_id=task_id,
+                                                       output_dir=logging_dir,
+                                                       random_state=random_state,
+                                                       **advisor_kwargs)
         elif advisor_type == 'random':
             from openbox.core.random_advisor import RandomAdvisor
             self.config_advisor = RandomAdvisor(config_space,

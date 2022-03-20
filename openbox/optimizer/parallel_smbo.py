@@ -6,6 +6,7 @@ import traceback
 from typing import List
 from collections import OrderedDict
 
+from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.core.computation.parallel_process import ParallelEvaluation
 from multiprocessing import Lock
@@ -13,7 +14,7 @@ from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import get_result
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
-from openbox.core.ea_advisor import EA_Advisor
+from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.core.base import Observation
 from openbox.optimizer.base import BOBase
 
@@ -104,17 +105,28 @@ class pSMBO(BOBase):
                                                        output_dir=logging_dir,
                                                        random_state=random_state,
                                                        **advisor_kwargs)
-            elif sample_strategy == 'ea':
+            elif sample_strategy in {'ea','rea'}:
                 assert num_objs == 1 and num_constraints == 0
-                self.config_advisor = EA_Advisor(config_space,
-                                                 num_objs=num_objs,
-                                                 num_constraints=num_constraints,
-                                                 optimization_strategy=sample_strategy,
-                                                 batch_size=batch_size,
-                                                 task_id=task_id,
-                                                 output_dir=logging_dir,
-                                                 random_state=random_state,
-                                                 **advisor_kwargs)
+                self.config_advisor = RegularizedEAAdvisor(config_space=config_space,
+                                                           num_objs=num_objs,
+                                                           num_constraints=num_constraints,
+                                                           optimization_strategy=sample_strategy,
+                                                           batch_size=batch_size,
+                                                           task_id=task_id,
+                                                           output_dir=logging_dir,
+                                                           random_state=random_state,
+                                                           **advisor_kwargs)
+            elif sample_strategy == 'dea':
+                assert num_objs == 1 and num_constraints == 0
+                self.config_advisor = DifferentialEAAdvisor(config_space=config_space,
+                                                           num_objs=num_objs,
+                                                           num_constraints=num_constraints,
+                                                           optimization_strategy=sample_strategy,
+                                                           batch_size=batch_size,
+                                                           task_id=task_id,
+                                                           output_dir=logging_dir,
+                                                           random_state=random_state,
+                                                           **advisor_kwargs)
             else:
                 raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
         elif parallel_strategy == 'async':
@@ -138,17 +150,28 @@ class pSMBO(BOBase):
                                                         output_dir=logging_dir,
                                                         random_state=random_state,
                                                         **advisor_kwargs)
-            elif sample_strategy == 'ea':
+            elif sample_strategy in {'ea','rea'}:
                 assert num_objs == 1 and num_constraints == 0
-                self.config_advisor = EA_Advisor(config_space,
-                                                 num_objs=num_objs,
-                                                 num_constraints=num_constraints,
-                                                 optimization_strategy=sample_strategy,
-                                                 batch_size=batch_size,
-                                                 task_id=task_id,
-                                                 output_dir=logging_dir,
-                                                 random_state=random_state,
-                                                 **advisor_kwargs)
+                self.config_advisor = RegularizedEAAdvisor(config_space=config_space,
+                                                           num_objs=num_objs,
+                                                           num_constraints=num_constraints,
+                                                           optimization_strategy=sample_strategy,
+                                                           batch_size=batch_size,
+                                                           task_id=task_id,
+                                                           output_dir=logging_dir,
+                                                           random_state=random_state,
+                                                           **advisor_kwargs)
+            elif sample_strategy == 'dea':
+                assert num_objs == 1 and num_constraints == 0
+                self.config_advisor = DifferentialEAAdvisor(config_space=config_space,
+                                                           num_objs=num_objs,
+                                                           num_constraints=num_constraints,
+                                                           optimization_strategy=sample_strategy,
+                                                           batch_size=batch_size,
+                                                           task_id=task_id,
+                                                           output_dir=logging_dir,
+                                                           random_state=random_state,
+                                                           **advisor_kwargs)
             else:
                 raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
         else:
