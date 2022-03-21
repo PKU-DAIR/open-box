@@ -1,3 +1,5 @@
+# License: MIT
+
 import abc
 import numpy as np
 import random
@@ -21,7 +23,7 @@ class DifferentialEAAdvisor(EAAdvisor):
 
     def __init__(self,
                  f: Union[Tuple[float, float], float] = (0.1,0.9),
-                 cr: Union[Tuple[float, float], float] = (0.1,0.6),
+                 cr: Union[Tuple[float, float], float] = 0.6,
                  **kwargs):
         """
         f is the hyperparameter for DEA that X = A + (B - C) * f
@@ -39,11 +41,16 @@ class DifferentialEAAdvisor(EAAdvisor):
 
         self.running_origin_map = dict()
 
+        self.t = []
+        self.x = 0
+
     def get_suggestion(self):
 
+        self.x += 1
         if len(self.population) < self.population_size:
             next_config = self.sample_random_config(excluded_configs=self.all_configs)
             nid = -1
+
 
         else:
             # Run one iteration of DEA if the population is filled.
@@ -55,6 +62,7 @@ class DifferentialEAAdvisor(EAAdvisor):
             # Randomly sample 3 other values: x1, x2, x3
             lst = list(range(self.population_size))
             lst.remove(self.cur)
+            random.seed(self.x)
             random.shuffle(lst)
 
             lst = lst[:3]
@@ -93,13 +101,13 @@ class DifferentialEAAdvisor(EAAdvisor):
             else:
                 # Fixed cr
                 cr = self.cr
-
+            # print(cr)
             xn = self.cross_over(xi, xt, cr)
 
             # xn should be evaluated.
             # if xn is better than xi, we replace xi with xn.
 
-            next_config = Configuration(self.config_space, vector=xn)
+            next_config = xn  #Configuration(self.config_space, vector = xn)
             nid = self.cur
             self.cur = (self.cur + 1) % self.population_size
 
@@ -107,7 +115,9 @@ class DifferentialEAAdvisor(EAAdvisor):
         # nid keeps track of which xi that the xn should compare with.
         # nid == -1 indicates that this xn is randomly sampled.
         self.running_configs.append((next_config, nid))
-
+        # self.t.append((next_config.get_array(),self.x))
+        # self.t.sort(key=lambda a:a[0][0])
+        # print("\n".join(str(s) for s in self.t))
         return next_config
 
     def update_observation(self, observation: Observation):
@@ -173,4 +183,4 @@ class DifferentialEAAdvisor(EAAdvisor):
             if self.rng.random() < cr:
                 a1[i] = a2[i] # a1, a2 are vector copies, modification is ok.
 
-        return Configuration(self.config_space, a1)
+        return Configuration(self.config_space, vector=a1)

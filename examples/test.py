@@ -3,6 +3,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from openbox import Advisor, sp, Observation, EA_Advisor
+from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
+from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
+from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
+
 
 # Define Search Space
 space = sp.Space()
@@ -21,21 +25,35 @@ def branin(config):
 
 # Run
 if __name__ == "__main__":
-    advisor = EA_Advisor(
-        space,
-        task_id='quick_start',
+    advisor = AdaptiveEAAdvisor(
+        config_space = space,
+        task_id='default_task_id',
     )
 
+    used = 1
     MAX_RUNS = 50
-    for i in range(MAX_RUNS):
-        # ask
-        config = advisor.get_suggestion()
-        # evaluate
-        ret = branin(config)
-        # tell
-        observation = Observation(config=config, objs=ret['objs'])
-        advisor.update_observation(observation)
-        print('===== ITER %d/%d: %s.' % (i+1, MAX_RUNS, observation))
+    if used == 0:
+        for i in range(MAX_RUNS):
+            # ask
+            config = advisor.get_suggestion()
+            # evaluate
+            ret = branin(config)
+            # tell
+            observation = Observation(config=config, objs=ret['objs'])
+            advisor.update_observation(observation)
+            print('===== ITER %d/%d: %s.' % (i+1, MAX_RUNS, observation))
+    else:
+        for i in range(MAX_RUNS):
+            # ask
+            configs = advisor.get_suggestions()
+            observations = []
+            # evaluate
+            for config in configs:
+                ret = branin(config)
+                observations.append(Observation(config=config, objs=ret['objs']))
+            # tell
+            advisor.update_observations(observations)
+            print('===== ITER %d/%d, %d configs.' % (i+1, MAX_RUNS, len(configs)))
 
     history = advisor.get_history()
     print(history)
