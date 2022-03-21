@@ -31,8 +31,8 @@ class AdaptiveEAAdvisor(EAAdvisor):
 
                  subset_size=20,
                  epsilon=0.2,
-                 pm = 0.3,
                  pc = 0.3,
+                 pm = 0.3,
                  strategy='worst',
                  **kwargs):
 
@@ -44,6 +44,7 @@ class AdaptiveEAAdvisor(EAAdvisor):
         self.pm = pm
         self.pc = pc
         self.strategy = strategy
+        self.k1, self.k2, self.k3, self.k4 = 0.25, 0.3, 0.25, 0.3
         assert self.strategy in ['worst', 'oldest']
 
     def get_suggestions(self, batch_size=None):
@@ -56,17 +57,39 @@ class AdaptiveEAAdvisor(EAAdvisor):
                 self.running_configs.append(next_config)
                 next_configs.append(next_config)
         else:
-            for nu in range(0, self.population_size):  # cross_over here
+            all_perf = [cur['perf'] for cur in self.population]
+            fmax = max(all_perf)
+            favg = np.mean(all_perf)
+            # cross_over here
+            for nu in range(0, self.population_size):
                 nv = self.population_size - nu - 1
                 if nu > nv:
                     break
+
+                # Adaptive pc here
+                fm = max(self.population[nu]['perf'], self.population[nv]['perf'])
+                if fm > favg:
+                    self.pc = self.k1 * (fmax - fm) / (fmax - favg)
+                else:
+                    self.pc = self.k2
+
                 if self.rng.random() < self.pc:
                     parent0, parent1 = self.population[nu]['config'], self.population[nv]['config']
                     next_config = self.cross_over(parent0, parent1)
                     self.all_configs.add(next_config)
                     self.running_configs.append(next_config)
                     next_configs.append(next_config)
-            for cur in self.population:  # mutation here
+
+            # mutation here
+            for cur in self.population:
+
+                #Adaptive pm here
+                fm = cur['perf']
+                if fm > favg:
+                    self.pm = self.k3 * (fmax - fm) / (fmax - favg)
+                else:
+                    self.pm = self.k4
+
                 if self.rng.random() < self.pm:
                     next_config = self.mutation(cur['config'])
                     self.all_configs.add(next_config)
@@ -108,7 +131,7 @@ class AdaptiveEAAdvisor(EAAdvisor):
 
         for i in range(len(self.config_space.keys())):
             if self.rng.random() < 0.5:
-                a1[i] = (a1[i] + a2[i]) * 0.5
+                a1[i] = a2[i]
             # a1[i] = a1[i] * (1.0 - cr) + a2[i] * cr
 
         return Configuration(self.config_space, vector=a1)

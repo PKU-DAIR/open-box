@@ -31,7 +31,7 @@ if __name__ == "__main__":
     )
 
     used = 1
-    MAX_RUNS = 50
+    MAX_RUNS = 100
     if used == 0:
         for i in range(MAX_RUNS):
             # ask
