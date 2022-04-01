@@ -128,10 +128,13 @@ class AdaptiveEAAdvisor(EAAdvisor):
 
     def cross_over(self, config_a: Configuration, config_b: Configuration):
         a1, a2 = config_a.get_array(), config_b.get_array()
-
-        for i in range(len(self.config_space.keys())):
-            if self.rng.random() < 0.5:
-                a1[i] = a2[i]
+        s_len = len(self.config_space.keys())
+        for i in range(s_len):
+            if s_len < 7:
+                a1[i] = (a1[i] + a2[i]) * 0.5
+            else:
+                if self.rng.random() < 0.5:
+                    a1[i] = a2[i]
             # a1[i] = a1[i] * (1.0 - cr) + a2[i] * cr
 
         return Configuration(self.config_space, vector=a1)

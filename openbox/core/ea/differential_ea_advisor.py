@@ -1,5 +1,3 @@
-# License: MIT
-
 import abc
 import numpy as np
 import random
@@ -22,8 +20,8 @@ from typing import *
 class DifferentialEAAdvisor(EAAdvisor):
 
     def __init__(self,
-                 f: Union[Tuple[float, float], float] = (0.1,0.9),
-                 cr: Union[Tuple[float, float], float] = 0.6,
+                 f: Union[Tuple[float, float], float] = 0.5,
+                 cr: Union[Tuple[float, float], float] = 0.8,
                  **kwargs):
         """
         f is the hyperparameter for DEA that X = A + (B - C) * f
@@ -41,18 +39,25 @@ class DifferentialEAAdvisor(EAAdvisor):
 
         self.running_origin_map = dict()
 
-        self.t = []
-        self.x = 0
+        self.next_population = [None for i in range(self.population_size)]
+
 
     def get_suggestion(self):
 
-        self.x += 1
+
         if len(self.population) < self.population_size:
             next_config = self.sample_random_config(excluded_configs=self.all_configs)
             nid = -1
 
-
         else:
+
+            if self.cur == 0:
+                for i in range(self.population_size):
+                   if self.next_population[i] is not None:
+                       if self.next_population[i]['perf'] < self.population[i]['perf']:
+                           self.population[i] = self.next_population[i]
+                # print(self.population)
+
             # Run one iteration of DEA if the population is filled.
 
             # xi is the current value.
@@ -62,11 +67,11 @@ class DifferentialEAAdvisor(EAAdvisor):
             # Randomly sample 3 other values: x1, x2, x3
             lst = list(range(self.population_size))
             lst.remove(self.cur)
-            random.seed(self.x)
             random.shuffle(lst)
-
             lst = lst[:3]
-            lst.sort(key=lambda a: self.population[a]['perf'], reverse=True)
+
+            if isinstance(self.f, tuple):
+                lst.sort(key=lambda a: self.population[a]['perf'])
 
             i1, i2, i3 = lst[0], lst[1], lst[2]
             x1, x2, x3 = self.population[i1]['config'], self.population[i2]['config'], self.population[i3]['config']
@@ -89,25 +94,27 @@ class DifferentialEAAdvisor(EAAdvisor):
             if isinstance(self.cr, tuple):
                 # Dynamic cr
                 scores = [a['perf'] for a in self.population]
-                scores_avg = sum(scores) / self.population_size
+                scores_avg = sum(scores) / len(scores)
 
-                if xi_score > scores_avg:
+                if xi_score < scores_avg:
                     scores_mx = max(scores)
                     scores_mn = min(scores)
-                    cr = self.cr[0] + (self.cr[1] - self.cr[0]) * (xi_score - scores_mn) / max(
+                    cr = self.cr[0] + (self.cr[1] - self.cr[0]) * (scores_mx - xi_score) / max(
                             scores_mx - scores_mn, 1e-10)
                 else:
                     cr = self.cr[0]
             else:
                 # Fixed cr
                 cr = self.cr
-            # print(cr)
+
             xn = self.cross_over(xi, xt, cr)
 
             # xn should be evaluated.
             # if xn is better than xi, we replace xi with xn.
 
-            next_config = xn  #Configuration(self.config_space, vector = xn)
+            # xn = get_one_exchange_neighbourhood(xi)
+
+            next_config = xn
             nid = self.cur
             self.cur = (self.cur + 1) % self.population_size
 
@@ -115,9 +122,9 @@ class DifferentialEAAdvisor(EAAdvisor):
         # nid keeps track of which xi that the xn should compare with.
         # nid == -1 indicates that this xn is randomly sampled.
         self.running_configs.append((next_config, nid))
-        # self.t.append((next_config.get_array(),self.x))
-        # self.t.sort(key=lambda a:a[0][0])
-        # print("\n".join(str(s) for s in self.t))
+
+        # print(self.x, next_config.get_array())
+
         return next_config
 
     def update_observation(self, observation: Observation):
@@ -145,8 +152,7 @@ class DifferentialEAAdvisor(EAAdvisor):
                 self.population.pop(-1)
             else:
                 # Compare xn with xi. If xn is better, replace xi with it.
-                if self.population[nid]['perf'] < perf:
-                    self.population[nid] = dict(config=config, age=self.age, perf=perf)
+                self.next_population[nid] = dict(config=config, age=self.age, perf=perf)
 
         return self.history_container.update_observation(observation)
 
@@ -165,7 +171,13 @@ class DifferentialEAAdvisor(EAAdvisor):
                 v = (round(new_array[i]) % hp_type.get_size() + hp_type.get_size()) % hp_type.get_size()
                 new_array[i] = v
             elif isinstance(hp_type, NumericalHyperparameter):
-                new_array[i] = max(0, min(new_array[i], 1))
+                # new_array[i] = max(0, min(new_array[i], 1))
+                if new_array[i] < 0:
+                    # new_array[i] = -new_array[i] / 2
+                    new_array[i] = random.random()
+                if new_array[i] > 1:
+                    # new_array[i] = 1 - (new_array[i] - 1) / 2
+                    new_array[i] = random.random()
             else:
                 pass
 
@@ -174,13 +186,20 @@ class DifferentialEAAdvisor(EAAdvisor):
 
     def cross_over(self, config_a: Configuration, config_b: Configuration, cr: float):
         """
-        The cross over operation.
+        The cross-over operation.
         For each element of config_a, it has cr possibility to be replaced with that of config_b.
         """
         a1, a2 = config_a.get_array(), config_b.get_array()
+        any_changed = False
 
         for i in range(len(self.config_space.keys())):
             if self.rng.random() < cr:
                 a1[i] = a2[i] # a1, a2 are vector copies, modification is ok.
+                any_changed = True
+
+        # Make sure cross-over changes at least one dimension.
+        if not any_changed:
+            i = self.rng.randint(0, len(self.config_space.keys()) - 1)
+            a1[i] = a2[i]
 
         return Configuration(self.config_space, vector=a1)
