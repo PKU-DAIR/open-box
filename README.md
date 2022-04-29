@@ -266,6 +266,7 @@ We appreciate all contributions and thank all the contributors!
 Targeting at openness and advancing AutoML ecosystems, we had also released few other open source projects.
 
 * [MindWare](https://github.com/PKU-DAIR/mindware): an open source system that provides end-to-end ML model training and inference capabilities.
+* [SGL](https://github.com/PKU-DAIR/SGL): a scalable graph learning toolkit for extremely large graph datasets.
 
 
 ---------------------
@@ -278,6 +279,11 @@ https://arxiv.org/abs/2106.00421
 **MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements**
 Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021, CCF-A).
 https://arxiv.org/abs/2012.03011
+
+
+**PaSca: a Graph Neural Architecture Search System under the Scalable Paradigm**
+Wentao Zhang, Yu Shen, Zheyu Lin, Yang Li, Xiaosen Li, Wen Ouyang, Yangyu Tao, Zhi Yang, and Bin Cui; The world wide web conference (WWW 2022, CCF-A, 🏆 Best Student Paper Award).
+https://arxiv.org/abs/2203.00638
 
 **Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale**
 Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Jixiang Li, Ji Liu, Ce Zhang, Bin Cui; The 48th International Conference on Very Large Data Bases (VLDB 2022, CCF-A).
