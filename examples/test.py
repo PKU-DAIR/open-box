@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from openbox import Advisor, sp, Observation, EA_Advisor
-from openbox.core.ea.nsga2_ea_advisor import NSGA2Advisor
+from openbox.core.ea.nsga2_ea_advisor import NSGA2EAdvisor
 from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
@@ -65,7 +65,7 @@ def branincurrin(config):
 objfunc_used = branincurrin
 
 if __name__ == "__main__":
-    advisor = NSGA2Advisor(
+    advisor = NSGA2EAdvisor(
         config_space = space,
         task_id='default_task_id',
     )
