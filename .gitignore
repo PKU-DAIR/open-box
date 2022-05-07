@@ -1,0 +1,45 @@
+# setup.py
+build
+dist
+*.egg*
+
+# Python
+*.pyc
+*.pyo
+
+# IDEs
+.idea
+.vscode
+
+# MACOSX
+.DS_Store
+
+# Eclipse files
+.pydevproject
+.project
+
+# Log files.
+logs/
+
+# TensorboardX files.
+runs/
+
+# Jupyter checkpoint files.
+test/.ipynb_checkpoints/
+
+# Other
+.tox
+.coverage
+.pypirc
+.ipynb_checkpoints/
+*~
+.html/
+.mypy_cache/
+
+docs/build/
+
+conf/*
+!conf/template/
+
+openbox/artifact/db.sqlite3
+nohup.out
