@@ -1,0 +1,57 @@
+[INFO] [2022-03-13 16:03:28,930] [Advisor] === [BO auto selection] === surrogate_type: gp. acq_type: ei. acq_optimizer_type: random_scipy.
+[INFO] [2022-03-13 16:03:28,951] [OpenBox-hp1] Iteration 1, objective value: (55.602112642270264,).
+[INFO] [2022-03-13 16:03:28,951] [OpenBox-hp1] Iteration 2, objective value: (152.08308921307213,).
+[INFO] [2022-03-13 16:03:28,951] [OpenBox-hp1] Iteration 3, objective value: (3.1177458546960715,).
+[INFO] [2022-03-13 16:03:28,952] [Advisor] Sample random config. rand_prob=0.100000.
+[INFO] [2022-03-13 16:03:28,952] [OpenBox-hp1] Iteration 4, objective value: (18.58227390207587,).
+[INFO] [2022-03-13 16:03:29,350] [OpenBox-hp1] Iteration 5, objective value: (2.180276299095338,).
+[INFO] [2022-03-13 16:03:29,720] [OpenBox-hp1] Iteration 6, objective value: (22.33706300769886,).
+[INFO] [2022-03-13 16:03:29,992] [OpenBox-hp1] Iteration 7, objective value: (3.5578030576892417,).
+[INFO] [2022-03-13 16:03:30,310] [OpenBox-hp1] Iteration 8, objective value: (168.44166528874106,).
+[INFO] [2022-03-13 16:03:30,604] [OpenBox-hp1] Iteration 9, objective value: (9.633020230952086,).
+[INFO] [2022-03-13 16:03:31,003] [OpenBox-hp1] Iteration 10, objective value: (20.476786765597748,).
+[INFO] [2022-03-13 16:03:31,277] [OpenBox-hp1] Iteration 11, objective value: (172.2704843592694,).
+[INFO] [2022-03-13 16:03:31,561] [OpenBox-hp1] Iteration 12, objective value: (5.097497383602712,).
+[INFO] [2022-03-13 16:03:31,910] [OpenBox-hp1] Iteration 13, objective value: (7.654310863666441,).
+[INFO] [2022-03-13 16:03:31,910] [Advisor] Sample random config. rand_prob=0.100000.
+[INFO] [2022-03-13 16:03:31,910] [OpenBox-hp1] Iteration 14, objective value: (1.5068154875890603,).
+[INFO] [2022-03-13 16:03:32,219] [OpenBox-hp1] Iteration 15, objective value: (10.960889035651505,).
+[INFO] [2022-03-13 16:03:32,537] [OpenBox-hp1] Iteration 16, objective value: (14.67183387052727,).
+[INFO] [2022-03-13 16:03:32,854] [OpenBox-hp1] Iteration 17, objective value: (0.5893767812371511,).
+[INFO] [2022-03-13 16:03:33,315] [OpenBox-hp1] Iteration 18, objective value: (2.5780405554954733,).
+[INFO] [2022-03-13 16:03:33,315] [Advisor] Sample random config. rand_prob=0.100000.
+[INFO] [2022-03-13 16:03:33,315] [OpenBox-hp1] Iteration 19, objective value: (15.02152922155826,).
+[INFO] [2022-03-13 16:03:33,652] [OpenBox-hp1] Iteration 20, objective value: (2.8110844233549255,).
+[INFO] [2022-03-13 16:03:34,057] [OpenBox-hp1] Iteration 21, objective value: (4.303012424784132,).
+[INFO] [2022-03-13 16:03:34,426] [OpenBox-hp1] Iteration 22, objective value: (1.02523860292251,).
+[INFO] [2022-03-13 16:03:34,818] [OpenBox-hp1] Iteration 23, objective value: (0.9933012274609041,).
+[INFO] [2022-03-13 16:03:35,144] [OpenBox-hp1] Iteration 24, objective value: (0.4056980575329394,).
+[INFO] [2022-03-13 16:03:35,144] [Advisor] Sample random config. rand_prob=0.100000.
+[INFO] [2022-03-13 16:03:35,144] [OpenBox-hp1] Iteration 25, objective value: (125.96964672567246,).
+[INFO] [2022-03-13 16:03:35,575] [OpenBox-hp1] Iteration 26, objective value: (0.8211479536430613,).
+[INFO] [2022-03-13 16:03:35,882] [OpenBox-hp1] Iteration 27, objective value: (0.5561906934670642,).
+[INFO] [2022-03-13 16:03:36,217] [OpenBox-hp1] Iteration 28, objective value: (0.5484836334668124,).
+[INFO] [2022-03-13 16:03:36,541] [OpenBox-hp1] Iteration 29, objective value: (0.4880011394066148,).
+[INFO] [2022-03-13 16:03:36,893] [OpenBox-hp1] Iteration 30, objective value: (0.40591964157844984,).
+[INFO] [2022-03-13 16:03:37,248] [OpenBox-hp1] Iteration 31, objective value: (0.40472330915454613,).
+[INFO] [2022-03-13 16:03:37,800] [OpenBox-hp1] Iteration 32, objective value: (0.43150940855497666,).
+[INFO] [2022-03-13 16:03:38,202] [OpenBox-hp1] Iteration 33, objective value: (0.522749953029015,).
+[INFO] [2022-03-13 16:03:38,446] [OpenBox-hp1] Iteration 34, objective value: (0.3999085119432362,).
+[INFO] [2022-03-13 16:03:38,874] [OpenBox-hp1] Iteration 35, objective value: (6.734545786217874,).
+[INFO] [2022-03-13 16:03:39,279] [OpenBox-hp1] Iteration 36, objective value: (0.4041491310716605,).
+[INFO] [2022-03-13 16:03:39,279] [Advisor] Sample random config. rand_prob=0.100000.
+[INFO] [2022-03-13 16:03:39,280] [OpenBox-hp1] Iteration 37, objective value: (104.10743964363431,).
+[INFO] [2022-03-13 16:03:39,640] [OpenBox-hp1] Iteration 38, objective value: (0.40414569295824343,).
+[INFO] [2022-03-13 16:03:40,096] [OpenBox-hp1] Iteration 39, objective value: (0.41046686734117444,).
+[INFO] [2022-03-13 16:03:40,714] [OpenBox-hp1] Iteration 40, objective value: (0.4053725216760089,).
+[INFO] [2022-03-13 16:03:41,117] [OpenBox-hp1] Iteration 41, objective value: (0.3983124678358472,).
+[INFO] [2022-03-13 16:03:41,117] [Advisor] Sample random config. rand_prob=0.100000.
+[INFO] [2022-03-13 16:03:41,117] [OpenBox-hp1] Iteration 42, objective value: (84.96606956920037,).
+[INFO] [2022-03-13 16:03:41,519] [OpenBox-hp1] Iteration 43, objective value: (0.3978889375250336,).
+[INFO] [2022-03-13 16:03:41,961] [OpenBox-hp1] Iteration 44, objective value: (0.4370470168743701,).
+[INFO] [2022-03-13 16:03:42,537] [OpenBox-hp1] Iteration 45, objective value: (0.39831250020958464,).
+[INFO] [2022-03-13 16:03:42,936] [OpenBox-hp1] Iteration 46, objective value: (0.5050818547353444,).
+[INFO] [2022-03-13 16:03:43,373] [OpenBox-hp1] Iteration 47, objective value: (0.4217029385240121,).
+[INFO] [2022-03-13 16:03:43,900] [OpenBox-hp1] Iteration 48, objective value: (0.4325387710331352,).
+[INFO] [2022-03-13 16:03:44,359] [OpenBox-hp1] Iteration 49, objective value: (0.9088230026226345,).
+[INFO] [2022-03-13 16:03:44,820] [OpenBox-hp1] Iteration 50, objective value: (0.5081366351753598,).

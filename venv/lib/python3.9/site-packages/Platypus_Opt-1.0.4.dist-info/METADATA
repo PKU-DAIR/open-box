@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: Platypus-Opt
+Version: 1.0.4
+Summary: Multiobjective optimization in Python
+Home-page: https://github.com/Project-Platypus/Platypus
+Author: David Hadka
+Author-email: dhadka@users.noreply.github.com
+License: GNU GPL version 3
+Platform: UNKNOWN
+Requires-Dist: six
+
+UNKNOWN
+
+

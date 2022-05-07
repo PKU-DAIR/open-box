@@ -1,0 +1,64 @@
+Metadata-Version: 2.1
+Name: ConfigSpace
+Version: 0.4.21
+Summary: Creation and manipulation of parameter configuration spaces for automated algorithm configuration and hyperparameter tuning.
+Home-page: https://github.com/automl/ConfigSpace
+Author: ('Matthias Feurer, Katharina Eggensperger, Syed Mohsin Ali, Christina Hernandez Wunsch, Julien-Charles Levesque, Jost Tobias Springenberg, Philipp MuellerMarius Lindauer, Jorn Tuyls',)
+Author-email: feurerm@informatik.uni-freiburg.de
+License: BSD 3-clause
+Keywords: algorithm configuration hyperparameter optimization empirical evaluation black box
+Platform: Linux
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Development Status :: 4 - Beta
+Classifier: Natural Language :: English
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Education
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Software Development
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: cython
+Requires-Dist: pyparsing
+Requires-Dist: scipy
+Provides-Extra: docs
+Requires-Dist: sphinx ; extra == 'docs'
+Requires-Dist: sphinx-gallery ; extra == 'docs'
+Requires-Dist: sphinx-bootstrap-theme ; extra == 'docs'
+Requires-Dist: numpydoc ; extra == 'docs'
+Provides-Extra: test
+Requires-Dist: pytest (>=4.6) ; extra == 'test'
+Requires-Dist: mypy ; extra == 'test'
+Requires-Dist: pre-commit ; extra == 'test'
+Requires-Dist: pytest-cov ; extra == 'test'
+
+# ConfigSpace
+
+A simple Python/Cython module implementing a domain specific language to manage 
+configuration spaces for algorithm configuration and hyperparameter optimization tasks.  
+Distributed under BSD 3-clause, see LICENSE except all files in the directory
+ConfigSpace.nx, which are copied from the networkx package and licensed
+under a BSD license.
+
+The documentation can be found at [https://automl.github.io/ConfigSpace/master/](https://automl.github.io/ConfigSpace/master/).
+Further examples can be found in the [SMAC documentation](https://automl.github.io/SMAC3/master/pages/examples/index.html).
+
+## Citing the ConfigSpace
+
+```bibtex
+@article{
+    title   = {BOAH: A Tool Suite for Multi-Fidelity Bayesian Optimization & Analysis of Hyperparameters},
+    author  = {M. Lindauer and K. Eggensperger and M. Feurer and A. Biedenkapp and J. Marben and P. Müller and F. Hutter},
+    journal = {arXiv:1908.06756 {[cs.LG]}},
+    date    = {2019},
+}
+```
+
+
