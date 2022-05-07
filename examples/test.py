@@ -3,10 +3,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from openbox import Advisor, sp, Observation, EA_Advisor
+from openbox.core.ea.nsga2_ea_advisor import NSGA2Advisor
 from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
-
+from openbox.benchmark.objective_functions.synthetic import BraninCurrin
 
 # Define Search Space
 # space = sp.Space()
@@ -49,18 +50,27 @@ def rastrigin(config):
         y += (xi ** 2) - 10 * np.cos(2 * np.pi * xi)
     return {'objs': (y,)}
 
+def branincurrin(config):
+    x1, x2 = config['x1'], config['x2']
+    y1 = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
+        + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
+    y2 = (1 - np.exp(-1 / (2 * x2))) * (2300 * x1 ** 3 + 1900 * x1 ** 2 + 2092 * x1 + 60) \
+         / (100 * x1 ** 3 + 500 * x1 ** 2 + 4 * x1 + 20)
+    ret = {}
+    ret['objs'] = [y1, y2]
+    return ret
 
 # Run
 
-objfunc_used = rastrigin
+objfunc_used = branincurrin
 
 if __name__ == "__main__":
-    advisor = RegularizedEAAdvisor(
+    advisor = NSGA2Advisor(
         config_space = space,
         task_id='default_task_id',
     )
 
-    used = 0
+    used = 1
     MAX_RUNS = 1000
     if used == 0:
         for i in range(MAX_RUNS):
@@ -73,7 +83,8 @@ if __name__ == "__main__":
             advisor.update_observation(observation)
             print('===== ITER %d/%d: %s.' % (i+1, MAX_RUNS, observation))
     else:
-        for i in range(MAX_RUNS // 7):
+        MAX_RUNS //= 40
+        for i in range(MAX_RUNS):
             # ask
             configs = advisor.get_suggestions()
             observations = []

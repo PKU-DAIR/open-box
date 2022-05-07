@@ -11,35 +11,61 @@ from openbox.utils.config_space import get_one_exchange_neighbourhood
 from openbox.core.base import Observation
 
 
+from openbox.core.ea.base_ea_advisor import constraint_check, Individual
+
+
 from ConfigSpace import Configuration
 from ConfigSpace.hyperparameters import *
 
 from typing import *
 
-
 class DifferentialEAAdvisor(EAAdvisor):
 
     def __init__(self,
+
+                 config_space,
+                 num_objs=1,
+                 num_constraints=0,
+                 population_size=30,
+                 optimization_strategy='ea',
+                 batch_size=1,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None,
+
+                 constraint_strategy='discard',
+
                  f: Union[Tuple[float, float], float] = 0.5,
-                 cr: Union[Tuple[float, float], float] = 0.8,
-                 **kwargs):
+                 cr: Union[Tuple[float, float], float] = 0.9,
+                 ):
         """
         f is the hyperparameter for DEA that X = A + (B - C) * f
         cr is the cross rate
         f and cr may be a tuple of two floats, such as (0.1,0.9)
         If so, these two values are adjusted automatically within this range.
         """
-        EAAdvisor.__init__(self, **kwargs)
+        EAAdvisor.__init__(self, config_space, num_objs=num_objs, num_constraints=num_constraints,
+                           population_size=population_size, optimization_strategy=optimization_strategy,
+                           batch_size=batch_size, output_dir=output_dir, task_id=task_id, random_state=random_state,
+                           )
+
+        self.constraint_strategy = constraint_strategy
+        assert self.constraint_strategy in {'discard'}
 
         self.f = f
         self.cr = cr
+
+        self.dynamic_f = isinstance(f, tuple)
+        self.dynamic_cr = isinstance(cr, tuple)
+
+        assert self.num_objs == 1 or not (self.dynamic_f or self.dynamic_cr)
 
         self.iter = None
         self.cur = 0
 
         self.running_origin_map = dict()
 
-        self.next_population = [None for i in range(self.population_size)]
+        self.next_population: List[Optional[Individual]] = [None for i in range(self.population_size)]
 
 
     def get_suggestion(self):
@@ -51,11 +77,20 @@ class DifferentialEAAdvisor(EAAdvisor):
 
         else:
 
-            if self.cur == 0:
-                for i in range(self.population_size):
-                   if self.next_population[i] is not None:
-                       if self.next_population[i]['perf'] < self.population[i]['perf']:
-                           self.population[i] = self.next_population[i]
+            if self.next_population[self.cur] is not None:
+                nones = [x for x in range(len(self.next_population)) if self.next_population[x] is None]
+                if nones:
+                    self.cur = nones[0]
+                else:
+                    if self.num_objs == 1:
+                        for i in range(self.population_size):
+                            if self.next_population[i] is not None:
+                                if self.next_population[i].perf_1d() < self.population[i].perf_1d():
+                                    self.population[i] = self.next_population[i]
+                    else:
+                        pass
+                        # Pareto Sort
+
                 # print(self.population)
 
             # Run one iteration of DEA if the population is filled.
@@ -70,14 +105,14 @@ class DifferentialEAAdvisor(EAAdvisor):
             random.shuffle(lst)
             lst = lst[:3]
 
-            if isinstance(self.f, tuple):
+            if self.dynamic_f:
                 lst.sort(key=lambda a: self.population[a]['perf'])
 
             i1, i2, i3 = lst[0], lst[1], lst[2]
             x1, x2, x3 = self.population[i1]['config'], self.population[i2]['config'], self.population[i3]['config']
 
             # Mutation: xt = x1 + (x2 - x3) * f
-            if isinstance(self.f, tuple):
+            if self.dynamic_f:
                 # Dynamic f
                 f1, f2, f3 = self.population[i1]['perf'], self.population[i2]['perf'], self.population[i3]['perf']
                 if f1 == f3:
@@ -91,7 +126,7 @@ class DifferentialEAAdvisor(EAAdvisor):
             xt = self.mutate(x1, x2, x3, f)
 
             # Cross over between xi and xt, get xn
-            if isinstance(self.cr, tuple):
+            if self.dynamic_cr:
                 # Dynamic cr
                 scores = [a['perf'] for a in self.population]
                 scores_avg = sum(scores) / len(scores)
@@ -130,6 +165,7 @@ class DifferentialEAAdvisor(EAAdvisor):
     def update_observation(self, observation: Observation):
 
         config = observation.config
+        constraint = constraint_check(observation.constraints)
         perf = observation.objs[0]
         trial_state = observation.trial_state
 
@@ -141,18 +177,23 @@ class DifferentialEAAdvisor(EAAdvisor):
         self.running_configs.remove((config,nid))
 
         if trial_state == SUCCESS and perf < MAXINT:
+
+            if not constraint:
+                if self.constraint_strategy == 'discard':
+                    return self.history_container.update_observation(observation)
+
             if nid == -1 and len(self.population) < self.population_size:
                 # The population has not yet been filled.
-                self.population.append(dict(config=config, age=self.age, perf=perf))
+                self.population.append(Individual(config=config, age=self.age, perf=perf, constraints_satisfied=constraint))
             elif nid == -1:
                 # The population has been filled, but more configs are generated while it was not filled.
                 # In this case, simply replace the worst one with it.
-                self.population.append(dict(config=config, age=self.age, perf=perf))
+                self.population.append(Individual(config=config, age=self.age, perf=perf, constraints_satisfied=constraint))
                 self.population.sort(key=lambda x: x['perf'])
                 self.population.pop(-1)
             else:
                 # Compare xn with xi. If xn is better, replace xi with it.
-                self.next_population[nid] = dict(config=config, age=self.age, perf=perf)
+                self.next_population[nid] = Individual(config=config, age=self.age, perf=perf, constraints_satisfied=constraint)
 
         return self.history_container.update_observation(observation)
 
@@ -197,7 +238,7 @@ class DifferentialEAAdvisor(EAAdvisor):
                 a1[i] = a2[i] # a1, a2 are vector copies, modification is ok.
                 any_changed = True
 
-        # Make sure cross-over changes at least one dimension.
+        # Make sure cross-over changes at least one dimension. Otherwise it makes no sense.
         if not any_changed:
             i = self.rng.randint(0, len(self.config_space.keys()) - 1)
             a1[i] = a2[i]

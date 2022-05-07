@@ -12,6 +12,7 @@ from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
 from openbox.core.base import Observation
 
+from openbox.core.ea.base_ea_advisor import Individual, constraint_check
 
 
 class RegularizedEAAdvisor(EAAdvisor, metaclass=abc.ABCMeta):
@@ -21,31 +22,38 @@ class RegularizedEAAdvisor(EAAdvisor, metaclass=abc.ABCMeta):
 
     def __init__(self,
 
-                 # config_space,
-                 # num_objs=1,
-                 # num_constraints=0,
-                 # population_size=30,
-                 # optimization_strategy='ea',
-                 # batch_size=1,
-                 # output_dir='logs',
-                 # task_id='default_task_id',
-                 # random_state=None,
+                 config_space,
+                 num_objs=1,
+                 num_constraints=0,
+                 population_size=30,
+                 optimization_strategy='ea',
+                 batch_size=1,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None,
+
+                 constraint_strategy='discard',
 
                  subset_size=20,
                  epsilon=0.2,
                  strategy='worst',
-                 **kwargs):
-                 # I checked everywhere this constructor is called, and
-                 # It's OK to use kwargs here and pass them to the super-constructor.
+                 ):
 
-        EAAdvisor.__init__(self, **kwargs)
+
+        EAAdvisor.__init__(self, config_space, num_objs=num_objs, num_constraints=num_constraints,
+                           population_size=population_size, optimization_strategy=optimization_strategy,
+                           batch_size=batch_size, output_dir=output_dir, task_id=task_id, random_state=random_state,
+                           )
+
+        assert num_objs == 1
+        assert constraint_strategy == 'discard'
+        self.constraint_strategy = constraint_strategy
 
         self.subset_size = subset_size
         assert 0 < self.subset_size <= self.population_size
         self.epsilon = epsilon
         self.strategy = strategy
         assert self.strategy in ['worst', 'oldest']
-
 
     def get_suggestion(self):
         """
@@ -70,6 +78,7 @@ class RegularizedEAAdvisor(EAAdvisor, metaclass=abc.ABCMeta):
                 parent_config = random.sample(self.population, 1)[0]['config']
             else:
                 subset = random.sample(self.population, self.subset_size)
+
                 subset.sort(key=lambda x: x['perf'])  # minimize
                 parent_config = subset[0]['config']
 
@@ -87,7 +96,6 @@ class RegularizedEAAdvisor(EAAdvisor, metaclass=abc.ABCMeta):
         self.running_configs.append(next_config)
         return next_config
 
-
     def update_observation(self, observation: Observation):
         """
         Update the current observations.
@@ -102,6 +110,7 @@ class RegularizedEAAdvisor(EAAdvisor, metaclass=abc.ABCMeta):
 
         config = observation.config
         perf = observation.objs[0]
+        constraint = constraint_check(observation.constraints)
         trial_state = observation.trial_state
 
         assert config in self.running_configs
@@ -109,9 +118,11 @@ class RegularizedEAAdvisor(EAAdvisor, metaclass=abc.ABCMeta):
 
         # update population
         if trial_state == SUCCESS and perf < MAXINT:
-            self.population.append(dict(config=config, age=self.age, perf=perf))
+            self.population.append(Individual(config=config, age=self.age, perf=perf, constraints_satisfied=constraint))
             self.age += 1
 
+        if not constraint:
+            return self.history_container.update_observation(observation)
         # Eliminate samples
         if len(self.population) > self.population_size:
             if self.strategy == 'oldest':
