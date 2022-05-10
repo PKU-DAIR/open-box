@@ -1,15 +1,12 @@
 # License: MIT
 
-import numpy as np
 import matplotlib.pyplot as plt
-from openbox import Advisor, sp, Observation
-from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
-from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
+from openbox import Observation
 from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
 from openbox.core.ea.cmaes_ea_advisor import CMAESEAAdvisor
 from openbox.core.ea.nsga2_ea_advisor import NSGA2EAdvisor
-
 from openbox.benchmark.objective_functions.synthetic import *
+
 
 # Define Objective Function
 def branin(config):
@@ -17,6 +14,7 @@ def branin(config):
     y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
         + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
     return {'objs': (y,)}
+
 
 # Define Search Space
 """space = sp.Space()
@@ -32,17 +30,16 @@ space = function.config_space
 if __name__ == "__main__":
     advisors = [CMAESEAAdvisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
-    ),NSGA2EAdvisor(
+        num_objs = 2,
+        task_id = 'default_task_id',
+    ), NSGA2EAdvisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
+        num_objs = 2,
+        task_id = 'default_task_id',
     )]
 
     res = function(space.sample_configuration())
     dim = len(res['objs'])
-
 
     axes = None
     histories = []
@@ -62,7 +59,6 @@ if __name__ == "__main__":
             advisor.update_observation(observation)
             print('===== ITER %d/%d.' % (i+1, MAX_RUNS))
 
-
         history = advisor.get_history()
         histories.append(history.get_incumbents())
 
@@ -77,10 +73,9 @@ if __name__ == "__main__":
         plt.legend()
         plt.show()
 
-    for i,h in enumerate(histories):
+    for i, h in enumerate(histories):
         print(advisors[i].__class__)
         print(h)
-
 
     # install pyrfr to use get_importance()
     # print(history.get_importance())
