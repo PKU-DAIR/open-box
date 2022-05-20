@@ -48,7 +48,7 @@ The design of OpenBox follows the following principles:
 ## News
 + OpenBox based solutions achieved the First Place of [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup) (Track - Automated Hyperparameter Optimization of Recommendation System).
 + OpenBox team won the Top Prize (special prize) in the open-source innovation competition at [2021 CCF ChinaSoft](http://chinasoft.ccf.org.cn/papers/chinasoft.html) conference.
-+ [Pasca](https://github.com/PKU-DAIR/SGL), which adopt Openbox to support neural architecture search functionality, won the Best Student Paper Award at WWW'21.
++ [Pasca](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search functionality, won the Best Student Paper Award at WWW'21.
 
 ## OpenBox Capabilities in a Glance
 <table>
