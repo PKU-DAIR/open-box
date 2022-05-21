@@ -259,8 +259,7 @@ We appreciate all contributions and thank all the contributors!
 
 ## **Feedback**
 * [File an issue](https://github.com/PKU-DAIR/open-box/issues) on GitHub.
-* Email us via *liyang.cs@pku.edu.cn*.
-
+* Email us via [*Yang Li*](https://thomas-young-2013.github.io/) or *shenyu@pku.edu.cn*.
 
 ## Related Projects
 
