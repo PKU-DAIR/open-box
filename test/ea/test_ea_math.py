@@ -2,6 +2,8 @@
 
 import matplotlib.pyplot as plt
 from openbox import Observation
+from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
+from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
 from openbox.core.ea.cmaes_ea_advisor import CMAESEAAdvisor
 from openbox.core.ea.nsga2_ea_advisor import NSGA2EAdvisor
@@ -22,19 +24,26 @@ x1 = sp.Real("x1", -5, 10, default_value=0)
 x2 = sp.Real("x2", 0, 15, default_value=0)
 space.add_variables([x1, x2])"""
 
-function = BraninCurrin()
+function = Rosenbrock()
 space = function.config_space
 
 
 # Run
 if __name__ == "__main__":
-    advisors = [CMAESEAAdvisor(
+    advisors = [AdaptiveEAAdvisor(
         config_space = space,
-        num_objs = 2,
+        task_id = 'default_task_id',
+    ), DifferentialEAAdvisor(
+        config_space = space,
+        task_id = 'default_task_id',
+    ), RegularizedEAAdvisor(
+        config_space = space,
+        task_id = 'default_task_id',
+    ), CMAESEAAdvisor(
+        config_space = space,
         task_id = 'default_task_id',
     ), NSGA2EAdvisor(
         config_space = space,
-        num_objs = 2,
         task_id = 'default_task_id',
     )]
 
@@ -47,7 +56,7 @@ if __name__ == "__main__":
     MAX_RUNS = 2000
     for advisor in advisors:
         print("Now running" + str(advisor.__class__))
-        m = MAX_RUNS // 8 if isinstance(advisor,AdaptiveEAAdvisor) else MAX_RUNS
+        m = MAX_RUNS // 8 if isinstance(advisor, AdaptiveEAAdvisor) else MAX_RUNS
 
         for i in range(m):
             # ask
@@ -73,7 +82,7 @@ if __name__ == "__main__":
         plt.legend()
         plt.show()
 
-    for i, h in enumerate(histories):
+    for i,h in enumerate(histories):
         print(advisors[i].__class__)
         print(h)
 
