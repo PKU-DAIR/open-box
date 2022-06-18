@@ -255,16 +255,23 @@ if __name__ == "__main__":
 
 ## **Enterprise Users**
 <p align="left">
-<img src="docs/imgs/logo_kuaishou.png" width="35%">
+<img src="docs/imgs/logo_tencent.png" width="35%">
 </p>
 
-* [Kuaishou Technology](https://www.kuaishou.com/en)
+* [Tencent Inc.](https://www.tencent.com/en-us/)
 
 <p align="left">
 <img src="docs/imgs/logo_alibaba.png" width="35%">
 </p>
 
 * [Alibaba Group](https://www.alibabagroup.com/en/global/home)
+
+<p align="left">
+<img src="docs/imgs/logo_kuaishou.png" width="35%">
+</p>
+
+* [Kuaishou Technology](https://www.kuaishou.com/en)
+
 
 
 ## **Releases and Contributing**
@@ -294,20 +301,27 @@ Targeting at openness and advancing AutoML ecosystems, we had also released few 
 ---------------------
 ## **Related Publications**
 
-**OpenBox: A Generalized Black-box Optimization Service**
+**OpenBox: A Generalized Black-box Optimization Service.**
 Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2021, CCF-A).
 https://arxiv.org/abs/2106.00421
 
-**MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements**
+**MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements.**
 Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021, CCF-A).
 https://arxiv.org/abs/2012.03011
 
+**Transfer Learning based Search Space Design for Hyperparameter Tuning.**
+Yang Li, Yu Shen, Huaijun Jiang, Tianyi Bai, Wentao Zhang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2022, CCF-A).
+https://arxiv.org/abs/2206.02511
 
-**PaSca: a Graph Neural Architecture Search System under the Scalable Paradigm**
+**TransBO: Hyperparameter Optimization via Two-Phase Transfer Learning.**
+Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Zhi Yang, Ce Zhang, Bin Cui; ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD 2022, CCF-A).
+https://arxiv.org/abs/2206.02663
+
+**PaSca: a Graph Neural Architecture Search System under the Scalable Paradigm.**
 Wentao Zhang, Yu Shen, Zheyu Lin, Yang Li, Xiaosen Li, Wen Ouyang, Yangyu Tao, Zhi Yang, and Bin Cui; The world wide web conference (WWW 2022, CCF-A, 🏆 Best Student Paper Award).
 https://arxiv.org/abs/2203.00638
 
-**Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale**
+**Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale.**
 Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Jixiang Li, Ji Liu, Ce Zhang, Bin Cui; The 48th International Conference on Very Large Data Bases (VLDB 2022, CCF-A).
 https://arxiv.org/abs/2201.06834
 
