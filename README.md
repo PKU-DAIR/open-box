@@ -98,17 +98,39 @@ The design of OpenBox follows the following principles:
       </td>
       <td align="left" >
         <ul>
-        <li><b>Random Search</b></li>
-        <li><b>SMAC</b></li>
-        <li><b>GP based Optimizer</b></li>
-        <li><b>TPE</b></li>
-        <li><b>Hyperband</b></li>
-        <li><b>BOHB</b></li>
-        <li><b>MFES-HB</b></li>
-        <li><b>Anneal</b></li>
-        <li><b>PBT</b></li>
-        <li><b>Regularized EA</b></li>
-        <li><b>NSGA-II</b></li>
+        <li><b>Bayesian Optimization</b></li>
+        <ul>
+            <li>GP-based BO</li>
+            <li>SMAC</li>
+            <li>TPE</li>
+            </ul>
+        </ul>
+        <ul>
+        <li><b>Multi-fidelity Optimization</b></li>
+        <ul>
+            <li>Hyperband</li>
+            <li>BOHB</li>
+            <li>MFES-HB</li>
+            </ul>
+        </ul>
+        <ul>
+        <li><b>Evaluationary Algorithms</b></li>
+        <ul>
+            <li>Surrogate-assisted EA</li>
+            <li>Regularized EA</li>
+            <li>Adaptive EA</li>
+            <li>Differential EA</li>
+            <li>CMA-ES</li>
+            <li>NSGA-II</li>
+            </ul>
+        </ul>
+        <ul>
+        <li><b>Others</b></li>
+        <ul>
+            <li>Anneal</li>
+            <li>PBT</li>
+            <li>Random Search</li>
+            </ul>
         </ul>
       </td>
       <td>
