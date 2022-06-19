@@ -6,7 +6,6 @@ from typing import *
 
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
-
 from openbox.core.ea.base_ea_advisor import *
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.constants import MAXINT, SUCCESS
@@ -15,27 +14,28 @@ from openbox.utils.constants import MAXINT, SUCCESS
 class ModularEAAdvisor(EAAdvisor):
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs=1,
-                 num_constraints=0,
-                 population_size=None,
-                 optimization_strategy='ea',
-                 batch_size=1,
-                 output_dir='logs',
-                 task_id='default_task_id',
-                 random_state=None,
+                 num_objs = 1,
+                 num_constraints = 0,
+                 population_size = None,
+                 optimization_strategy = 'ea',
+                 batch_size = 1,
+                 output_dir = 'logs',
+                 task_id = 'default_task_id',
+                 random_state = None,
 
                  required_evaluation_count: Optional[int] = None,
-                 auto_step=True,
-                 strict_auto_step=True,
-                 skip_gen_population=False,
+                 auto_step = True,
+                 strict_auto_step = True,
+                 skip_gen_population = False,
                  filter_gen_population: Optional[Callable[[List[Configuration]], List[Configuration]]] = None,
-                 keep_unexpected_population=True,
-                 save_cached_configuration=True
+                 keep_unexpected_population = True,
+                 save_cached_configuration = True
                  ):
 
-        EAAdvisor.__init__(self, config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
-                           population_size=population_size, optimization_strategy=optimization_strategy,
-                           batch_size=batch_size, output_dir=output_dir, task_id=task_id, random_state=random_state,
+        EAAdvisor.__init__(self, config_space = config_space, num_objs = num_objs, num_constraints = num_constraints,
+                           population_size = population_size, optimization_strategy = optimization_strategy,
+                           batch_size = batch_size, output_dir = output_dir, task_id = task_id,
+                           random_state = random_state,
                            )
 
         self.expected_evaluation_count = required_evaluation_count \
@@ -56,7 +56,7 @@ class ModularEAAdvisor(EAAdvisor):
     def generated_count(self) -> int:
         return len(self.cached_config) + len(self.uneval_config) + len(self.next_population)
 
-    def _gen(self, count=1) -> List[Configuration]:
+    def _gen(self, count = 1) -> List[Configuration]:
         raise NotImplementedError
 
     def _could_sel(self) -> bool:
@@ -65,7 +65,7 @@ class ModularEAAdvisor(EAAdvisor):
     def _sel(self, parent: List[Individual], sub: List[Individual]) -> List[Individual]:
         raise NotImplementedError
 
-    def gen(self, count=None):
+    def gen(self, count = None):
         if count is None:
             count = self.expected_evaluation_count - len(self.cached_config)
 
@@ -99,12 +99,11 @@ class ModularEAAdvisor(EAAdvisor):
             self.uneval_config.clear()
 
     def get_suggestion(self) -> Configuration:
-        return self.get_suggestions(batch_size=1)[0]
+        return self.get_suggestions(batch_size = 1)[0]
 
-    def get_suggestions(self, batch_size=1) -> List[Configuration]:
+    def get_suggestions(self, batch_size = 1) -> List[Configuration]:
         if len(self.cached_config) < self.batch_size:
             self.gen(self.expected_evaluation_count)
-
 
         batch_size = min(batch_size, len(self.cached_config))
         res = self.cached_config[:batch_size]
@@ -125,6 +124,7 @@ class ModularEAAdvisor(EAAdvisor):
             self.history_container.update_observation(observation)
 
             pop = as_individual(observation)
+            # pop = Individual(observation.config, observation.objs)
 
             found = pop.config in self.uneval_config
             if found:

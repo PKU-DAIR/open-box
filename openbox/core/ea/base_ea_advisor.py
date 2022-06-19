@@ -24,14 +24,14 @@ class EAAdvisor(abc.ABC):
     """
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs=1,
-                 num_constraints=0,
-                 population_size=30,
-                 optimization_strategy='ea',
-                 batch_size=1,
-                 output_dir='logs',
-                 task_id='default_task_id',
-                 random_state=None):
+                 num_objs = 1,
+                 num_constraints = 0,
+                 population_size = 30,
+                 optimization_strategy = 'ea',
+                 batch_size = 1,
+                 output_dir = 'logs',
+                 task_id = 'default_task_id',
+                 random_state = None):
 
         # System Settings.
 
@@ -60,13 +60,13 @@ class EAAdvisor(abc.ABC):
         self.age = 0
         self.population: List[Union[Dict, Individual]] = list()
         self.population_size = population_size
+        assert self.population_size is not None
 
         # init history container
         if num_objs == 1:
-            self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
+            self.history_container = HistoryContainer(task_id, self.num_constraints, config_space = self.config_space)
         else:
             self.history_container = MOHistoryContainer(task_id, self.num_objs, self.num_constraints)
-
 
     def get_suggestion(self):
         """
@@ -85,7 +85,7 @@ class EAAdvisor(abc.ABC):
         """
         raise NotImplementedError
 
-    def get_suggestions(self, batch_size=None):
+    def get_suggestions(self, batch_size = None):
         if batch_size is None:
             batch_size = self.batch_size
 
@@ -94,7 +94,7 @@ class EAAdvisor(abc.ABC):
     def update_observations(self, observations: List[Observation]):
         return [self.update_observation(o) for o in observations]
 
-    def sample_random_config(self, excluded_configs=None):
+    def sample_random_config(self, excluded_configs = None):
         if excluded_configs is None:
             excluded_configs = set()
 
@@ -152,17 +152,29 @@ class Individual:
         else:
             return self.data[item]
 
+
+def as_individual(observation: Observation, allow_constraint = False) -> Optional[Individual]:
+    config = observation.config
+    constraint = constraint_check(observation.constraints) and observation.trial_state == SUCCESS
+    if not allow_constraint and not constraint:
+        return None
+    perf = observation.objs
+
+    return Individual(config = config, constraints_satisfied = constraint_check(constraint), perf = perf)
+
+
 def pareto_sort(population: List[Individual],
-                selection_strategy='random',ascending=False) -> List[Individual]:
-    t = pareto_best(population, count_ratio=1.0, selection_strategy=selection_strategy)
+                selection_strategy = 'random', ascending = False) -> List[Individual]:
+    t = pareto_best(population, count_ratio = 1.0, selection_strategy = selection_strategy)
     if ascending:
         t.reverse()
     return t
 
+
 def pareto_best(population: List[Individual],
                 count: Optional[int] = None,
                 count_ratio: Optional[float] = None,
-                selection_strategy='random') -> List[Individual]:
+                selection_strategy = 'random') -> List[Individual]:
     assert not (count is None and count_ratio is None)
     assert selection_strategy in ['random']
 
@@ -191,6 +203,7 @@ def pareto_best(population: List[Individual],
 
     return res
 
+
 def pareto_layers(population: List[Individual]) -> List[List[Individual]]:
     remain = [x for x in population]
 
@@ -202,6 +215,7 @@ def pareto_layers(population: List[Individual]) -> List[List[Individual]]:
         remain = [x for x in remain if x not in front]
 
     return res
+
 
 # Naive Implementation
 def pareto_frontier(population: List[Individual]) -> List[Individual]:

@@ -19,38 +19,35 @@ try:
 except ModuleNotFoundError:
     trange = range
 
-
-function = DTLZ2(num_objs=2,constrained=True)
+function = DTLZ2(num_objs = 2, constrained = True)
 space = function.config_space
-
 
 # Run
 if __name__ == "__main__":
     advisors = [CMAESEAAdvisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
-    ),SAEA_Advisor(
+        num_objs = 2,
+        task_id = 'default_task_id',
+    ), SAEA_Advisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
-    ),DifferentialEAAdvisor(
+        num_objs = 2,
+        task_id = 'default_task_id',
+    ), DifferentialEAAdvisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
-    ),NSGA2EAdvisor(
+        num_objs = 2,
+        task_id = 'default_task_id',
+    ), NSGA2EAdvisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
-    ),AdaptiveEAAdvisor(
+        num_objs = 2,
+        task_id = 'default_task_id',
+    ), AdaptiveEAAdvisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
+        num_objs = 2,
+        task_id = 'default_task_id',
     )]
 
     res = function(space.sample_configuration())
     dim = len(res['objs'])
-
 
     axes = None
     histories = []
@@ -58,7 +55,7 @@ if __name__ == "__main__":
     MAX_RUNS = 2000
     for advisor in advisors:
         print("Now running" + str(advisor.__class__))
-        m = MAX_RUNS // 8 if isinstance(advisor,AdaptiveEAAdvisor) else MAX_RUNS
+        m = MAX_RUNS // 8 if isinstance(advisor, AdaptiveEAAdvisor) else MAX_RUNS
 
         for i in trange(m):
             # ask
@@ -66,30 +63,28 @@ if __name__ == "__main__":
             # evaluate
             ret = function(config)
             # tell
-            observation = Observation(config=config, objs=ret['objs'])
+            observation = Observation(config = config, objs = ret['objs'])
             advisor.update_observation(observation)
             if trange == range:
-                print('===== ITER %d/%d.' % (i+1, MAX_RUNS))
-
+                print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
 
         history = advisor.get_history()
         histories.append(history.get_incumbents())
 
         if dim == 1:
-            axes = history.plot_convergence(ax=axes)
+            axes = history.plot_convergence(ax = axes)
         elif dim == 2:
             inc = history.get_incumbents()
-            inc.sort(key=lambda x: x[1][0])
-            plt.plot([x[1][0] for x in inc],[x[1][1] for x in inc],label = advisor.__class__.__name__)
+            inc.sort(key = lambda x: x[1][0])
+            plt.plot([x[1][0] for x in inc], [x[1][1] for x in inc], label = advisor.__class__.__name__)
 
     if dim <= 2:
         plt.legend()
         plt.show()
 
-    for i,h in enumerate(histories):
+    for i, h in enumerate(histories):
         print(advisors[i].__class__)
         print(h)
-
 
     # install pyrfr to use get_importance()
     # print(history.get_importance())
