@@ -24,23 +24,7 @@ space = function.config_space
 
 # Run
 if __name__ == "__main__":
-    advisors = [CMAESEAAdvisor(
-        config_space = space,
-        num_objs = 2,
-        task_id = 'default_task_id',
-    ), SAEA_Advisor(
-        config_space = space,
-        num_objs = 2,
-        task_id = 'default_task_id',
-    ), DifferentialEAAdvisor(
-        config_space = space,
-        num_objs = 2,
-        task_id = 'default_task_id',
-    ), NSGA2EAdvisor(
-        config_space = space,
-        num_objs = 2,
-        task_id = 'default_task_id',
-    ), AdaptiveEAAdvisor(
+    advisors = [SAEA_Advisor(
         config_space = space,
         num_objs = 2,
         task_id = 'default_task_id',
