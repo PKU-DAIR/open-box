@@ -12,18 +12,18 @@ from openbox.core.base import Observation
 
 
 from openbox.core.ea.base_ea_advisor import constraint_check, Individual
-
+from openbox.core.ea.base_modular_ea_advisor import *
 
 from ConfigSpace import Configuration
 from ConfigSpace.hyperparameters import *
 
 from typing import *
 
-class DifferentialEAAdvisor(EAAdvisor):
+class DifferentialEAAdvisor(ModularEAAdvisor):
 
     def __init__(self,
 
-                 config_space,
+                 config_space: ConfigurationSpace,
                  num_objs=1,
                  num_constraints=0,
                  population_size=30,
@@ -32,6 +32,14 @@ class DifferentialEAAdvisor(EAAdvisor):
                  output_dir='logs',
                  task_id='default_task_id',
                  random_state=None,
+
+                 required_evaluation_count: Optional[int] = None,
+                 auto_step=True,
+                 strict_auto_step=True,
+                 skip_gen_population=False,
+                 filter_gen_population: Optional[Callable[[List[Configuration]], List[Configuration]]] = None,
+                 keep_unexpected_population=True,
+                 save_cached_configuration=True,
 
                  constraint_strategy='discard',
 
@@ -44,10 +52,17 @@ class DifferentialEAAdvisor(EAAdvisor):
         f and cr may be a tuple of two floats, such as (0.1,0.9)
         If so, these two values are adjusted automatically within this range.
         """
-        EAAdvisor.__init__(self, config_space, num_objs=num_objs, num_constraints=num_constraints,
-                           population_size=population_size, optimization_strategy=optimization_strategy,
-                           batch_size=batch_size, output_dir=output_dir, task_id=task_id, random_state=random_state,
-                           )
+        ModularEAAdvisor.__init__(self, config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
+                                  population_size=population_size, optimization_strategy=optimization_strategy,
+                                  batch_size=batch_size, output_dir=output_dir, task_id=task_id,
+                                  random_state=random_state,
+
+                                  required_evaluation_count=required_evaluation_count, auto_step=auto_step,
+                                  strict_auto_step=strict_auto_step, skip_gen_population=skip_gen_population,
+                                  filter_gen_population=filter_gen_population,
+                                  keep_unexpected_population=keep_unexpected_population,
+                                  save_cached_configuration=save_cached_configuration
+                                  )
 
         self.constraint_strategy = constraint_strategy
         assert self.constraint_strategy in {'discard'}
@@ -63,39 +78,14 @@ class DifferentialEAAdvisor(EAAdvisor):
         self.iter = None
         self.cur = 0
 
-        self.running_origin_map = dict()
-
-        self.next_population: List[Optional[Individual]] = [None for i in range(self.population_size)]
+        self.nid_map = {}
 
 
-    def get_suggestion(self):
-
-
+    def _gen(self, count=1) -> List[Configuration]:
         if len(self.population) < self.population_size:
             next_config = self.sample_random_config(excluded_configs=self.all_configs)
             nid = -1
-
         else:
-
-            if self.next_population[self.cur] is not None:
-                nones = [x for x in range(len(self.next_population)) if self.next_population[x] is None]
-                if nones:
-                    self.cur = nones[0]
-                else:
-                    if self.num_objs == 1:
-                        for i in range(self.population_size):
-                            if self.next_population[i] is not None:
-                                if self.next_population[i].perf_1d() < self.population[i].perf_1d():
-                                    self.population[i] = self.next_population[i]
-                    else:
-                        pass
-                        # Pareto Sort
-
-                # print(self.population)
-
-            # Run one iteration of DEA if the population is filled.
-
-            # xi is the current value.
             xi = self.population[self.cur]['config']
             xi_score = self.population[self.cur]['perf']
 
@@ -135,7 +125,7 @@ class DifferentialEAAdvisor(EAAdvisor):
                     scores_mx = max(scores)
                     scores_mn = min(scores)
                     cr = self.cr[0] + (self.cr[1] - self.cr[0]) * (scores_mx - xi_score) / max(
-                            scores_mx - scores_mn, 1e-10)
+                        scores_mx - scores_mn, 1e-10)
                 else:
                     cr = self.cr[0]
             else:
@@ -153,49 +143,29 @@ class DifferentialEAAdvisor(EAAdvisor):
             nid = self.cur
             self.cur = (self.cur + 1) % self.population_size
 
-        self.all_configs.add(next_config)
-        # nid keeps track of which xi that the xn should compare with.
-        # nid == -1 indicates that this xn is randomly sampled.
-        self.running_configs.append((next_config, nid))
+        self.nid_map[next_config] = nid
+        return [next_config]
 
-        # print(self.x, next_config.get_array())
+    def _sel(self, parent: List[Individual], sub: List[Individual]) -> List[Individual]:
+        sub = [x for x in sub if x.constraints_satisfied]
 
-        return next_config
+        for conf in sub:
+            if conf in self.nid_map and self.nid_map[conf] != -1:
+                i = self.nid_map[conf]
+                conf0 = parent[i]
+                if pareto_best([conf, conf0], 1) == conf:
+                    parent[i] = conf
 
-    def update_observation(self, observation: Observation):
+        for conf in sub:
+            if conf not in self.nid_map or self.nid_map[conf] == -1:
+                parent.append(conf)
 
-        config = observation.config
-        constraint = constraint_check(observation.constraints)
-        perf = observation.objs[0]
-        trial_state = observation.trial_state
+        parent = pareto_sort(parent)
+        parent = parent[:self.population_size]
+        random.shuffle(parent)
 
-        nid = [p[1] for p in self.running_configs if p[0] == config]
+        return parent
 
-        assert len(nid) == 1
-        nid = nid[0]
-
-        self.running_configs.remove((config,nid))
-
-        if trial_state == SUCCESS and perf < MAXINT:
-
-            if not constraint:
-                if self.constraint_strategy == 'discard':
-                    return self.history_container.update_observation(observation)
-
-            if nid == -1 and len(self.population) < self.population_size:
-                # The population has not yet been filled.
-                self.population.append(Individual(config=config, age=self.age, perf=perf, constraints_satisfied=constraint))
-            elif nid == -1:
-                # The population has been filled, but more configs are generated while it was not filled.
-                # In this case, simply replace the worst one with it.
-                self.population.append(Individual(config=config, age=self.age, perf=perf, constraints_satisfied=constraint))
-                self.population.sort(key=lambda x: x['perf'])
-                self.population.pop(-1)
-            else:
-                # Compare xn with xi. If xn is better, replace xi with it.
-                self.next_population[nid] = Individual(config=config, age=self.age, perf=perf, constraints_satisfied=constraint)
-
-        return self.history_container.update_observation(observation)
 
     def mutate(self, config_a: Configuration, config_b: Configuration, config_c: Configuration, f: float):
         """
