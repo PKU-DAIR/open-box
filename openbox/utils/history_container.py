@@ -6,6 +6,7 @@ import json
 import collections
 from typing import List, Union
 import numpy as np
+from ConfigSpace import CategoricalHyperparameter, OrdinalHyperparameter, Constant
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import Configuration, ConfigurationSpace
 from openbox.utils.logging_utils import get_logger
@@ -285,10 +286,10 @@ class HistoryContainer(object):
         hip.Experiment.from_iterable(visualize_data).display()
         return
 
-    def get_importance(self, config_space=None, return_list=False):
+    def get_importance(self, method='fanova', config_space=None, return_dict=False):
         def _get_X(configurations, config_space):
-            from ConfigSpace import CategoricalHyperparameter, OrdinalHyperparameter, Constant
-            X_from_dict = np.array([get_config_values(config, config_space) for config in configurations], dtype=object)
+            X_from_dict = np.array([get_config_values(config, config_space) for config in configurations],
+                                   dtype=object)
             X_from_array = np.array([config.get_array() for config in configurations])
             discrete_types = (CategoricalHyperparameter, OrdinalHyperparameter, Constant)
             discrete_idx = [isinstance(hp, discrete_types) for hp in config_space.get_hyperparameters()]
@@ -297,80 +298,77 @@ class HistoryContainer(object):
             X = X.astype(X_from_array.dtype)
             return X
 
-        try:
-            import pyrfr.regression as reg
-            import pyrfr.util
-        except ModuleNotFoundError:
-            self.logger.error(
-                'To use get_importance(), please install pyrfr: '
-                'https://open-box.readthedocs.io/en/latest/installation/install_pyrfr.html'
-            )
-            raise
-        from openbox.utils.fanova import fANOVA
-        from terminaltables import AsciiTable
-
+        Y = np.array(self.get_transformed_perfs(transform=None))
+        if len(Y.shape) == 1:
+            Y = np.reshape(Y, (len(Y), 1))
+        num_objs = Y.shape[1]
         if config_space is None:
             config_space = self.config_space
         if config_space is None:
             raise ValueError('Please provide config_space to show parameter importance!')
-
-        X = _get_X(self.configurations, config_space)
-        Y = np.array(self.get_transformed_perfs(transform=None))
-
-        # create an instance of fanova with data for the random forest and the configSpace
-        f = fANOVA(X=X, Y=Y, config_space=config_space)
-
-        # marginal for first parameter
         keys = [hp.name for hp in config_space.get_hyperparameters()]
-        importance_list = list()
-        for key in keys:
-            p_list = (key,)
-            res = f.quantify_importance(p_list)
-            individual_importance = res[(key,)]['individual importance']
-            importance_list.append([key, individual_importance])
-        importance_list.sort(key=lambda x: x[1], reverse=True)
+        importance_dict = {key: [] for key in keys}
 
-        if return_list:
-            return importance_list
+        if method == 'shap':
+            import shap
+            from lightgbm import LGBMRegressor
+            from terminaltables import AsciiTable
 
-        for item in importance_list:
-            item[1] = '%.6f' % item[1]
-        table_data = [["Parameters", "Importance"]] + importance_list
-        importance_table = AsciiTable(table_data).table
-        return importance_table
+            for hp in config_space.get_hyperparameters():
+                if isinstance(hp, CategoricalHyperparameter):
+                    print("SHAP can not support categorical hyperparameters well. To analyze a space with categorical "
+                          "hyperparameters, we recommend setting the method to fanova.")
 
-    def get_shap_importance(self, config_space=None, return_list=False):
-        import shap
-        from lightgbm import LGBMRegressor
-        from terminaltables import AsciiTable
+            X = _get_X(self.configurations, config_space)
 
-        if config_space is None:
-            config_space = self.config_space
-        if config_space is None:
-            raise ValueError('Please provide config_space to show parameter importance!')
+            for col_idx in range(num_objs):
+                # Fit a LightGBMRegressor with observations
+                lgbr = LGBMRegressor()
+                lgbr.fit(X, Y[:, col_idx])
+                explainer = shap.TreeExplainer(lgbr)
+                shap_values = explainer.shap_values(X)
+                feature_importance = np.mean(np.abs(shap_values), axis=0)
 
-        X = np.array([get_config_values(config, config_space) for config in self.configurations])
-        Y = np.array(self.get_transformed_perfs(transform=None))
+                keys = [hp.name for hp in config_space.get_hyperparameters()]
+                for i, hp_name in enumerate(keys):
+                    importance_dict[hp_name].append(feature_importance[i])
 
-        # Fit a LightGBMRegressor with observations
-        lgbr = LGBMRegressor()
-        lgbr.fit(X, Y)
-        explainer = shap.TreeExplainer(lgbr)
-        shap_values = explainer.shap_values(X)
-        feature_importance = np.mean(np.abs(shap_values), axis=0)
+        elif method == 'fanova':
+            try:
+                import pyrfr.regression as reg
+                import pyrfr.util
+            except ModuleNotFoundError:
+                self.logger.error(
+                    'To use get_importance(), please install pyrfr: '
+                    'https://open-box.readthedocs.io/en/latest/installation/install_pyrfr.html'
+                )
+                raise
+            from openbox.utils.fanova import fANOVA
+            from terminaltables import AsciiTable
 
-        keys = [hp.name for hp in config_space.get_hyperparameters()]
+            X = _get_X(self.configurations, config_space)
+
+            for col_idx in range(num_objs):
+                # create an instance of fanova with data for the random forest and the configSpace
+                f = fANOVA(X=X, Y=Y[:, col_idx], config_space=config_space)
+
+                # marginal for first parameter
+                for key in keys:
+                    p_list = (key,)
+                    res = f.quantify_importance(p_list)
+                    individual_importance = res[(key,)]['individual importance']
+                    importance_dict[key].append(individual_importance)
+        else:
+            raise ValueError("Invalid method for feature importance. Valid choices: 'shap' or 'fanova'.")
+
+        if return_dict:
+            return importance_dict
+
         importance_list = []
-        for i, hp_name in enumerate(keys):
-            importance_list.append([hp_name, feature_importance[i]])
-        importance_list.sort(key=lambda x: x[1], reverse=True)
-
-        if return_list:
-            return importance_list
-
-        for item in importance_list:
-            item[1] = '%.6f' % item[1]
-        table_data = [["Parameters", "Importance"]] + importance_list
+        for key, value in importance_dict.items():
+            importance_list.append([key] + ['%.6f' % imp for imp in value])
+        table_head = [["Parameters"] + ["Obj%d Importance" % i for i in range(1, num_objs + 1)]]
+        table_data = table_head + importance_list
         importance_table = AsciiTable(table_data).table
         return importance_table
 
@@ -386,7 +384,7 @@ class HistoryContainer(object):
 
         data = []
         for idx, (config, perf, constraint_perf, trial_state, elapsed_time) in enumerate(zip(
-            self.configurations, self.perfs, self.constraint_perfs, self.trial_states, self.elapsed_times,
+                self.configurations, self.perfs, self.constraint_perfs, self.trial_states, self.elapsed_times,
         )):
             config_dict = config.get_dictionary()
             _perf = [float(p) for p in perf] if self.num_objs > 1 else float(perf)
@@ -442,7 +440,8 @@ class HistoryContainer(object):
             objs = perf if self.num_objs > 1 else [perf]
 
             observation = Observation(
-                config=config, objs=objs, constraints=constraint_perf, trial_state=trial_state, elapsed_time=elapsed_time)
+                config=config, objs=objs, constraints=constraint_perf, trial_state=trial_state,
+                elapsed_time=elapsed_time)
             self.update_observation(observation)
 
         self.logger.info('Load history from %s. len = %d.' % (fn, len(all_data['data'])))
