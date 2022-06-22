@@ -153,14 +153,14 @@ class Individual:
             return self.data[item]
 
 
-def as_individual(observation: Observation, allow_constraint = False) -> Optional[Individual]:
+def as_individual(observation: Observation, allow_constraint = True) -> Optional[Individual]:
     config = observation.config
     constraint = constraint_check(observation.constraints) and observation.trial_state == SUCCESS
     if not allow_constraint and not constraint:
         return None
     perf = observation.objs
 
-    return Individual(config = config, constraints_satisfied = constraint_check(constraint), perf = perf)
+    return Individual(config = config, constraints_satisfied = constraint, perf = perf)
 
 
 def pareto_sort(population: List[Individual],

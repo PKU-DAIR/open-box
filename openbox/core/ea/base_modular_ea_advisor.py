@@ -16,7 +16,7 @@ class ModularEAAdvisor(EAAdvisor):
     def __init__(self, config_space: ConfigurationSpace,
                  num_objs = 1,
                  num_constraints = 0,
-                 population_size = None,
+                 population_size = 30,
                  optimization_strategy = 'ea',
                  batch_size = 1,
                  output_dir = 'logs',
@@ -38,8 +38,7 @@ class ModularEAAdvisor(EAAdvisor):
                            random_state = random_state,
                            )
 
-        self.expected_evaluation_count = required_evaluation_count \
-            if required_evaluation_count is not None else self.population_size
+        self.required_evaluation_count = required_evaluation_count or self.population_size
 
         self.filled_up = False
         self.cached_config: List[Configuration] = list()
@@ -60,16 +59,17 @@ class ModularEAAdvisor(EAAdvisor):
         raise NotImplementedError
 
     def _could_sel(self) -> bool:
-        return len(self.next_population) >= self.expected_evaluation_count
+        return len(self.next_population) >= self.required_evaluation_count
 
     def _sel(self, parent: List[Individual], sub: List[Individual]) -> List[Individual]:
         raise NotImplementedError
 
     def gen(self, count = None):
-        if count is None:
-            count = self.expected_evaluation_count - len(self.cached_config)
 
-        # print(count)
+        if count is None:
+            count = self.required_evaluation_count - len(self.cached_config)
+        """if self.__class__.__name__ == 'RegularizedEAAdvisor':
+                    print('gen count is', count)"""
 
         temp = []
 
@@ -88,12 +88,11 @@ class ModularEAAdvisor(EAAdvisor):
         return self._could_sel()
 
     def sel(self):
-        if self.filled_up:
-            self.population = self._sel(self.population, self.next_population)
-        else:
-            self.population = list(self.next_population)
 
-        self.next_population.clear()
+        self.population = self._sel(self.population, self.next_population)
+        self.filled_up = True
+
+        self.next_population = []
         if not self.save_cached_configuration:
             self.cached_config.clear()
             self.uneval_config.clear()
@@ -101,11 +100,21 @@ class ModularEAAdvisor(EAAdvisor):
     def get_suggestion(self) -> Configuration:
         return self.get_suggestions(batch_size = 1)[0]
 
-    def get_suggestions(self, batch_size = 1) -> List[Configuration]:
-        if len(self.cached_config) < self.batch_size:
-            self.gen(self.expected_evaluation_count)
+    def get_suggestions(self, batch_size = None) -> List[Configuration]:
+        if batch_size is None:
+            batch_size = self.batch_size
+        """if self.__class__.__name__ == 'RegularizedEAAdvisor':
+            print('rea batch size', batch_size)
+        if self.__class__.__name__ == 'SAEA_Advisor':
+            print('saea batch size', batch_size)"""
+
+        if len(self.cached_config) < batch_size:
+            self.gen(max(self.required_evaluation_count, batch_size))
 
         batch_size = min(batch_size, len(self.cached_config))
+
+        """if self.__class__.__name__ == 'RegularizedEAAdvisor':
+            print('new batch size', len(self.cached_config))"""
         res = self.cached_config[:batch_size]
         self.cached_config = self.cached_config[batch_size:]
         self.uneval_config.extend(res)
@@ -120,11 +129,11 @@ class ModularEAAdvisor(EAAdvisor):
         self.update_observations([observation])
 
     def update_observations(self, observations: List[Observation]):
+
         for observation in observations:
             self.history_container.update_observation(observation)
 
             pop = as_individual(observation)
-            # pop = Individual(observation.config, observation.objs)
 
             found = pop.config in self.uneval_config
             if found:
