@@ -22,27 +22,24 @@ try:
 except ModuleNotFoundError:
     trange = range
 
-
 function = DTLZ1(5)
 space = function.config_space
-
 
 # Run
 if __name__ == "__main__":
     advisors = [RegularizedEAAdvisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
-    ),SAEA_Advisor(
+        num_objs = 2,
+        task_id = 'default_task_id',
+    ), SAEA_Advisor(
         config_space = space,
-        num_objs=2,
-        task_id='default_task_id',
-        ea=RegularizedEAAdvisor
+        num_objs = 2,
+        task_id = 'default_task_id',
+        ea = RegularizedEAAdvisor
     )]
 
     res = function(space.sample_configuration())
     dim = len(res['objs'])
-
 
     axes = None
     histories = []
@@ -57,26 +54,23 @@ if __name__ == "__main__":
             # evaluate
             ret = function(config)
             # tell
-            observation = Observation(config=config, objs=ret['objs'])
+            observation = Observation(config = config, objs = ret['objs'])
             advisor.update_observation(observation)
             if trange == range:
-                print('===== ITER %d/%d.' % (i+1, MAX_RUNS))
-
+                print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
 
         history = advisor.get_history()
         histories.append(history.get_incumbents())
 
         if dim == 1:
-            axes = history.plot_convergence(ax=axes)
+            axes = history.plot_convergence(ax = axes)
         elif dim == 2:
             inc = history.get_incumbents()
-            inc.sort(key=lambda x: x[1][0])
-            plt.plot([x[1][0] for x in inc],[x[1][1] for x in inc],label = advisor.__class__.__name__)
-
-
+            inc.sort(key = lambda x: x[1][0])
+            plt.plot([x[1][0] for x in inc], [x[1][1] for x in inc], label = advisor.__class__.__name__)
 
     params = {
-        'float': {'x%d' % i: (0, 1, i/5) for i in range(1, dim+1)}
+        'float': {'x%d' % i: (0, 1, i / 5) for i in range(1, dim + 1)}
     }
     space_bo = sp.Space()
     space_bo.add_variables([
@@ -85,14 +79,14 @@ if __name__ == "__main__":
     opt = SMBO(
         function,
         space_bo,
-        num_constraints=0,
-        num_objs=2,
-        surrogate_type='gp',
-        acq_optimizer_type='random_scipy',
-        max_runs=MAX_RUNS,
-        time_limit_per_trial=10,
-        task_id='soc',
-        acq_type='mesmo'
+        num_constraints = 0,
+        num_objs = 2,
+        surrogate_type = 'gp',
+        acq_optimizer_type = 'random_scipy',
+        max_runs = MAX_RUNS,
+        time_limit_per_trial = 10,
+        task_id = 'soc',
+        acq_type = 'mesmo'
     )
     history = opt.run()
 
@@ -100,14 +94,13 @@ if __name__ == "__main__":
     print(history)
 
     if dim == 1:
-        history.plot_convergence(ax = axes,yscale='log', name = 'BO')
+        history.plot_convergence(ax = axes, yscale = 'log', name = 'BO')
     elif dim == 2:
         inc = history.get_incumbents()
-        inc.sort(key=lambda x: x[1][0])
-        plt.plot([x[1][0] for x in inc], [x[1][1] for x in inc], label='BO')
+        inc.sort(key = lambda x: x[1][0])
+        plt.plot([x[1][0] for x in inc], [x[1][1] for x in inc], label = 'BO')
 
-
-    for i,h in enumerate(histories):
+    for i, h in enumerate(histories):
         print(advisors[i].__class__)
         print(h)
 
@@ -134,8 +127,8 @@ if __name__ == "__main__":
     print('randomly print 10 of them: (X, Y, f(X))')
 
     rand_data = list(zip(saea.lastX,
-                 saea.lastY,
-                 [function(Configuration(space, vector=saea.lastX[i])) for i in range(saea.lastX.shape[0])]))
+                         saea.lastY,
+                         [function(Configuration(space, vector = saea.lastX[i])) for i in range(saea.lastX.shape[0])]))
     random.shuffle(rand_data)
 
     for i, x in enumerate(rand_data):
