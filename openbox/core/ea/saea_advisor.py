@@ -1,10 +1,10 @@
 from typing import *
 
-from openbox import RegularizedEAAdvisor
 from openbox.acquisition_function import AbstractAcquisitionFunction
 from openbox.core.base import build_acq_func, build_surrogate
 
 from openbox.core.ea.base_modular_ea_advisor import *
+from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
 from openbox.utils.multi_objective import NondominatedPartitioning, get_chebyshev_scalarization
