@@ -1,16 +1,11 @@
 # License: MIT
 
-
 from openbox.core.ea.base_ea_advisor import *
 from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
-from openbox.utils.util_funcs import check_random_state
-from openbox.utils.logging_utils import get_logger
-from openbox.utils.history_container import HistoryContainer
-from openbox.utils.constants import MAXINT, SUCCESS
+from openbox.utils.constants import MAXINT
 from openbox.utils.config_space import get_one_exchange_neighbourhood
-from openbox.core.base import Observation
 
-from openbox.core.ea.base_ea_advisor import Individual, constraint_check
+from openbox.core.ea.base_ea_advisor import Individual
 
 from typing import *
 
@@ -47,18 +42,17 @@ class RegularizedEAAdvisor(ModularEAAdvisor):
                  strategy = 'worst',
                  ):
 
-        ModularEAAdvisor.__init__(self, config_space = config_space, num_objs = num_objs,
-                                  num_constraints = num_constraints,
-                                  population_size = population_size, optimization_strategy = optimization_strategy,
-                                  batch_size = batch_size, output_dir = output_dir, task_id = task_id,
-                                  random_state = random_state,
+        super().__init__(config_space = config_space, num_objs = num_objs, num_constraints = num_constraints,
+                         population_size = population_size, optimization_strategy = optimization_strategy,
+                         batch_size = batch_size, output_dir = output_dir, task_id = task_id,
+                         random_state = random_state,
 
-                                  required_evaluation_count = required_evaluation_count, auto_step = auto_step,
-                                  strict_auto_step = strict_auto_step, skip_gen_population = skip_gen_population,
-                                  filter_gen_population = filter_gen_population,
-                                  keep_unexpected_population = keep_unexpected_population,
-                                  save_cached_configuration = save_cached_configuration
-                                  )
+                         required_evaluation_count = required_evaluation_count, auto_step = auto_step,
+                         strict_auto_step = strict_auto_step, skip_gen_population = skip_gen_population,
+                         filter_gen_population = filter_gen_population,
+                         keep_unexpected_population = keep_unexpected_population,
+                         save_cached_configuration = save_cached_configuration
+                         )
 
         # assert num_objs == 1
         assert constraint_strategy == 'discard'

@@ -1,29 +1,16 @@
-import random
-
-import numpy as np
-from ConfigSpace import ConfigurationSpace, CategoricalHyperparameter, OrdinalHyperparameter
-
 from typing import *
 
-from ConfigSpace.hyperparameters import NumericalHyperparameter
-
-from openbox.core.ea.regularized_ea_advisor import Observation, RegularizedEAAdvisor
-from openbox.acq_maximizer.ei_optimization import AcquisitionFunctionMaximizer
-from openbox.acquisition_function import EI, AbstractAcquisitionFunction, EIC
+from openbox import RegularizedEAAdvisor
+from openbox.acquisition_function import AbstractAcquisitionFunction
 from openbox.core.base import build_acq_func, build_surrogate
 
-from openbox.core.ea.base_ea_advisor import *
 from openbox.core.ea.base_modular_ea_advisor import *
-from openbox.core.ea.cmaes_ea_advisor import CMAESEAAdvisor
 from openbox.surrogate.base.base_model import AbstractModel
-from openbox.surrogate.base.build_gp import create_gp_model
-from openbox.surrogate.base.gp import GaussianProcess
 from openbox.utils.config_space import convert_configurations_to_array
-from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.multi_objective import NondominatedPartitioning, get_chebyshev_scalarization
 
 
-class SAEA_Advisor(ModularEAAdvisor):
+class SAEAAdvisor(ModularEAAdvisor):
 
     def __init__(self, config_space: ConfigurationSpace,
                  num_objs = 1,
@@ -50,31 +37,29 @@ class SAEA_Advisor(ModularEAAdvisor):
 
                  gen_multiplier = 50,
 
-                 **kwargs
+                 ref_point = None
                  ):
-
-        # assert num_objs == 1
 
         self.ea = ea if isinstance(ea, ModularEAAdvisor) else ea(config_space)
         population_size = population_size or self.ea.population_size
         required_evaluation_count = required_evaluation_count or self.ea.required_evaluation_count
 
-        ModularEAAdvisor.__init__(self, config_space = config_space, num_objs = num_objs,
-                                  num_constraints = num_constraints,
-                                  population_size = population_size, optimization_strategy = optimization_strategy,
-                                  batch_size = batch_size, output_dir = output_dir, task_id = task_id,
-                                  random_state = random_state,
+        super().__init__(config_space = config_space, num_objs = num_objs, num_constraints = num_constraints,
+                         population_size = population_size, optimization_strategy = optimization_strategy,
+                         batch_size = batch_size, output_dir = output_dir, task_id = task_id,
+                         random_state = random_state,
 
-                                  required_evaluation_count = required_evaluation_count, auto_step = auto_step,
-                                  strict_auto_step = strict_auto_step, skip_gen_population = skip_gen_population,
-                                  filter_gen_population = filter_gen_population,
-                                  keep_unexpected_population = keep_unexpected_population,
-                                  save_cached_configuration = save_cached_configuration
-                                  )
+                         required_evaluation_count = required_evaluation_count, auto_step = auto_step,
+                         strict_auto_step = strict_auto_step, skip_gen_population = skip_gen_population,
+                         filter_gen_population = filter_gen_population,
+                         keep_unexpected_population = keep_unexpected_population,
+                         save_cached_configuration = save_cached_configuration
+                         )
 
         # Default Acq
-        acq = acq or ('mesmo' if self.num_constraints > 0 else 'mesmoc2') if self.num_objs > 1 else \
-            ('eic' if self.num_constraints > 0 else 'ei')
+        acq = acq or (('ehvi' if self.num_constraints > 0 else 'ehvic') if self.num_objs > 1 and ref_point
+                      else ('mesmo' if self.num_constraints > 0 else 'mesmoc2') if self.num_objs > 1
+        else ('eic' if self.num_constraints > 0 else 'ei'))
 
         constraint_surrogate = constraint_surrogate or surrogate
 
@@ -94,14 +79,13 @@ class SAEA_Advisor(ModularEAAdvisor):
 
         # Code copied from generic_advisor.py
         # ehvi needs an extra ref_point arg.
-        if acq == 'ehvi' and 'ref_point' in kwargs:
-            self.ref_point = kwargs['ref_point']
+        if acq in {'ehvi', 'ehvic'} and ref_point:
+            self.ref_point = ref_point
             self.acq: AbstractAcquisitionFunction = \
                 build_acq_func(acq, self.objective_surrogates if mo_acq else self.objective_surrogates[0],
-                               self.constraint_surrogates, ref_point = kwargs['ref_point'])
-        elif acq == 'ehvi' and 'ref_point' not in kwargs:
-            raise ValueError(
-                'Must provide reference point to use EHVI method! (Add ref_point=... to constructor kwargs)')
+                               self.constraint_surrogates, ref_point = ref_point)
+        elif acq in {'ehvi', 'ehvic'} and not ref_point:
+            raise ValueError('Must provide reference point to use EHVI method!')
         else:
             self.acq: AbstractAcquisitionFunction = \
                 build_acq_func(acq, self.objective_surrogates if mo_acq else self.objective_surrogates[0],
@@ -110,10 +94,11 @@ class SAEA_Advisor(ModularEAAdvisor):
 
         self.gen_multiplier = gen_multiplier
 
+        self.is_models_trained = False
+
     def _gen(self, count = 1) -> List[Configuration]:
-        if [x for x in self.objective_surrogates if not x.is_trained]:  # All models should be trained.
-            l = self.ea.get_suggestions(count)
-            return l
+        if not self.is_models_trained:  # All models should be trained.
+            return self.ea.get_suggestions(count)
 
         configs = self.ea.get_suggestions(count * self.gen_multiplier)
         results = self.acq(configs)
@@ -143,11 +128,8 @@ class SAEA_Advisor(ModularEAAdvisor):
 
         cY = self.history_container.get_transformed_constraint_perfs(transform = 'bilog')
 
-        # ok_idx = np.min((cY < 0), axis=1)
-
         for i in range(self.num_objs):
             self.objective_surrogates[i].train(X, Y[:, i] if Y.ndim == 2 else Y)
-            # self.objective_surrogates.train(X[ok_idx], Y[ok_idx, i] if Y.ndim == 2 else Y)
 
         for i in range(self.num_constraints):
             self.constraint_surrogates[i].train(X, cY[:, i])
@@ -186,5 +168,7 @@ class SAEA_Advisor(ModularEAAdvisor):
                                 eta = mo_incumbent_value,
                                 num_data = num_config_evaluated,
                                 X = X, Y = Y)
+
+        self.is_models_trained = True
 
         return sub

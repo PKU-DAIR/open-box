@@ -1,17 +1,4 @@
-import random
-
-from ConfigSpace import ConfigurationSpace, CategoricalHyperparameter, OrdinalHyperparameter
-
-from typing import *
-
-from ConfigSpace.hyperparameters import NumericalHyperparameter
-
-from openbox import Observation
-
-from openbox.core.ea.base_ea_advisor import *
 from openbox.core.ea.base_modular_ea_advisor import *
-from openbox.surrogate.base.base_model import AbstractModel
-from openbox.utils.constants import MAXINT, SUCCESS
 
 
 class CMAESEAAdvisor(ModularEAAdvisor):
@@ -50,18 +37,17 @@ class CMAESEAAdvisor(ModularEAAdvisor):
         if population_size is None:
             population_size = (4 + int(3 * np.log(self.n))) * 3
 
-        ModularEAAdvisor.__init__(self, config_space = config_space, num_objs = num_objs,
-                                  num_constraints = num_constraints,
-                                  population_size = population_size, optimization_strategy = optimization_strategy,
-                                  batch_size = batch_size, output_dir = output_dir, task_id = task_id,
-                                  random_state = random_state,
+        super().__init__(config_space = config_space, num_objs = num_objs, num_constraints = num_constraints,
+                         population_size = population_size, optimization_strategy = optimization_strategy,
+                         batch_size = batch_size, output_dir = output_dir, task_id = task_id,
+                         random_state = random_state,
 
-                                  required_evaluation_count = required_evaluation_count, auto_step = auto_step,
-                                  strict_auto_step = strict_auto_step, skip_gen_population = skip_gen_population,
-                                  filter_gen_population = filter_gen_population,
-                                  keep_unexpected_population = keep_unexpected_population,
-                                  save_cached_configuration = save_cached_configuration
-                                  )
+                         required_evaluation_count = required_evaluation_count, auto_step = auto_step,
+                         strict_auto_step = strict_auto_step, skip_gen_population = skip_gen_population,
+                         filter_gen_population = filter_gen_population,
+                         keep_unexpected_population = keep_unexpected_population,
+                         save_cached_configuration = save_cached_configuration
+                         )
 
         self.constraint_strategy = constraint_strategy
         assert self.constraint_strategy in {'discard', 'dominated'}

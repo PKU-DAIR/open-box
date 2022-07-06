@@ -1,19 +1,13 @@
 # License: MIT
 import random
 
-import numpy as np
 import matplotlib.pyplot as plt
-from openbox import Advisor, sp, Observation
-from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
+from openbox import sp, Observation
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
-from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
-from openbox.core.ea.cmaes_ea_advisor import CMAESEAAdvisor
-from openbox.core.ea.nsga2_ea_advisor import NSGA2EAdvisor
 
 from openbox.benchmark.objective_functions.synthetic import *
 
-# Define Objective Function
-from openbox.core.ea.saea_advisor import SAEA_Advisor
+from openbox.core.ea.saea_advisor import SAEAAdvisor
 from openbox.optimizer.generic_smbo import SMBO
 from openbox.utils.config_space import convert_configurations_to_array
 
@@ -31,11 +25,12 @@ if __name__ == "__main__":
         config_space = space,
         num_objs = 2,
         task_id = 'default_task_id',
-    ), SAEA_Advisor(
+    ), SAEAAdvisor(
         config_space = space,
         num_objs = 2,
         task_id = 'default_task_id',
-        ea = RegularizedEAAdvisor
+        ea = RegularizedEAAdvisor,
+        ref_point = (150, 150)
     )]
 
     res = function(space.sample_configuration())

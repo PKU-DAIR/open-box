@@ -1,14 +1,4 @@
-import random
-
-from ConfigSpace import ConfigurationSpace, CategoricalHyperparameter, OrdinalHyperparameter
-
-from typing import *
-
-from ConfigSpace.hyperparameters import NumericalHyperparameter
-
 from openbox.core.ea.base_ea_advisor import *
-from openbox.surrogate.base.base_model import AbstractModel
-from openbox.utils.constants import MAXINT, SUCCESS
 
 
 class ModularEAAdvisor(EAAdvisor):
