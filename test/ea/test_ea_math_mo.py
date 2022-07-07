@@ -1,41 +1,36 @@
 # License: MIT
+import random
 
 import matplotlib.pyplot as plt
-from openbox import Observation
-from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
-from openbox.core.ea.cmaes_ea_advisor import CMAESEAAdvisor
-from openbox.core.ea.nsga2_ea_advisor import NSGA2EAdvisor
+from openbox import sp, Observation
+from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
+
 from openbox.benchmark.objective_functions.synthetic import *
 
+from openbox.core.ea.saea_advisor import SAEAAdvisor
+from openbox.optimizer.generic_smbo import SMBO
+from openbox.utils.config_space import convert_configurations_to_array
 
-# Define Objective Function
-def branin(config):
-    x1, x2 = config['x1'], config['x2']
-    y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
-        + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
-    return {'objs': (y,)}
+try:
+    from tqdm import trange
+except ModuleNotFoundError:
+    trange = range
 
-
-# Define Search Space
-"""space = sp.Space()
-x1 = sp.Real("x1", -5, 10, default_value=0)
-x2 = sp.Real("x2", 0, 15, default_value=0)
-space.add_variables([x1, x2])"""
-
-function = BraninCurrin()
+function = DTLZ1(5)
 space = function.config_space
-
 
 # Run
 if __name__ == "__main__":
-    advisors = [CMAESEAAdvisor(
+    advisors = [RegularizedEAAdvisor(
         config_space = space,
         num_objs = 2,
         task_id = 'default_task_id',
-    ), NSGA2EAdvisor(
+    ), SAEAAdvisor(
         config_space = space,
         num_objs = 2,
         task_id = 'default_task_id',
+        ea = RegularizedEAAdvisor,
+        ref_point = (150, 150)
     )]
 
     res = function(space.sample_configuration())
@@ -44,38 +39,108 @@ if __name__ == "__main__":
     axes = None
     histories = []
 
-    MAX_RUNS = 2000
+    MAX_RUNS = 200
     for advisor in advisors:
         print("Now running" + str(advisor.__class__))
-        m = MAX_RUNS // 8 if isinstance(advisor, AdaptiveEAAdvisor) else MAX_RUNS
 
-        for i in range(m):
+        for i in trange(MAX_RUNS):
             # ask
             config = advisor.get_suggestion()
             # evaluate
             ret = function(config)
             # tell
-            observation = Observation(config=config, objs=ret['objs'])
+            observation = Observation(config = config, objs = ret['objs'])
             advisor.update_observation(observation)
-            print('===== ITER %d/%d.' % (i+1, MAX_RUNS))
+            if trange == range:
+                print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
 
         history = advisor.get_history()
         histories.append(history.get_incumbents())
 
         if dim == 1:
-            axes = history.plot_convergence(ax=axes)
+            axes = history.plot_convergence(ax = axes)
         elif dim == 2:
             inc = history.get_incumbents()
-            inc.sort(key=lambda x: x[1][0])
-            plt.plot([x[1][0] for x in inc],[x[1][1] for x in inc],label = advisor.__class__.__name__)
+            inc.sort(key = lambda x: x[1][0])
+            plt.plot([x[1][0] for x in inc], [x[1][1] for x in inc], label = advisor.__class__.__name__)
+
+    params = {
+        'float': {'x%d' % i: (0, 1, i / 5) for i in range(1, dim + 1)}
+    }
+    space_bo = sp.Space()
+    space_bo.add_variables([
+        sp.Real(name, *para) for name, para in params['float'].items()
+    ])
+    opt = SMBO(
+        function,
+        space_bo,
+        num_constraints = 0,
+        num_objs = 2,
+        surrogate_type = 'gp',
+        acq_optimizer_type = 'random_scipy',
+        max_runs = MAX_RUNS,
+        time_limit_per_trial = 10,
+        task_id = 'soc',
+        acq_type = 'mesmo'
+    )
+    history = opt.run()
+
+    print('BO Result')
+    print(history)
+
+    if dim == 1:
+        history.plot_convergence(ax = axes, yscale = 'log', name = 'BO')
+    elif dim == 2:
+        inc = history.get_incumbents()
+        inc.sort(key = lambda x: x[1][0])
+        plt.plot([x[1][0] for x in inc], [x[1][1] for x in inc], label = 'BO')
+
+    for i, h in enumerate(histories):
+        print(advisors[i].__class__)
+        print(h)
 
     if dim <= 2:
         plt.legend()
         plt.show()
 
+    print('--------------------OPTIMIZATION RESULTS--------------------')
+
     for i, h in enumerate(histories):
-        print(advisors[i].__class__)
+        print(advisors[i].__class__.__name__)
         print(h)
+
+    print('--------------------SAEA CORRECTNESS CHECK--------------------')
+
+    saea = advisors[1]
+    gp = saea.objective_surrogates
+
+    # print(saea.lastX)
+    print('--------------------LAST GP TRAINING DATA--------------------')
+
+    print('total {} data'.format(len(saea.lastX)))
+
+    print('randomly print 10 of them: (X, Y, f(X))')
+
+    rand_data = list(zip(saea.lastX,
+                         saea.lastY,
+                         [function(Configuration(space, vector = saea.lastX[i])) for i in range(saea.lastX.shape[0])]))
+    random.shuffle(rand_data)
+
+    for i, x in enumerate(rand_data):
+        if i >= 10:
+            break
+        print(x)
+
+    print('--------------------GP PREDICTION CORRECTNESS--------------------')
+    print('randomly sample 10 configs, get their gp-prediction and true value: (X, gp(X), f(X))')
+
+    for i in range(10):
+        config = space.sample_configuration()
+
+        pred = [g.predict(convert_configurations_to_array([config])) for g in gp]
+        target = function(config)
+        print(config.get_array(), pred, target)
+        # print(convert_configurations_to_array([config]), pred, target)
 
     # install pyrfr to use get_importance()
     # print(history.get_importance())

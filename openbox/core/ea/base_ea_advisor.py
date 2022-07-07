@@ -1,7 +1,5 @@
 import abc
 
-import ConfigSpace
-import numpy as np
 import random
 
 from typing import *
@@ -10,7 +8,6 @@ from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
-from openbox.utils.config_space import get_one_exchange_neighbourhood
 from openbox.core.base import Observation
 
 from ConfigSpace import ConfigurationSpace, Configuration
