@@ -13,7 +13,7 @@ from openbox.core.ea.nsga2_ea_advisor import NSGA2EAdvisor
 from openbox.benchmark.objective_functions.synthetic import *
 
 # Define Objective Function
-from openbox.core.ea.saea_advisor import SAEA_Advisor
+from openbox.core.ea.saea_advisor import SAEAAdvisor
 from openbox.utils.config_space import convert_configurations_to_array
 
 try:
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         task_id = 'default_task_id',
         num_objs = 1,
         num_constraints = CNUM
-    ), SAEA_Advisor(
+    ), SAEAAdvisor(
         config_space = space,
         task_id = 'default_task_id',
         ea = RegularizedEAAdvisor,
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     print('--------------------SAEA CORRECTNESS CHECK--------------------')
 
     saea = advisors[1]
-    gp = saea.objective_surrogates
+    gp = saea.objective_surrogates[0]
 
     # print(saea.lastX)
     print('--------------------LAST GP TRAINING DATA--------------------')
