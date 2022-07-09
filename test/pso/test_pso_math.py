@@ -37,7 +37,7 @@ if __name__ == "__main__":
     history = []
     res = None
 
-    MAX_RUNS = 50
+    MAX_RUNS = 100
     for advisor in advisors:
         print("Now running" + str(advisor.__class__))
         m = MAX_RUNS
