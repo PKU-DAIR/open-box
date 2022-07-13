@@ -1,9 +1,13 @@
-from typing import *
+import numpy as np
+from typing import List, Union, Optional, Callable, Type
+from ConfigSpace import Configuration, ConfigurationSpace
 
+from openbox import Observation
 from openbox.acquisition_function import AbstractAcquisitionFunction
 from openbox.core.base import build_acq_func, build_surrogate
 
-from openbox.core.ea.base_modular_ea_advisor import *
+from openbox.core.ea.base_ea_advisor import Individual
+from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
@@ -69,11 +73,11 @@ class SAEAAdvisor(ModularEAAdvisor):
 
         # This is ALWAYS a list no matter multi-obj or single-obj
         self.objective_surrogates: List[AbstractModel] = [
-            build_surrogate(surrogate, config_space, self.rng or random, None)
+            build_surrogate(surrogate, config_space, self.rng or np.random.RandomState(random_state), None)
             for x in range(self.num_objs)]
-        self.constraint_surrogates: List[AbstractModel] = [build_surrogate(constraint_surrogate, config_space,
-                                                                           self.rng or random, None) for x in
-                                                           range(self.num_constraints)]
+        self.constraint_surrogates: List[AbstractModel] = [
+            build_surrogate(constraint_surrogate, config_space, self.rng or np.random.RandomState(random_state), None)
+            for x in range(self.num_constraints)]
 
         mo_acq = acq in ['ehvi', 'mesmo', 'usemo', 'parego', 'ehvic', 'mesmoc', 'mesmoc2']
 
