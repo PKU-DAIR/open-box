@@ -17,32 +17,51 @@ except ModuleNotFoundError:
 
 function = Branin()
 space = function.config_space
+MAX_RUNS = 100
+# Use model 0 to test PSOAdvisor, 1 to compare different strategy
+TEST_MOD = 0
 
 # Run
 if __name__ == "__main__":
-    advisors = [PSOAdvisor(
-        config_space = space,
-        task_id = 'default_task_id',
-    )]
+    advisors = []
+    if TEST_MOD == 0:
+        advisors = [PSOAdvisor(
+                config_space = space,
+                w_stg = 'default',
+                task_id = 'default_task_id',
+            )]
+    elif TEST_MOD == 1:
+        advisors = [PSOAdvisor(
+                config_space = space,
+                w_stg = 'default',
+                task_id = 'default_task_id',
+            ),
+            PSOAdvisor(
+                config_space = space,
+                w_stg = 'dec',
+                max_iter = MAX_RUNS,
+                task_id = 'default_task_id',
+            ),
+            PSOAdvisor(
+                config_space = space,
+                w_stg = 'rand',
+                max_iter = MAX_RUNS,
+                task_id = 'default_task_id',
+            )]
 
     res = function(space.sample_configuration())
     dim = len(res['objs'])
 
-    axes = None
-    X_all = []
-    Y_all = []
-    Y_cur = []
-    X_best = []
-    Y_best = []
-    history = []
-    res = None
-
-    MAX_RUNS = 100
     for advisor in advisors:
+        res = None
+        X_all = []
+        Y_all = []
+        Y_cur = []
+        X_best = []
+        Y_best = []
+        history = []
         print("Now running" + str(advisor.__class__))
         m = MAX_RUNS
-
-        pdy = []
 
         for i in trange(m):
             # ask
@@ -75,8 +94,12 @@ if __name__ == "__main__":
                 print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
 
         print(res)
-        plt.scatter(X_all, Y_all, alpha = 0.1)
-        plt.plot(X_best, Y_cur, c = 'green', label = 'every iter')
-        plt.plot(X_best, Y_best, c = 'orange', label = 'best result')
-        plt.legend()
-        plt.show()
+        if len(advisors) == 1:
+            plt.scatter(X_all, Y_all, alpha = 0.1)
+            plt.plot(X_best, Y_cur, c = 'green', label = 'every iter')
+            plt.plot(X_best, Y_best, c = 'orange', label = 'best result')
+        else:
+            plt.plot(X_best, Y_cur, label = advisor.w_stg)
+
+    plt.legend()
+    plt.show()
