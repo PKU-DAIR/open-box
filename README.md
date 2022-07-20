@@ -122,6 +122,7 @@ The design of OpenBox follows the following principles:
             <li>Differential EA</li>
             <li>CMA-ES</li>
             <li>NSGA-II</li>
+            <li>PSO</li>
             </ul>
         </ul>
         <ul>
