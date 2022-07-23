@@ -119,10 +119,11 @@ if __name__ == "__main__":
     dim = len(res['objs'])
 
     if TEST_MOD == 2:
-        pass
         X = []
         Y = []
         res = None
+        Y_rd = []
+        res_rd = None
         eaad = advisors[0]
         m = MAX_RUNS * 30
         print("Now running" + str(eaad.__class__))
@@ -140,7 +141,15 @@ if __name__ == "__main__":
             Y.append(res.objs[0])
             if trange == range:
                 print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
+            tmpconf = space.sample_configuration()
+            tmpret = function(tmpconf)
+            tmpobs = Observation(config = tmpconf, objs = tmpret['objs'])
+            if res_rd is None or res_rd.objs[0] > tmpobs.objs[0]:
+                res_rd = tmpobs
+            Y_rd.append(res_rd.objs[0])
+
         print(res)
+        plt.plot(X, Y_rd, label = 'Random')
         plt.plot(X, Y, label = 'Regularized_ea')
 
         for advisor in advisors[1:]:
