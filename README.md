@@ -114,7 +114,7 @@ The design of OpenBox follows the following principles:
             </ul>
         </ul>
         <ul>
-        <li><b>Evaluationary Algorithms</b></li>
+        <li><b>Evolutionary Algorithms</b></li>
         <ul>
             <li>Surrogate-assisted EA</li>
             <li>Regularized EA</li>
