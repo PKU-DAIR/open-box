@@ -14,16 +14,17 @@ You need to activate your account by clicking on the link in the activation emai
 Here is an example of how to use <font color=#FF0000>**RemoteAdvisor**</font> to interact with the **OpenBox** service.
 
 ```python
-import datetime
 import time
-import hashlib
+import datetime
 import numpy as np
+
 
 from openbox.artifact.remote_advisor import RemoteAdvisor
 from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT, MEMOUT
 from openbox.utils.config_space import Configuration, ConfigurationSpace, UniformFloatHyperparameter
 
 
+# Define objective function to tune
 def townsend(config):
     X = np.array(list(config.get_dictionary().values()))
     res = dict()
@@ -32,7 +33,7 @@ def townsend(config):
     return res
 
 
-# Send task id and config space at register
+# Define the config space
 task_id = time.time()
 townsend_params = {
     'float': {
@@ -44,24 +45,22 @@ townsend_cs = ConfigurationSpace()
 townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params['float'][e])
                                  for e in townsend_params['float']])
 
-password = 'your_password'
-md5 = hashlib.md5()
-md5.update(password.encode('utf-8'))
+
 max_runs = 50
 # Create remote advisor
 config_advisor = RemoteAdvisor(config_space=townsend_cs,
-                               server_ip='127.0.0.1',
+                               server_ip='xx.xx.xx.xx',
                                port=11425,
-                               email='your_email@xxxx.com',
-                               password=md5.hexdigest(),
+                               email='xx@xx.com',
+                               password='xxxx',
                                num_constraints=1,
                                max_runs=max_runs,
-                               task_name="task_test",
-                               task_id=task_id)
+                               acq_type='eic',
+                               surrogate_type='gp',
+                               task_name="town_send_app")
 
 # Simulate max_runs iterations
 for idx in range(max_runs):
-
     config_dict = config_advisor.get_suggestion()
     config = Configuration(config_advisor.config_space, config_dict)
     print('Get %d config: %s' % (idx+1, config))
