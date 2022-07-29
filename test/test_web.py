@@ -1,12 +1,14 @@
-import datetime
 import time
+import datetime
 import numpy as np
+
 
 from openbox.artifact.remote_advisor import RemoteAdvisor
 from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT, MEMOUT
 from openbox.utils.config_space import Configuration, ConfigurationSpace, UniformFloatHyperparameter
 
 
+# Define objective function to tune
 def townsend(config):
     X = np.array(list(config.get_dictionary().values()))
     res = dict()
@@ -15,7 +17,7 @@ def townsend(config):
     return res
 
 
-# Send task id and config space at register
+# Define the config space
 task_id = time.time()
 townsend_params = {
     'float': {
@@ -27,21 +29,22 @@ townsend_cs = ConfigurationSpace()
 townsend_cs.add_hyperparameters([UniformFloatHyperparameter(e, *townsend_params['float'][e])
                                  for e in townsend_params['float']])
 
+
 max_runs = 50
 # Create remote advisor
 config_advisor = RemoteAdvisor(config_space=townsend_cs,
-                               server_ip='1.1.1.1',
+                               server_ip='xx.xx.xx.xx',
                                port=11425,
-                               email='a@a.com',
-                               password='111111',
+                               email='xx@xx.com',
+                               password='xxxx',
                                num_constraints=1,
                                max_runs=max_runs,
-                               task_name="task_test",
-                               task_id=task_id)
+                               acq_type='eic',
+                               surrogate_type='gp',
+                               task_name="town_send_app")
 
 # Simulate max_runs iterations
 for idx in range(max_runs):
-
     config_dict = config_advisor.get_suggestion()
     config = Configuration(config_advisor.config_space, config_dict)
     print('Get %d config: %s' % (idx+1, config))

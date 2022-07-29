@@ -3,6 +3,7 @@
 import time
 import json
 import requests
+import hashlib
 
 from openbox.utils.config_space import json as config_json
 from openbox.utils.config_space import Configuration
@@ -30,7 +31,9 @@ class RemoteAdvisor(object):
                  ):
 
         self.email = email
-        self.password = password
+        md5 = hashlib.md5()
+        md5.update(password.encode('utf-8'))
+        self.password = md5.hexdigest()
 
         # Store and serialize config space
         self.config_space = config_space
