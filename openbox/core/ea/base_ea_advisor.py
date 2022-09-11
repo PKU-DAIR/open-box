@@ -1,16 +1,15 @@
 import abc
-
+import collections
 import random
+from typing import Union, Dict, List, Optional
 
-from typing import *
+from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
-
-from ConfigSpace import ConfigurationSpace, Configuration
 
 
 class EAAdvisor(abc.ABC):
@@ -21,14 +20,14 @@ class EAAdvisor(abc.ABC):
     """
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs = 1,
-                 num_constraints = 0,
-                 population_size = 30,
-                 optimization_strategy = 'ea',
-                 batch_size = 1,
-                 output_dir = 'logs',
-                 task_id = 'default_task_id',
-                 random_state = None):
+                 num_objs=1,
+                 num_constraints=0,
+                 population_size=30,
+                 optimization_strategy='ea',
+                 batch_size=1,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None):
 
         # System Settings.
 
@@ -61,7 +60,7 @@ class EAAdvisor(abc.ABC):
 
         # init history container
         if num_objs == 1:
-            self.history_container = HistoryContainer(task_id, self.num_constraints, config_space = self.config_space)
+            self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
         else:
             self.history_container = MOHistoryContainer(task_id, self.num_objs, self.num_constraints)
 
@@ -82,7 +81,7 @@ class EAAdvisor(abc.ABC):
         """
         raise NotImplementedError
 
-    def get_suggestions(self, batch_size = None):
+    def get_suggestions(self, batch_size=None):
         if batch_size is None:
             batch_size = self.batch_size
 
@@ -91,7 +90,7 @@ class EAAdvisor(abc.ABC):
     def update_observations(self, observations: List[Observation]):
         return [self.update_observation(o) for o in observations]
 
-    def sample_random_config(self, excluded_configs = None):
+    def sample_random_config(self, excluded_configs=None):
         if excluded_configs is None:
             excluded_configs = set()
 
@@ -150,19 +149,19 @@ class Individual:
             return self.data[item]
 
 
-def as_individual(observation: Observation, allow_constraint = True) -> Optional[Individual]:
+def as_individual(observation: Observation, allow_constraint=True) -> Optional[Individual]:
     config = observation.config
     constraint = constraint_check(observation.constraints) and observation.trial_state == SUCCESS
     if not allow_constraint and not constraint:
         return None
     perf = observation.objs
 
-    return Individual(config = config, constraints_satisfied = constraint, perf = perf)
+    return Individual(config=config, constraints_satisfied=constraint, perf=perf)
 
 
 def pareto_sort(population: List[Individual],
-                selection_strategy = 'random', ascending = False) -> List[Individual]:
-    t = pareto_best(population, count_ratio = 1.0, selection_strategy = selection_strategy)
+                selection_strategy='random', ascending=False) -> List[Individual]:
+    t = pareto_best(population, count_ratio=1.0, selection_strategy=selection_strategy)
     if ascending:
         t.reverse()
     return t
@@ -171,7 +170,7 @@ def pareto_sort(population: List[Individual],
 def pareto_best(population: List[Individual],
                 count: Optional[int] = None,
                 count_ratio: Optional[float] = None,
-                selection_strategy = 'random') -> List[Individual]:
+                selection_strategy='random') -> List[Individual]:
     assert not (count is None and count_ratio is None)
     assert selection_strategy in ['random']
 
@@ -181,7 +180,7 @@ def pareto_best(population: List[Individual],
     remain = [x for x in population]
 
     if remain[0].dim == 1:
-        remain.sort(key = lambda a: a.perf_1d())
+        remain.sort(key=lambda a: a.perf_1d())
         return remain[:count]
 
     res = []
@@ -223,14 +222,14 @@ def pareto_frontier(population: List[Individual]) -> List[Individual]:
             not [y for y in population if not [i for i in range(len(x.perf)) if y.perf[i] >= x.perf[i]]]]
 
 
-def constraint_check(constraint, positive_numbers = False) -> bool:
+def constraint_check(constraint, positive_numbers=False) -> bool:
     if constraint is None:
         return True
     elif isinstance(constraint, bool):
         return constraint
     elif isinstance(constraint, float) or isinstance(constraint, int):
         return constraint >= 0 if positive_numbers else constraint <= 0
-    elif isinstance(constraint, Iterable):
+    elif isinstance(constraint, collections.Iterable):
         return not [x for x in constraint if not constraint_check(x, positive_numbers)]
     else:
         return bool(constraint)

@@ -1,32 +1,36 @@
-from openbox.core.ea.base_ea_advisor import *
+from typing import Optional, List, Callable
+
+from ConfigSpace import ConfigurationSpace, Configuration
+
+from openbox.core.ea.base_ea_advisor import EAAdvisor, Individual, as_individual
+from openbox.core.base import Observation
 
 
 class ModularEAAdvisor(EAAdvisor):
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs = 1,
-                 num_constraints = 0,
-                 population_size = 30,
-                 optimization_strategy = 'ea',
-                 batch_size = 1,
-                 output_dir = 'logs',
-                 task_id = 'default_task_id',
-                 random_state = None,
+                 num_objs=1,
+                 num_constraints=0,
+                 population_size=30,
+                 optimization_strategy='ea',
+                 batch_size=1,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None,
 
                  required_evaluation_count: Optional[int] = None,
-                 auto_step = True,
-                 strict_auto_step = True,
-                 skip_gen_population = False,
+                 auto_step=True,
+                 strict_auto_step=True,
+                 skip_gen_population=False,
                  filter_gen_population: Optional[Callable[[List[Configuration]], List[Configuration]]] = None,
-                 keep_unexpected_population = True,
-                 save_cached_configuration = True
+                 keep_unexpected_population=True,
+                 save_cached_configuration=True
                  ):
 
-        EAAdvisor.__init__(self, config_space = config_space, num_objs = num_objs, num_constraints = num_constraints,
-                           population_size = population_size, optimization_strategy = optimization_strategy,
-                           batch_size = batch_size, output_dir = output_dir, task_id = task_id,
-                           random_state = random_state,
-                           )
+        super().__init__(config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
+                         population_size=population_size, optimization_strategy=optimization_strategy,
+                         batch_size=batch_size, output_dir=output_dir, task_id=task_id, random_state=random_state,
+                         )
 
         self.required_evaluation_count = required_evaluation_count or self.population_size
 
@@ -45,7 +49,7 @@ class ModularEAAdvisor(EAAdvisor):
     def generated_count(self) -> int:
         return len(self.cached_config) + len(self.uneval_config) + len(self.next_population)
 
-    def _gen(self, count = 1) -> List[Configuration]:
+    def _gen(self, count=1) -> List[Configuration]:
         raise NotImplementedError
 
     def _could_sel(self) -> bool:
@@ -54,12 +58,12 @@ class ModularEAAdvisor(EAAdvisor):
     def _sel(self, parent: List[Individual], sub: List[Individual]) -> List[Individual]:
         raise NotImplementedError
 
-    def gen(self, count = None):
+    def gen(self, count=None):
 
         if count is None:
             count = self.required_evaluation_count - len(self.cached_config)
-        """if self.__class__.__name__ == 'RegularizedEAAdvisor':
-                    print('gen count is', count)"""
+        # if self.__class__.__name__ == 'RegularizedEAAdvisor':
+        #             print('gen count is', count)
 
         temp = []
 
@@ -88,23 +92,24 @@ class ModularEAAdvisor(EAAdvisor):
             self.uneval_config.clear()
 
     def get_suggestion(self) -> Configuration:
-        return self.get_suggestions(batch_size = 1)[0]
+        return self.get_suggestions(batch_size=1)[0]
 
-    def get_suggestions(self, batch_size = None) -> List[Configuration]:
+    def get_suggestions(self, batch_size=None) -> List[Configuration]:
         if batch_size is None:
             batch_size = self.batch_size
-        """if self.__class__.__name__ == 'RegularizedEAAdvisor':
-            print('rea batch size', batch_size)
-        if self.__class__.__name__ == 'SAEA_Advisor':
-            print('saea batch size', batch_size)"""
+        # if self.__class__.__name__ == 'RegularizedEAAdvisor':
+        #     print('rea batch size', batch_size)
+        # if self.__class__.__name__ == 'SAEA_Advisor':
+        #     print('saea batch size', batch_size)
 
         if len(self.cached_config) < batch_size:
             self.gen(max(self.required_evaluation_count, batch_size))
 
         batch_size = min(batch_size, len(self.cached_config))
 
-        """if self.__class__.__name__ == 'RegularizedEAAdvisor':
-            print('new batch size', len(self.cached_config))"""
+        # if self.__class__.__name__ == 'RegularizedEAAdvisor':
+        #     print('new batch size', len(self.cached_config))
+
         res = self.cached_config[:batch_size]
         self.cached_config = self.cached_config[batch_size:]
         self.uneval_config.extend(res)
