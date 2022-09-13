@@ -13,9 +13,16 @@ class FLOW2(Searcher):
     def __init__(self,
                  config_space: ConfigurationSpace,
                  x0: Configuration,
+                 batch_size=1,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None,
+
+                 inc_threshould = 1000,
                  delta: float = 0.01
                  ):
-        super().__init__(config_space=config_space, x0=x0)
+        super().__init__(config_space=config_space, x0=x0, batch_size=batch_size, output_dir=output_dir,
+                         task_id=task_id, random_state=random_state)
         self.delta = delta
         self.dim = len(config_space.keys())
 
@@ -23,6 +30,7 @@ class FLOW2(Searcher):
         self.conf: List[Configuration] = []
         self.res = [None] * 3
         self.refresh = True
+        self.inc_threshould = inc_threshould
 
 
     def get_suggestion(self):

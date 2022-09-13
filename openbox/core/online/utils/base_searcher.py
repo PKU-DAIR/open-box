@@ -36,6 +36,9 @@ class Searcher():
     def update_observation(self, observation: Observation):
         raise NotImplementedError
 
+    def is_converged(self):
+        raise NotImplementedError
+
     def next(self, config_a: Configuration, delta: float, gaussian=False) -> Tuple[Configuration, Configuration]:
         """
         Given x, delta, sample u randomly from unit sphere, or N(0, 1) if gaussian is True.
@@ -63,3 +66,6 @@ class Searcher():
                 pass
 
         return Configuration(self.config_space, vector=arr), Configuration(self.config_space, vector=arr1)
+
+    def almost_equal(self, config1: Configuration, config2: Configuration, delta: float = 1e-4):
+        return np.linalg.norm(np.abs(config1.get_array() - config2.get_array())) < delta
