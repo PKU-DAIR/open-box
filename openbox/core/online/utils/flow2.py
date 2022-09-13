@@ -37,17 +37,20 @@ class FLOW2(Searcher):
         if self.res[1] and self.res[0]:
             if self.res[1] < self.res[0]:
                 self.x = self.conf[1]
+                self.res = [self.res[1], None, None]
                 self.refresh = True
 
         if all(self.res):
             if self.res[2] < self.res[0]:
                 self.x = self.conf[2]
+                self.res = [self.res[2], None, None]
+            else:
+                self.res = [None] * 3
             self.refresh = True
 
         if self.refresh:
             x1, x2 = self.next(self.x, self.delta)
             self.conf = [self.x, x1, x2]
-            self.res = [None] * 3
             self.refresh = False
 
         for i in range(3):
@@ -58,6 +61,6 @@ class FLOW2(Searcher):
         self.history_container.update_observation(observation)
 
         for i in range(3):
-            if observation.config == self.conf[i]:
+            if observation.config == self.conf[i] and not self.res[i]:
                 self.res[i] = observation.objs[0]
                 break

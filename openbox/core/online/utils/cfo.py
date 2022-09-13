@@ -18,9 +18,9 @@ class CFO(Searcher):
                  task_id='default_task_id',
                  random_state=None,
 
-                 inc_threshould = 1000,
-                 delta_init: float = 1.0,
-                 delta_lower: float = 0.01,
+                 inc_threshould=1000,
+                 delta_init: float = 0.1,
+                 delta_lower: float = 0.001,
                  noise_scale: float = 0.1
                  ):
         super().__init__(config_space=config_space, x0=x0, batch_size=batch_size, output_dir=output_dir,
@@ -48,20 +48,26 @@ class CFO(Searcher):
     def get_suggestion(self):
 
         if all(self.res):
+            r0 = self.res[0]
             if self.res[1] < self.res[0]:
                 self.x = self.conf[1]
+                self.res = [self.res[1], None, None]
             elif self.res[2] < self.res[0]:
                 self.x = self.conf[2]
+                self.res = [self.res[2], None, None]
             else:
                 self.n += 1
+                self.res = [None, None, None]
 
-            if self.res[0] < self.lr_best:
-                self.lr_best = self.res[0]
+            self.k += 1
+
+            if r0 < self.lr_best:
+                self.lr_best = r0
                 self.kd = self.k
 
             if self.n == 2 ** (self.dim - 1):
                 self.n = 0
-                self.delta = self.delta / (1 / (self.k / self.kd) ** 0.5)
+                self.delta = self.delta * (1 / (self.k / self.kd) ** 0.5)
                 if self.delta <= self.delta_lower:
                     self.k = 0
                     self.lr_best = 1e100
@@ -74,8 +80,9 @@ class CFO(Searcher):
         if self.refresh:
             x1, x2 = self.next(self.x, self.delta)
             self.conf = [self.x, x1, x2]
-            self.res = [None] * 3
             self.refresh = False
+
+        print(self.conf)
 
         for i in range(3):
             if not self.res[i]:
@@ -91,11 +98,9 @@ class CFO(Searcher):
             self.incn += 1
 
         for i in range(3):
-            if observation.config == self.conf[i]:
+            if observation.config == self.conf[i] and not self.res[i]:
                 self.res[i] = observation.objs[0]
                 break
 
     def is_converged(self):
         return self.incn > self.inc_threshould
-
-

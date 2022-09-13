@@ -39,6 +39,9 @@ class Searcher():
     def is_converged(self):
         raise NotImplementedError
 
+    def get_history(self):
+        return self.history_container
+
     def next(self, config_a: Configuration, delta: float, gaussian=False) -> Tuple[Configuration, Configuration]:
         """
         Given x, delta, sample u randomly from unit sphere, or N(0, 1) if gaussian is True.
@@ -46,13 +49,17 @@ class Searcher():
         Chooses another random value for categorical hyper-parameters.
         """
 
-        arr = config_a.get_array()
+        arr = config_a.get_array().copy()
         arr1 = arr.copy()
 
-        d = np.random.randn(*arr.shape) if gaussian else np.random.rand(*arr.shape)
+        # print("--", arr)
+
+        d = np.random.randn(*arr.shape)
         if not gaussian:
             d = d / np.linalg.norm(d)
         d = d * delta
+
+        # print(d)
 
         for i, key in enumerate(self.config_space.keys()):
             hp_type = self.config_space.get_hyperparameter(key)
@@ -60,10 +67,13 @@ class Searcher():
                 arr[i] = self.rng.randint(0, hp_type.get_size() - 1)
                 arr1[i] = self.rng.randint(0, hp_type.get_size() - 1)
             elif isinstance(hp_type, NumericalHyperparameter):
-                arr[i] = min(arr[i] + d, 1.0)
-                arr1[i] = max(arr1[i] - d, 0.0)
+                arr[i] = min(arr[i] + d[i], 1.0)
+                arr1[i] = max(arr1[i] - d[i], 0.0)
             else:
                 pass
+
+        # print(arr)
+        # print(arr1)
 
         return Configuration(self.config_space, vector=arr), Configuration(self.config_space, vector=arr1)
 
