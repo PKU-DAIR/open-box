@@ -1,17 +1,16 @@
-import abc
-import collections
-import random
-from typing import Union, Dict, List, Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
-from openbox.utils.util_funcs import check_random_state
-from openbox.utils.logging_utils import get_logger
-from openbox.utils.history_container import HistoryContainer
-from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
+from openbox.utils.history_container import HistoryContainer
+from openbox.utils.util_funcs import check_random_state
+
+
+def almost_equal(config1: Configuration, config2: Configuration, delta: float = 1e-4):
+    return np.linalg.norm(np.abs(config1.get_array() - config2.get_array())) < delta
 
 
 class Searcher():
@@ -66,6 +65,3 @@ class Searcher():
                 pass
 
         return Configuration(self.config_space, vector=arr), Configuration(self.config_space, vector=arr1)
-
-    def almost_equal(self, config1: Configuration, config2: Configuration, delta: float = 1e-4):
-        return np.linalg.norm(np.abs(config1.get_array() - config2.get_array())) < delta

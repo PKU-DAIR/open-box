@@ -1,8 +1,6 @@
-from typing import Tuple, List
+from typing import List
 
-import numpy as np
-from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
-from ConfigSpace.hyperparameters import NumericalHyperparameter
+from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox import Observation
 from openbox.core.online.utils.base_searcher import Searcher
