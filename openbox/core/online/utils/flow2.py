@@ -16,7 +16,7 @@ class FLOW2(Searcher):
                  task_id='default_task_id',
                  random_state=None,
 
-                 inc_threshould = 1000,
+                 inc_threshould = 20,
                  delta: float = 0.01
                  ):
         super().__init__(config_space=config_space, x0=x0, batch_size=batch_size, output_dir=output_dir,
@@ -25,9 +25,13 @@ class FLOW2(Searcher):
         self.dim = len(config_space.keys())
 
         self.x = x0
+        self.config = None
         self.conf: List[Configuration] = []
         self.res = [None] * 3
         self.refresh = True
+
+        self.inc = 1e100
+        self.incn = 0
         self.inc_threshould = inc_threshould
 
 
@@ -53,6 +57,7 @@ class FLOW2(Searcher):
 
         for i in range(3):
             if not self.res[i]:
+                self.config = self.conf[i]
                 return self.conf[i]
 
     def update_observation(self, observation: Observation):
@@ -61,4 +66,12 @@ class FLOW2(Searcher):
         for i in range(3):
             if observation.config == self.conf[i] and not self.res[i]:
                 self.res[i] = observation.objs[0]
+                if observation.objs[0] < self.inc:
+                    self.inc = observation.objs[0]
+                    self.incn = 0
+                else:
+                    self.incn += 1
                 break
+
+    def is_converged(self):
+        return self.incn > self.inc_threshould

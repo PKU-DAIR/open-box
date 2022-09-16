@@ -3,18 +3,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from openbox import Advisor, sp, Observation
-from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
-from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
-from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
-from openbox.core.ea.cmaes_ea_advisor import CMAESEAAdvisor
-from openbox.core.ea.nsga2_ea_advisor import NSGA2EAdvisor
 
-from openbox.benchmark.objective_functions.synthetic import Rosenbrock
+from openbox.benchmark.objective_functions.synthetic import Bukin
+from openbox.benchmark.objective_functions.synthetic import Ackley
 
 # Define Objective Function
-from openbox.core.ea.saea_advisor import SAEAAdvisor
 from openbox.core.online.utils.cfo import CFO
 from openbox.core.online.utils.flow2 import FLOW2
+from openbox.core.online.utils.blendsearch import BlendSearchAdvisor
 from openbox.utils.config_space import convert_configurations_to_array
 
 try:
@@ -22,7 +18,7 @@ try:
 except ModuleNotFoundError:
     trange = range
 
-function = Rosenbrock()
+function = Bukin()
 space = function.config_space
 
 x0 = space.sample_configuration()
@@ -37,6 +33,9 @@ if __name__ == "__main__":
         config_space=space,
         task_id='default_task_id',
         x0=x0
+    ),BlendSearchAdvisor(
+        config_space=space,
+        task_id='default_task_id',
     )]
 
     res = function(space.sample_configuration())
@@ -45,7 +44,7 @@ if __name__ == "__main__":
     axes = None
     histories = []
 
-    MAX_RUNS = 1000
+    MAX_RUNS = 2000
     for advisor in advisors:
         print("Now running" + str(advisor.__class__))
         m = MAX_RUNS

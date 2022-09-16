@@ -16,7 +16,7 @@ class CFO(Searcher):
                  task_id='default_task_id',
                  random_state=None,
 
-                 inc_threshould=1000,
+                 inc_threshould = 20,
                  delta_init: float = 0.1,
                  delta_lower: float = 0.001,
                  noise_scale: float = 0.1
@@ -31,6 +31,7 @@ class CFO(Searcher):
         self.noise_scale = noise_scale
 
         self.x = x0
+        self.config = None
 
         self.conf: List[Configuration] = []
         self.res: List[Optional[float]] = [None] * 3
@@ -84,6 +85,7 @@ class CFO(Searcher):
 
         for i in range(3):
             if not self.res[i]:
+                self.config = self.conf[i]
                 return self.conf[i]
 
     def update_observation(self, observation: Observation):

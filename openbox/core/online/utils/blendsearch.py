@@ -5,15 +5,16 @@ from ConfigSpace import ConfigurationSpace
 
 from openbox.core.online.utils.cfo import CFO
 from openbox.core.online.utils.flow2 import FLOW2
-from openbox.core.online.utils.base_searcher import Searcher
+from openbox.core.online.utils.random import RandomSearch
+from openbox.core.online.utils.base_searcher import Searcher, almost_equal
 from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
 
-GlobalSearch = CFO
-LocalSearch = FLOW2
+GlobalSearch = RandomSearch
+LocalSearch = CFO
 
 
 class SearchPiece:
@@ -68,6 +69,9 @@ class BlendSearchAdvisor(abc.ABC):
         self.x0 = self.sample_random_config()
         self.globals = None
         self.locals = []
+        self.cur_cnt = 0
+        self.max_locals = 10
+        self.max_cnt = int(self.max_locals * 0.7)
 
     def get_suggestion(self):
         next_config = None
@@ -81,7 +85,7 @@ class BlendSearchAdvisor(abc.ABC):
             if next_piece is self.globals and self.new_condition():
                 self.create_piece()
             self.cur = next_piece
-            next_config = next_piece.searchmethod.get_suggestion()
+            next_config = next_piece.search_method.get_suggestion()
             next_piece.config = next_config
 
         self.all_configs.add(next_config)
@@ -128,23 +132,30 @@ class BlendSearchAdvisor(abc.ABC):
         return self.history_container
 
     def select_piece(self):
+        if self.cur_cnt == self.max_cnt:
+            self.cur_cnt = 0
+            return self.globals
         ret = None
         for t in self.locals:
             if ret is None or self.valu(t) < self.valu(ret):
                 ret = t
         if ret is None or self.valu(self.globals) < self.valu(ret):
+            self.cur_cnt = 0
             ret = self.globals
+        if ret is not self.globals:
+            self.cur_cnt += 1
         return ret
 
     def new_condition(self):
-        return len(self.locals) < 10
+        return len(self.locals) < self.max_locals
 
     def create_piece(self):
         self.locals.append(SearchPiece(self.LocalSearch(self.config_space, self.globals.search_method.config),
                                        -MAXINT, None))
 
     def del_piece(self, s: SearchPiece):
-        self.locals.remove(s)
+        if s in self.locals:
+            self.locals.remove(s)
 
     def merge_piece(self):
         need_del = []
@@ -155,10 +166,8 @@ class BlendSearchAdvisor(abc.ABC):
             self.del_piece(t)
 
         need_del = []
-        for i in range(len(self.locals)):
-            for j in range(i + 1, len(self.locals)):
-                if almost_equal(self.locals[i].config, self.locals[j].config):
-                    need_del.append(self.locals[j])
+        for i, t in enumerate(self.locals):
+            map(lambda x: need_del.append(x) if almost_equal(x.config, t.config) else None, self.locals[i+1:])
         for t in need_del:
             self.del_piece(t)
 

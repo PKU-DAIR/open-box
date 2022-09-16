@@ -1,3 +1,4 @@
+import abc
 from typing import Tuple
 
 import numpy as np
@@ -10,10 +11,12 @@ from openbox.utils.util_funcs import check_random_state
 
 
 def almost_equal(config1: Configuration, config2: Configuration, delta: float = 1e-4):
+    if not (config1 and config2):
+        return False
     return np.linalg.norm(np.abs(config1.get_array() - config2.get_array())) < delta
 
 
-class Searcher():
+class Searcher:
     def __init__(self,
                  config_space: ConfigurationSpace,
                  x0: Configuration,
@@ -23,6 +26,7 @@ class Searcher():
                  random_state=None):
         self.config_space = config_space
         self.x0 = x0
+        self.config: Configuration
         self.batch_size = batch_size
         self.output_dir = output_dir
         self.rng = check_random_state(random_state)
