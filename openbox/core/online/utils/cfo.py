@@ -17,8 +17,8 @@ class CFO(Searcher):
                  random_state=None,
 
                  inc_threshould = 20,
-                 delta_init: float = 0.1,
-                 delta_lower: float = 0.001,
+                 delta_init: float = 0.05,
+                 delta_lower: float = 0.002,
                  noise_scale: float = 0.1
                  ):
         super().__init__(config_space=config_space, x0=x0, batch_size=batch_size, output_dir=output_dir,
@@ -46,7 +46,7 @@ class CFO(Searcher):
 
     def get_suggestion(self):
 
-        if all(self.res):
+        if all(x is not None for x in self.res):
             r0 = self.res[0]
             if self.res[1] < self.res[0]:
                 self.x = self.conf[1]
@@ -56,7 +56,7 @@ class CFO(Searcher):
                 self.res = [self.res[2], None, None]
             else:
                 self.n += 1
-                self.res = [None, None, None]
+                self.res = [self.res[0], None, None]
 
             self.k += 1
 
@@ -81,10 +81,10 @@ class CFO(Searcher):
             self.conf = [self.x, x1, x2]
             self.refresh = False
 
-        print(self.conf)
+        # print(self.conf)
 
         for i in range(3):
-            if not self.res[i]:
+            if self.res[i] is None:
                 self.config = self.conf[i]
                 return self.conf[i]
 
@@ -98,7 +98,7 @@ class CFO(Searcher):
             self.incn += 1
 
         for i in range(3):
-            if observation.config == self.conf[i] and not self.res[i]:
+            if observation.config == self.conf[i] and self.res[i] is None:
                 self.res[i] = observation.objs[0]
                 break
 

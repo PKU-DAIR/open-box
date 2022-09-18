@@ -36,18 +36,18 @@ class FLOW2(Searcher):
 
 
     def get_suggestion(self):
-        if self.res[1] and self.res[0]:
+        if self.res[1] is not None and self.res[0] is not None:
             if self.res[1] < self.res[0]:
                 self.x = self.conf[1]
                 self.res = [self.res[1], None, None]
                 self.refresh = True
 
-        if all(self.res):
+        if all(x is not None for x in self.res):
             if self.res[2] < self.res[0]:
                 self.x = self.conf[2]
                 self.res = [self.res[2], None, None]
             else:
-                self.res = [None] * 3
+                self.res = [self.res[0], None, None]
             self.refresh = True
 
         if self.refresh:
@@ -56,7 +56,7 @@ class FLOW2(Searcher):
             self.refresh = False
 
         for i in range(3):
-            if not self.res[i]:
+            if self.res[i] is None:
                 self.config = self.conf[i]
                 return self.conf[i]
 
@@ -64,7 +64,7 @@ class FLOW2(Searcher):
         self.history_container.update_observation(observation)
 
         for i in range(3):
-            if observation.config == self.conf[i] and not self.res[i]:
+            if observation.config == self.conf[i] and self.res[i] is None:
                 self.res[i] = observation.objs[0]
                 if observation.objs[0] < self.inc:
                     self.inc = observation.objs[0]
