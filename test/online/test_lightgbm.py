@@ -25,7 +25,7 @@ try:
 except ModuleNotFoundError:
     trange = range
 
-dataset = openml.datasets.get_dataset('kr-vs-kp')
+dataset = openml.datasets.get_dataset('autoUniv-au7-500')
 
 Xy, _, classes, names = dataset.get_data(dataset_format='array')
 
@@ -107,8 +107,8 @@ if __name__ == "__main__":
         plt.legend()
         plt.show()
 
-    if not os.path.exists("tmp"):
-        os.mkdir("tmp")
+    # if not os.path.exists("tmp"):
+    #     os.mkdir("tmp")
 
-    with open("tmp/" + time.strftime("%Y_%m_%d__%H_%M_%S", time.localtime()) + ".txt", "w") as f:
-        f.write(str({a: histories[a].get_incumbents() for a in histories}))
+    # with open("tmp/" + time.strftime("%Y_%m_%d__%H_%M_%S", time.localtime()) + ".txt", "w") as f:
+    #     f.write(str({a: histories[a].get_incumbents() for a in histories}))

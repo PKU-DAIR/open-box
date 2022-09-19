@@ -1,7 +1,9 @@
 import abc
 from typing import List
 
-from ConfigSpace import ConfigurationSpace
+import numpy as np
+from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.hyperparameters import NumericalHyperparameter
 
 from openbox.core.online.utils.cfo import CFO
 from openbox.core.online.utils.flow2 import FLOW2
@@ -12,9 +14,6 @@ from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
-
-GlobalSearch = RandomSearch
-LocalSearch = CFO
 
 
 class SearchPiece:
@@ -30,8 +29,8 @@ class SearchPiece:
 class BlendSearchAdvisor(abc.ABC):
     def __init__(self, config_space: ConfigurationSpace,
                  dead_line=0,
-                 globalsearch=CFO,
-                 localsearch=FLOW2,
+                 globalsearch=RandomSearch,
+                 localsearch=CFO,
                  num_constraints=0,
                  batch_size=1,
                  output_dir='logs',
@@ -83,7 +82,7 @@ class BlendSearchAdvisor(abc.ABC):
         else:
             next_piece = self.select_piece()
             if next_piece is self.globals and self.new_condition():
-                self.create_piece()
+                self.create_piece(self.next(self.globals.config))
             self.cur = next_piece
             next_config = next_piece.search_method.get_suggestion()
             next_piece.config = next_config
@@ -149,8 +148,8 @@ class BlendSearchAdvisor(abc.ABC):
     def new_condition(self):
         return len(self.locals) < self.max_locals
 
-    def create_piece(self):
-        self.locals.append(SearchPiece(self.LocalSearch(self.config_space, self.globals.search_method.config),
+    def create_piece(self, config: Configuration):
+        self.locals.append(SearchPiece(self.LocalSearch(self.config_space, config),
                                        -MAXINT, None))
 
     def del_piece(self, s: SearchPiece):
@@ -167,7 +166,7 @@ class BlendSearchAdvisor(abc.ABC):
 
         need_del = []
         for i, t in enumerate(self.locals):
-            map(lambda x: need_del.append(x) if almost_equal(x.config, t.config) else None, self.locals[i+1:])
+            map(lambda x: need_del.append(x) if almost_equal(x.config, t.config) else None, self.locals[i + 1:])
         for t in need_del:
             self.del_piece(t)
 
@@ -176,3 +175,27 @@ class BlendSearchAdvisor(abc.ABC):
             return s.perf
         else:
             return self.u * s.perf - self.v * s.cost
+
+    def next(self, config_a: Configuration, delta=0.05, gaussian=False, recu=0):
+        arr = config_a.get_array().copy()
+        d = np.random.randn(*arr.shape)
+        if not gaussian:
+            d = d / np.linalg.norm(d)
+        d = d * delta
+
+        # print(d)
+
+        for i, key in enumerate(self.config_space.keys()):
+            hp_type = self.config_space.get_hyperparameter(key)
+            if isinstance(hp_type, CategoricalHyperparameter) or isinstance(hp_type, OrdinalHyperparameter):
+                arr[i] = self.rng.randint(0, hp_type.get_size() - 1)
+            elif isinstance(hp_type, NumericalHyperparameter):
+                arr[i] = min(arr[i] + d[i], 1.0)
+
+        ret = Configuration(self.config_space, vector=arr)
+        if ret in self.all_configs:
+            if recu > 100:
+                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % 100)
+            else:
+                ret = self.next(config_a, recu + 1)
+        return ret
