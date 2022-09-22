@@ -16,7 +16,7 @@ def almost_equal(config1: Configuration, config2: Configuration, delta: float = 
     return np.linalg.norm(np.abs(config1.get_array() - config2.get_array())) < delta
 
 
-class Searcher:
+class OnlineAdvisor(abc.ABC):
     def __init__(self,
                  config_space: ConfigurationSpace,
                  x0: Configuration,

@@ -3,10 +3,10 @@ from typing import List
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox import Observation
-from openbox.core.online.utils.base_searcher import Searcher
+from openbox.core.online.utils.base_online_advisor import OnlineAdvisor
 
 
-class RandomSearch(Searcher):
+class RandomSearch(OnlineAdvisor):
 
     def is_converged(self):
         return False
