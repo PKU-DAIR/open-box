@@ -8,7 +8,7 @@ from ConfigSpace.hyperparameters import NumericalHyperparameter
 from openbox.core.online.utils.cfo import CFO
 from openbox.core.online.utils.flow2 import FLOW2
 from openbox.core.online.utils.random import RandomSearch
-from openbox.core.online.utils.base_searcher import Searcher, almost_equal
+from openbox.core.online.utils.base_online_advisor import OnlineAdvisor, almost_equal
 from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
@@ -17,7 +17,7 @@ from openbox.core.base import Observation
 
 
 class SearchPiece:
-    def __init__(self, searcher: Searcher,
+    def __init__(self, searcher: OnlineAdvisor,
                  perf,
                  cost):
         self.perf = perf
@@ -69,7 +69,7 @@ class BlendSearchAdvisor(abc.ABC):
         self.globals = None
         self.locals = []
         self.cur_cnt = 0
-        self.max_locals = 10
+        self.max_locals = 20
         self.max_cnt = int(self.max_locals * 0.7)
 
     def get_suggestion(self):
@@ -146,7 +146,14 @@ class BlendSearchAdvisor(abc.ABC):
         return ret
 
     def new_condition(self):
-        return len(self.locals) < self.max_locals
+        if len(self.locals) > self.max_locals:
+            return False
+        cnt = 0
+        tot = len(self.locals)
+        for t in self.locals:
+            if self.valu(self.globals) < self.valu(t):
+                cnt += 1
+        return cnt >= tot // 2
 
     def create_piece(self, config: Configuration):
         self.locals.append(SearchPiece(self.LocalSearch(self.config_space, config),
@@ -174,7 +181,7 @@ class BlendSearchAdvisor(abc.ABC):
         if s.cost is None:
             return s.perf
         else:
-            return self.u * s.perf - self.v * s.cost
+            return self.u * s.perf + self.v * s.cost
 
     def next(self, config_a: Configuration, delta=0.05, gaussian=False, recu=0):
         arr = config_a.get_array().copy()

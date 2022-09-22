@@ -40,7 +40,7 @@ x0 = space.sample_configuration()
 # Run
 if __name__ == "__main__":
 
-    MAX_RUNS = 200
+    MAX_RUNS = 100
 
     advisors = [FLOW2(
         config_space=space,
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     histories['BO'] = history
 
-    for advisor in advisors:
+    for advisor in advisors[2:]:
         print("Now running" + str(advisor.__class__))
 
         for i in trange(MAX_RUNS):

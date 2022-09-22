@@ -3,10 +3,10 @@ from typing import List
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox import Observation
-from openbox.core.online.utils.base_searcher import Searcher
+from openbox.core.online.utils.base_online_advisor import OnlineAdvisor
 
 
-class FLOW2(Searcher):
+class FLOW2(OnlineAdvisor):
 
     def __init__(self,
                  config_space: ConfigurationSpace,
