@@ -14,6 +14,7 @@ from openbox.benchmark.objective_functions.synthetic import Ackley
 import openml
 
 # Define Objective Function
+from openbox.core.generic_advisor import Advisor
 from openbox.core.online.utils.cfo import CFO
 from openbox.core.online.utils.flow2 import FLOW2
 from openbox.core.online.utils.blendsearch import BlendSearchAdvisor
@@ -52,7 +53,7 @@ if __name__ == "__main__":
         x0=x0
     ), BlendSearchAdvisor(
         config_space=space,
-        task_id='default_task_id',
+        task_id='default_task_id'
     )]
 
     axes = None

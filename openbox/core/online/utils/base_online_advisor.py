@@ -20,12 +20,14 @@ class OnlineAdvisor(abc.ABC):
     def __init__(self,
                  config_space: ConfigurationSpace,
                  x0: Configuration,
+                 num_objs=1,
                  batch_size=1,
                  output_dir='logs',
                  task_id='default_task_id',
                  random_state=None):
         self.config_space = config_space
         self.x0 = x0
+        self.num_objs = num_objs
         self.config: Configuration
         self.batch_size = batch_size
         self.output_dir = output_dir
