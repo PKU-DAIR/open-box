@@ -13,7 +13,6 @@ class RandomSearch(OnlineAdvisor):
 
     def __init__(self,
                  config_space: ConfigurationSpace,
-                 x0: Configuration,
                  batch_size=1,
                  output_dir='logs',
                  task_id='default_task_id',
@@ -23,7 +22,7 @@ class RandomSearch(OnlineAdvisor):
                          task_id=task_id, random_state=random_state)
         self.dim = len(config_space.keys())
 
-        self.x = x0
+        self.type = "Global"
         self.config = None
 
     def get_suggestion(self):

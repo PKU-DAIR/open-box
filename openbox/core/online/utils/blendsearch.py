@@ -1,10 +1,11 @@
 import abc
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
+from openbox.core.generic_advisor import Advisor
 from openbox.core.online.utils.cfo import CFO
 from openbox.core.online.utils.flow2 import FLOW2
 from openbox.core.online.utils.random import RandomSearch
@@ -17,7 +18,7 @@ from openbox.core.base import Observation
 
 
 class SearchPiece:
-    def __init__(self, searcher: OnlineAdvisor,
+    def __init__(self, searcher,
                  perf,
                  cost):
         self.perf = perf
@@ -29,7 +30,7 @@ class SearchPiece:
 class BlendSearchAdvisor(abc.ABC):
     def __init__(self, config_space: ConfigurationSpace,
                  dead_line=0,
-                 globalsearch=RandomSearch,
+                 globalsearch=Advisor,
                  localsearch=CFO,
                  num_constraints=0,
                  batch_size=1,
@@ -75,7 +76,7 @@ class BlendSearchAdvisor(abc.ABC):
     def get_suggestion(self):
         next_config = None
         if self.globals is None:
-            self.globals = SearchPiece(self.GlobalSearch(self.config_space, self.x0), -MAXINT, None)
+            self.globals = SearchPiece(self.GlobalSearch(self.config_space), -MAXINT, None)
             self.cur = self.globals
             next_config = self.globals.search_method.get_suggestion()
             self.globals.config = next_config
