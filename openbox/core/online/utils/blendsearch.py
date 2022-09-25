@@ -73,6 +73,9 @@ class BlendSearchAdvisor(abc.ABC):
         self.max_locals = 20
         self.max_cnt = int(self.max_locals * 0.7)
 
+    def __str__(self):
+        return f"BlendSearch({self.GlobalSearch.__name__}, {self.LocalSearch.__name__})"
+
     def get_suggestion(self):
         next_config = None
         if self.globals is None:

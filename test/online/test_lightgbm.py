@@ -43,15 +43,8 @@ if __name__ == "__main__":
 
     MAX_RUNS = 100
 
-    advisors = [FLOW2(
-        config_space=space,
-        task_id='default_task_id',
-        x0=x0
-    ), CFO(
-        config_space=space,
-        task_id='default_task_id',
-        x0=x0
-    ), BlendSearchAdvisor(
+    advisors = [
+    BlendSearchAdvisor(
         config_space=space,
         task_id='default_task_id'
     )]
