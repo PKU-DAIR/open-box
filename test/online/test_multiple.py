@@ -4,6 +4,7 @@ import time
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from ConfigSpace import Constant
 from sklearn.model_selection import train_test_split
 
@@ -41,6 +42,21 @@ MAX_RUNS = 200
 ADVISORS = [lambda sp: BlendSearchAdvisor(globalsearch=FLOW2, config_space=sp, task_id='default_task_id'),
             lambda sp: BlendSearchAdvisor(globalsearch=Advisor, config_space=sp, task_id='default_task_id')]
 
+
+def load_local_dataset(name: str):
+    with open(f"data/{name}.arff", "r") as f:
+        for line in f:
+            if line.startswith("@data"):
+                break
+
+    df = pd.read_csv(f, header=None)
+    return np.array(df)
+
+# Set this to True if you can't connect to openml.
+# Create a folder named "data" in the same folder as test_multiple.py
+# Download arff files from openml, put it in the folder, rename it to <dataset_name>.arff
+LOCAL_DATASET = False
+
 # Run
 if __name__ == "__main__":
 
@@ -48,9 +64,13 @@ if __name__ == "__main__":
 
         print("Running dataset " + dataset_name)
 
-        dataset = openml.datasets.get_dataset(dataset_name)
+        if LOCAL_DATASET:
+            Xy = load_local_dataset(dataset_name)
+        else:
 
-        Xy, _, classes, names = dataset.get_data(dataset_format='array')
+            dataset = openml.datasets.get_dataset(dataset_name)
+
+            Xy, _, classes, names = dataset.get_data(dataset_format='array')
 
         X, y = Xy[:, :-1], Xy[:, -1]
         x_train, x_val, y_train, y_val = train_test_split(X, y, test_size=0.2, stratify=y, random_state=1)
