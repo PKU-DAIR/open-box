@@ -44,13 +44,14 @@ ADVISORS = [lambda sp: BlendSearchAdvisor(globalsearch=FLOW2, config_space=sp, t
 
 
 def load_local_dataset(name: str):
-    with open(f"data/{name}.arff", "r") as f:
+    with open(f"data/{name}.arff", "r", encoding="utf-8") as f:
         for line in f:
-            if line.startswith("@data"):
+            if line.startswith("@data") or line.startswith("@DATA"):
                 break
 
     df = pd.read_csv(f, header=None)
     return np.array(df)
+
 
 # Set this to True if you can't connect to openml.
 # Create a folder named "data" in the same folder as test_multiple.py
