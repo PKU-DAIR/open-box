@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 from openbox import sp, Observation
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 
-from openbox.benchmark.objective_functions.synthetic import *
+from openbox.benchmark.objective_functions.synthetic import DTLZ1
+from openbox.benchmark.objective_functions.synthetic import Configuration
 
 from openbox.core.ea.saea_advisor import SAEAAdvisor
 from openbox.optimizer.generic_smbo import SMBO

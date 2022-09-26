@@ -1,41 +1,40 @@
 # License: MIT
-
-from openbox.core.ea.base_ea_advisor import EAAdvisor
-from openbox.utils.constants import MAXINT, SUCCESS
-from openbox.utils.config_space import get_one_exchange_neighbourhood
-from openbox.core.base import Observation
+from typing import List
+import numpy as np
 
 from ConfigSpace import Configuration
-from ConfigSpace.hyperparameters import *
 
-from typing import *
+from openbox.core.ea.base_ea_advisor import EAAdvisor
+from openbox.core.base import Observation
+from openbox.utils.constants import MAXINT, SUCCESS
+from openbox.utils.config_space import get_one_exchange_neighbourhood
 
 
 class AdaptiveEAAdvisor(EAAdvisor):
+
     def __init__(self,
 
                  config_space,
-                 num_objs = 1,
-                 num_constraints = 0,
-                 population_size = 30,
-                 optimization_strategy = 'ea',
-                 batch_size = 1,
-                 output_dir = 'logs',
-                 task_id = 'default_task_id',
-                 random_state = None,
+                 num_objs=1,
+                 num_constraints=0,
+                 population_size=30,
+                 optimization_strategy='ea',
+                 batch_size=1,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None,
 
-                 subset_size = 20,
-                 epsilon = 0.2,
-                 pc = 0.3,
-                 pm = 0.3,
-                 strategy = 'worst',
+                 subset_size=20,
+                 epsilon=0.2,
+                 pc=0.3,
+                 pm=0.3,
+                 strategy='worst',
                  ):
 
-        EAAdvisor.__init__(self, config_space, num_objs = num_objs, num_constraints = num_constraints,
-                           population_size = population_size, optimization_strategy = optimization_strategy,
-                           batch_size = batch_size, output_dir = output_dir, task_id = task_id,
-                           random_state = random_state,
-                           )
+        super().__init__(config_space, num_objs=num_objs, num_constraints=num_constraints,
+                         population_size=population_size, optimization_strategy=optimization_strategy,
+                         batch_size=batch_size, output_dir=output_dir, task_id=task_id, random_state=random_state,
+                         )
 
         self.subset_size = subset_size
         assert 0 < self.subset_size <= self.population_size
@@ -56,12 +55,12 @@ class AdaptiveEAAdvisor(EAAdvisor):
             self.last_suggestions = self.get_suggestions()
         return self.last_suggestions.pop()
 
-    def get_suggestions(self, batch_size = None):
+    def get_suggestions(self, batch_size=None):
         next_configs = []
         if len(self.population) < self.population_size:
             miu = self.population_size - len(self.population)
             for t in range(0, miu):
-                next_config = self.sample_random_config(excluded_configs = self.all_configs)
+                next_config = self.sample_random_config(excluded_configs=self.all_configs)
                 self.all_configs.add(next_config)
                 self.running_configs.append(next_config)
                 next_configs.append(next_config)
@@ -121,17 +120,17 @@ class AdaptiveEAAdvisor(EAAdvisor):
 
             # update population
             if trial_state == SUCCESS and perf < MAXINT:
-                self.population.append(dict(config = config, age = self.age, perf = perf))
+                self.population.append(dict(config=config, age=self.age, perf=perf))
 
             ret_observations.append(self.history_container.update_observation(observation))
 
         # Eliminate samples
         if len(self.population) > self.population_size:
             if self.strategy == 'oldest':
-                self.population.sort(key = lambda x: x['age'])
+                self.population.sort(key=lambda x: x['age'])
                 self.population = self.population[-self.population_size:]
             elif self.strategy == 'worst':
-                self.population.sort(key = lambda x: x['perf'])
+                self.population.sort(key=lambda x: x['perf'])
                 self.population = self.population[:self.population_size]
             else:
                 raise ValueError('Unknown strategy: %s' % self.strategy)
@@ -147,15 +146,15 @@ class AdaptiveEAAdvisor(EAAdvisor):
             #     a1[i] = a2[i]
             # a1[i] = a1[i] * (1.0 - cr) + a2[i] * cr
 
-        return Configuration(self.config_space, vector = a1)
+        return Configuration(self.config_space, vector=a1)
 
     def mutation(self, config: Configuration):
         ret_config = None
-        neighbors_gen = get_one_exchange_neighbourhood(config, seed = self.rng.randint(MAXINT))
+        neighbors_gen = get_one_exchange_neighbourhood(config, seed=self.rng.randint(MAXINT))
         for neighbor in neighbors_gen:
             if neighbor not in self.all_configs:
                 ret_config = neighbor
                 break
         if ret_config is None:
-            ret_config = self.sample_random_config(excluded_configs = self.all_configs)
+            ret_config = self.sample_random_config(excluded_configs=self.all_configs)
         return ret_config

@@ -1,13 +1,13 @@
 # License: MIT
+import random
+from typing import Optional, Callable, List
 
-from openbox.core.ea.base_ea_advisor import *
+from ConfigSpace import Configuration
+
 from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 from openbox.utils.constants import MAXINT
 from openbox.utils.config_space import get_one_exchange_neighbourhood
-
-from openbox.core.ea.base_ea_advisor import Individual
-
-from typing import *
+from openbox.core.ea.base_ea_advisor import Individual, pareto_sort
 
 
 class RegularizedEAAdvisor(ModularEAAdvisor):
@@ -18,40 +18,40 @@ class RegularizedEAAdvisor(ModularEAAdvisor):
     def __init__(self,
 
                  config_space,
-                 num_objs = 1,
-                 num_constraints = 0,
-                 population_size = 30,
-                 optimization_strategy = 'ea',
-                 batch_size = 1,
-                 output_dir = 'logs',
-                 task_id = 'default_task_id',
-                 random_state = None,
+                 num_objs=1,
+                 num_constraints=0,
+                 population_size=30,
+                 optimization_strategy='ea',
+                 batch_size=1,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None,
 
-                 constraint_strategy = 'discard',
+                 constraint_strategy='discard',
 
                  required_evaluation_count: Optional[int] = 1,
-                 auto_step = True,
-                 strict_auto_step = True,
-                 skip_gen_population = False,
+                 auto_step=True,
+                 strict_auto_step=True,
+                 skip_gen_population=False,
                  filter_gen_population: Optional[Callable[[List[Configuration]], List[Configuration]]] = None,
-                 keep_unexpected_population = True,
-                 save_cached_configuration = True,
+                 keep_unexpected_population=True,
+                 save_cached_configuration=True,
 
-                 subset_size = 20,
-                 epsilon = 0.2,
-                 strategy = 'worst',
+                 subset_size=20,
+                 epsilon=0.2,
+                 strategy='worst',
                  ):
 
-        super().__init__(config_space = config_space, num_objs = num_objs, num_constraints = num_constraints,
-                         population_size = population_size, optimization_strategy = optimization_strategy,
-                         batch_size = batch_size, output_dir = output_dir, task_id = task_id,
-                         random_state = random_state,
+        super().__init__(config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
+                         population_size=population_size, optimization_strategy=optimization_strategy,
+                         batch_size=batch_size, output_dir=output_dir, task_id=task_id,
+                         random_state=random_state,
 
-                         required_evaluation_count = required_evaluation_count, auto_step = auto_step,
-                         strict_auto_step = strict_auto_step, skip_gen_population = skip_gen_population,
-                         filter_gen_population = filter_gen_population,
-                         keep_unexpected_population = keep_unexpected_population,
-                         save_cached_configuration = save_cached_configuration
+                         required_evaluation_count=required_evaluation_count, auto_step=auto_step,
+                         strict_auto_step=strict_auto_step, skip_gen_population=skip_gen_population,
+                         filter_gen_population=filter_gen_population,
+                         keep_unexpected_population=keep_unexpected_population,
+                         save_cached_configuration=save_cached_configuration
                          )
 
         # assert num_objs == 1
@@ -64,11 +64,11 @@ class RegularizedEAAdvisor(ModularEAAdvisor):
         self.strategy = strategy
         assert self.strategy in ['worst', 'oldest']
 
-    def _gen(self, count = 1) -> List[Configuration]:
+    def _gen(self, count=1) -> List[Configuration]:
 
         if len(self.population) < self.population_size:
             # Initialize population
-            next_config = self.sample_random_config(excluded_configs = self.all_configs)
+            next_config = self.sample_random_config(excluded_configs=self.all_configs)
         else:
             # Select a parent by subset tournament and epsilon greedy
             if self.rng.random() < self.epsilon:
@@ -80,13 +80,13 @@ class RegularizedEAAdvisor(ModularEAAdvisor):
 
             # Mutation to 1-step neighbors
             next_config = None
-            neighbors_gen = get_one_exchange_neighbourhood(parent_config, seed = self.rng.randint(MAXINT))
+            neighbors_gen = get_one_exchange_neighbourhood(parent_config, seed=self.rng.randint(MAXINT))
             for neighbor in neighbors_gen:
                 if neighbor not in self.all_configs:
                     next_config = neighbor
                     break
             if next_config is None:  # If all the neighors are evaluated, sample randomly!
-                next_config = self.sample_random_config(excluded_configs = self.all_configs)
+                next_config = self.sample_random_config(excluded_configs=self.all_configs)
 
         self.all_configs.add(next_config)
 
@@ -104,7 +104,7 @@ class RegularizedEAAdvisor(ModularEAAdvisor):
 
         if len(parent) > self.population_size:
             if self.strategy == 'oldest':
-                parent.sort(key = lambda x: x['age'], reverse = True)
+                parent.sort(key=lambda x: x['age'], reverse=True)
                 parent = parent[:self.population_size]
             elif self.strategy == 'worst':
                 parent = pareto_sort(parent)

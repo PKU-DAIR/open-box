@@ -10,7 +10,10 @@ from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor
 from openbox.core.ea.cmaes_ea_advisor import CMAESEAAdvisor
 from openbox.core.ea.nsga2_ea_advisor import NSGA2EAdvisor
 
-from openbox.benchmark.objective_functions.synthetic import *
+from openbox.benchmark.objective_functions.synthetic import Rosenbrock
+from openbox.benchmark.objective_functions.synthetic import BaseTestProblem
+from openbox.benchmark.objective_functions.synthetic import UniformFloatHyperparameter
+from openbox.benchmark.objective_functions.synthetic import Configuration, ConfigurationSpace
 
 # Define Objective Function
 from openbox.core.ea.saea_advisor import SAEAAdvisor

@@ -1,9 +1,11 @@
-from openbox.core.ea.base_modular_ea_advisor import *
+import random
+from typing import Optional, Callable, List, Union, Tuple
 
-from ConfigSpace import Configuration
-from ConfigSpace.hyperparameters import *
+from ConfigSpace import Configuration, ConfigurationSpace, CategoricalHyperparameter, OrdinalHyperparameter
+from ConfigSpace.hyperparameters import NumericalHyperparameter
 
-from typing import *
+from openbox.core.ea.base_ea_advisor import Individual, pareto_best, pareto_sort
+from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 
 
 class DifferentialEAAdvisor(ModularEAAdvisor):
@@ -11,24 +13,24 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
     def __init__(self,
 
                  config_space: ConfigurationSpace,
-                 num_objs = 1,
-                 num_constraints = 0,
-                 population_size = 30,
-                 optimization_strategy = 'ea',
-                 batch_size = 1,
-                 output_dir = 'logs',
-                 task_id = 'default_task_id',
-                 random_state = None,
+                 num_objs=1,
+                 num_constraints=0,
+                 population_size=30,
+                 optimization_strategy='ea',
+                 batch_size=1,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None,
 
                  required_evaluation_count: Optional[int] = None,
-                 auto_step = True,
-                 strict_auto_step = True,
-                 skip_gen_population = False,
+                 auto_step=True,
+                 strict_auto_step=True,
+                 skip_gen_population=False,
                  filter_gen_population: Optional[Callable[[List[Configuration]], List[Configuration]]] = None,
-                 keep_unexpected_population = True,
-                 save_cached_configuration = True,
+                 keep_unexpected_population=True,
+                 save_cached_configuration=True,
 
-                 constraint_strategy = 'discard',
+                 constraint_strategy='discard',
 
                  f: Union[Tuple[float, float], float] = 0.5,
                  cr: Union[Tuple[float, float], float] = 0.9,
@@ -39,16 +41,16 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
         f and cr may be a tuple of two floats, such as (0.1,0.9)
         If so, these two values are adjusted automatically within this range.
         """
-        super().__init__(config_space = config_space, num_objs = num_objs, num_constraints = num_constraints,
-                         population_size = population_size, optimization_strategy = optimization_strategy,
-                         batch_size = batch_size, output_dir = output_dir, task_id = task_id,
-                         random_state = random_state,
+        super().__init__(config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
+                         population_size=population_size, optimization_strategy=optimization_strategy,
+                         batch_size=batch_size, output_dir=output_dir, task_id=task_id,
+                         random_state=random_state,
 
-                         required_evaluation_count = required_evaluation_count, auto_step = auto_step,
-                         strict_auto_step = strict_auto_step, skip_gen_population = skip_gen_population,
-                         filter_gen_population = filter_gen_population,
-                         keep_unexpected_population = keep_unexpected_population,
-                         save_cached_configuration = save_cached_configuration
+                         required_evaluation_count=required_evaluation_count, auto_step=auto_step,
+                         strict_auto_step=strict_auto_step, skip_gen_population=skip_gen_population,
+                         filter_gen_population=filter_gen_population,
+                         keep_unexpected_population=keep_unexpected_population,
+                         save_cached_configuration=save_cached_configuration
                          )
 
         self.constraint_strategy = constraint_strategy
@@ -67,9 +69,9 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
 
         self.nid_map = {}
 
-    def _gen(self, count = 1) -> List[Configuration]:
+    def _gen(self, count=1) -> List[Configuration]:
         if len(self.population) < self.population_size:
-            next_config = self.sample_random_config(excluded_configs = self.all_configs)
+            next_config = self.sample_random_config(excluded_configs=self.all_configs)
             nid = -1
         else:
             xi = self.population[self.cur]['config']
@@ -82,7 +84,7 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
             lst = lst[:3]
 
             if self.dynamic_f:
-                lst.sort(key = lambda a: self.population[a]['perf'])
+                lst.sort(key=lambda a: self.population[a]['perf'])
 
             i1, i2, i3 = lst[0], lst[1], lst[2]
             x1, x2, x3 = self.population[i1]['config'], self.population[i2]['config'], self.population[i3]['config']
@@ -181,7 +183,7 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
             else:
                 pass
 
-        config = Configuration(self.config_space, vector = new_array)
+        config = Configuration(self.config_space, vector=new_array)
         return config
 
     def cross_over(self, config_a: Configuration, config_b: Configuration, cr: float):
@@ -202,4 +204,4 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
             i = self.rng.randint(0, len(self.config_space.keys()) - 1)
             a1[i] = a2[i]
 
-        return Configuration(self.config_space, vector = a1)
+        return Configuration(self.config_space, vector=a1)
