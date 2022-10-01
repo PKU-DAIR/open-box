@@ -83,8 +83,7 @@ if __name__ == "__main__":
 
         function_name = function.__class__.__name__
 
-        if hasattr(function, "dim"):
-            function_name += "({:d})".format(function.dim)
+        function_name += "({:d})".format(len(function.config_space.keys()))
 
         print("Running dataset " + function_name)
 
