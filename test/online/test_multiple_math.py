@@ -4,8 +4,6 @@ import sys
 import time
 import argparse
 
-from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane
-
 sys.path.insert(0, ".")
 
 from test.test_utils import load_data
@@ -19,6 +17,7 @@ import pandas as pd
 from ConfigSpace import Constant, Configuration
 from sklearn.model_selection import train_test_split
 
+from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane
 from openbox import Advisor, sp, Observation, get_config_space, get_objective_function
 
 # Define Objective Function
@@ -37,14 +36,23 @@ except ModuleNotFoundError:
 
 FUNCTIONS = [
     Ackley(dim=12),
+    Ackley(dim=15),
     Ackley(dim=20),
+    Ackley(dim=25),
     Ackley(dim=30),
+    Ackley(dim=40),
     Rosenbrock(dim=12),
+    Rosenbrock(dim=15),
     Rosenbrock(dim=20),
+    Rosenbrock(dim=25),
     Rosenbrock(dim=30),
+    Rosenbrock(dim=40),
     Keane(dim=12),
+    Keane(dim=15),
     Keane(dim=20),
+    Keane(dim=25),
     Keane(dim=30),
+    Keane(dim=40),
 ]
 
 # Run 5 times for each dataset, and get average value
