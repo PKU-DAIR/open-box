@@ -2,6 +2,9 @@
 import os
 import sys
 import time
+import argparse
+
+from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane
 
 sys.path.insert(0, ".")
 
@@ -18,9 +21,6 @@ from sklearn.model_selection import train_test_split
 
 from openbox import Advisor, sp, Observation, get_config_space, get_objective_function
 
-from openbox.benchmark.objective_functions.synthetic import Bukin
-from openbox.benchmark.objective_functions.synthetic import Ackley
-
 # Define Objective Function
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.generic_advisor import Advisor
@@ -35,72 +35,52 @@ try:
 except ModuleNotFoundError:
     trange = range
 
-
-def lgbm_function(x_train, x_val, y_train, y_val, task_type = 'cls'):
-    from lightgbm import LGBMClassifier
-
-    def cls_objective_function(config: Configuration):
-        # convert Configuration to dict
-        params = config.get_dictionary()
-
-        # fit model
-        model = LGBMClassifier(**params, n_jobs = 6)
-        model.fit(x_train, y_train)
-
-        # predict and calculate loss
-        y_pred = model.predict(x_val)
-        loss = 1 - balanced_accuracy_score(y_val, y_pred)  # OpenBox minimizes the objective
-
-        # return result dictionary
-        result = dict(objs = (loss,))
-        return result
-
-    if task_type == 'cls':
-        objective_function = cls_objective_function
-    elif task_type == 'rgs':
-        raise NotImplementedError
-    else:
-        raise ValueError('Unsupported task type: %s.' % (task_type,))
-    return objective_function
-
-
-DATASETS = ['puma8NH', 'wind']
+FUNCTIONS = [
+    Ackley(dim=12),
+    Ackley(dim=20),
+    Ackley(dim=30),
+    Rosenbrock(dim=12),
+    Rosenbrock(dim=20),
+    Rosenbrock(dim=30),
+    Keane(dim=12),
+    Keane(dim=20),
+    Keane(dim=30),
+]
 
 # Run 5 times for each dataset, and get average value
 REPEATS = 5
 
 # The number of function evaluations allowed.
-MAX_RUNS = 5
+MAX_RUNS = 200
 BATCH_SIZE = 5
 
 # We need to re-initialize the advisor every time we start a new run.
 # So these are functions that provides advisors.
-ADVISORS = [(lambda sp: BlendSearchAdvisor(globalsearch = Advisor, config_space = sp, task_id = 'default_task_id'),
+ADVISORS = [(lambda sp: BlendSearchAdvisor(globalsearch=Advisor, config_space=sp, task_id='default_task_id'),
              'BlendSearch'),
-            (lambda sp: Advisor(config_space = sp), 'SMBO'),
-            (lambda sp: SyncBatchAdvisor(config_space = sp, batch_size = BATCH_SIZE), 'BatchBO')]
-
-# Set this to True if you can't connect to openml.
-# Create a folder named "data" in the same folder as test_multiple.py
-# Download arff files from openml, put it in the folder, rename it to <dataset_name>.arff
-LOCAL_DATASET = False
+            (lambda sp: Advisor(config_space=sp), 'SMBO'),
+            (lambda sp: SyncBatchAdvisor(config_space=sp, batch_size=BATCH_SIZE), 'BatchBO')]
 
 matplotlib.use("Agg")
 
 # Run
 if __name__ == "__main__":
 
-    for dataset_name in DATASETS[1:2]:
+    parser = argparse.ArgumentParser(description='Range')
+    parser.add_argument('--f', dest='f', type=int, default=0)
+    parser.add_argument('--t', dest='t', type=int, default=0)
+    args = parser.parse_args()
 
-        print("Running dataset " + dataset_name)
+    for function in FUNCTIONS[args.f:(len(FUNCTIONS) if args.t == 0 else args.t)]:
 
-        # X, y = load_data(dataset_name, "/root/ezio/cls_datasets")
-        X, y = load_data(dataset_name, "~/Desktop/cls_datasets")
-        x_train, x_val, y_train, y_val = train_test_split(X, y, test_size = 0.2, stratify = y, random_state = 1)
+        function_name = function.__class__.__name__
 
-        space = get_config_space('lightgbm')
+        if hasattr(function, "dim"):
+            function_name += "({:d})".format(function.dim)
 
-        function = lgbm_function(x_train, x_val, y_train, y_val)
+        print("Running dataset " + function_name)
+
+        space = function.config_space
 
         x0 = space.sample_configuration()
 
@@ -125,7 +105,7 @@ if __name__ == "__main__":
                         configs = advisor.get_suggestions()
                         for config in configs:
                             ret = function(config)
-                            observation = Observation(config = config, objs = ret['objs'])
+                            observation = Observation(config=config, objs=ret['objs'])
                             advisor.update_observation(observation)
                         if trange == range:
                             print('===== ITER %d/%d.' % ((i + 1) * BATCH_SIZE, MAX_RUNS))
@@ -133,7 +113,7 @@ if __name__ == "__main__":
                     for i in trange(MAX_RUNS):
                         config = advisor.get_suggestion()
                         ret = function(config)
-                        observation = Observation(config = config, objs = ret['objs'])
+                        observation = Observation(config=config, objs=ret['objs'])
                         advisor.update_observation(observation)
                         if trange == range:
                             print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
@@ -155,14 +135,14 @@ if __name__ == "__main__":
         if not os.path.exists("tmp"):
             os.mkdir("tmp")
 
-        with open(f"tmp/{timestr}_{dataset_name}.txt", "w") as f:
+        with open(f"tmp/{timestr}_{function_name}.txt", "w") as f:
             f.write(str(avg_results))
 
         plt.cla()
         for k, v in avg_results.items():
-            plt.plot(v, label = k)
+            plt.plot(v, label=k)
 
-        plt.title(dataset_name)
+        plt.title(function_name)
         plt.legend()
 
-        plt.savefig(f"tmp/{timestr}_{dataset_name}.jpg")
+        plt.savefig(f"tmp/{timestr}_{function_name}.jpg")
