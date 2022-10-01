@@ -76,10 +76,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Range')
     parser.add_argument('--f', dest='f', type=int, default=0)
-    parser.add_argument('--t', dest='t', type=int, default=0)
+    parser.add_argument('--t', dest='t', type=int, default=-1)
     args = parser.parse_args()
 
-    for function in FUNCTIONS[args.f:(len(FUNCTIONS) if args.t == 0 else args.t)]:
+    for function in FUNCTIONS[args.f:(args.f + 1 if args.t == -1 else args.t)]:
 
         function_name = function.__class__.__name__
 
