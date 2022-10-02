@@ -4,6 +4,8 @@ import sys
 import time
 import argparse
 
+from test.online.synthetic2 import Schwefel, Rastrigin, Griewank
+
 sys.path.insert(0, ".")
 
 from test.test_utils import load_data
@@ -35,6 +37,24 @@ except ModuleNotFoundError:
     trange = range
 
 FUNCTIONS = [
+    Schwefel(dim=12),
+    Schwefel(dim=15),
+    Schwefel(dim=20),
+    Schwefel(dim=25),
+    Schwefel(dim=30),
+    Schwefel(dim=40),
+    Rastrigin(dim=12),
+    Rastrigin(dim=15),
+    Rastrigin(dim=20),
+    Rastrigin(dim=25),
+    Rastrigin(dim=30),
+    Rastrigin(dim=40),
+    Griewank(dim=12),
+    Griewank(dim=15),
+    Griewank(dim=20),
+    Griewank(dim=25),
+    Griewank(dim=30),
+    Griewank(dim=40),
     Ackley(dim=12),
     Ackley(dim=15),
     Ackley(dim=20),
@@ -75,11 +95,21 @@ matplotlib.use("Agg")
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Range')
-    parser.add_argument('--f', dest='f', type=int, default=0)
-    parser.add_argument('--t', dest='t', type=int, default=-1)
+    parser.add_argument('-f', dest='f', type=int, default=-1)
+    parser.add_argument('-t', dest='t', type=int, default=-1)
     args = parser.parse_args()
 
-    for function in FUNCTIONS[args.f:(args.f + 1 if args.t == -1 else args.t)]:
+    if args.f == -1 and args.t == -1:
+        f = 0
+        t = len(FUNCTIONS)
+    elif args.t == -1:
+        f = args.f
+        t = f + 1
+    else:
+        f = args.f
+        t = args.t
+
+    for function in FUNCTIONS[f: t]:
 
         function_name = function.__class__.__name__
 
