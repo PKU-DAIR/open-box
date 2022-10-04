@@ -1,22 +1,26 @@
 # License: MIT
 import os
+
+NUM_THREADS = "1"
+os.environ["OMP_NUM_THREADS"] = NUM_THREADS  # export OMP_NUM_THREADS=1
+os.environ["OPENBLAS_NUM_THREADS"] = NUM_THREADS  # export OPENBLAS_NUM_THREADS=1
+os.environ["MKL_NUM_THREADS"] = NUM_THREADS  # export MKL_NUM_THREADS=1
+os.environ["VECLIB_MAXIMUM_THREADS"] = NUM_THREADS  # export VECLIB_MAXIMUM_THREADS=1
+os.environ["NUMEXPR_NUM_THREADS"] = NUM_THREADS  # export NUMEXPR_NUM_THREADS=1
+
 import sys
 import time
 import argparse
+import json
 
+from openbox.core.highdim.linebo_advisor import LineBOAdvisor
 
 sys.path.insert(0, ".")
-
-from test.test_utils import load_data
-
-from sklearn.metrics import balanced_accuracy_score
 
 import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 from ConfigSpace import Constant, Configuration, UniformFloatHyperparameter, ConfigurationSpace
-from sklearn.model_selection import train_test_split
 
 from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane, BaseTestProblem
 from openbox import Advisor, sp, Observation, get_config_space, get_objective_function
@@ -24,11 +28,7 @@ from openbox import Advisor, sp, Observation, get_config_space, get_objective_fu
 # Define Objective Function
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.generic_advisor import Advisor
-from openbox.core.online.utils.cfo import CFO
-from openbox.core.online.utils.flow2 import FLOW2
 from openbox.core.online.utils.blendsearch import BlendSearchAdvisor
-from openbox.optimizer.generic_smbo import SMBO
-from openbox.utils.config_space import convert_configurations_to_array
 
 try:
     from tqdm import trange
@@ -105,9 +105,8 @@ class Griewank(BaseTestProblem):
     def _evaluate(self, X):
         result = dict()
         result['objs'] = [np.sum(X ** 2, axis=-1) / 4000.0 -
-                          np.prod(np.cos(X / (np.arange(1, self.dim - 1)) ** 0.5)) + 1]
+                          np.prod(np.cos(X / (np.arange(1, self.dim + 1)) ** 0.5)) + 1]
         return result
-
 
 
 FUNCTIONS = [
@@ -123,12 +122,6 @@ FUNCTIONS = [
     Rastrigin(dim=25),
     Rastrigin(dim=30),
     Rastrigin(dim=40),
-    Griewank(dim=12),
-    Griewank(dim=15),
-    Griewank(dim=20),
-    Griewank(dim=25),
-    Griewank(dim=30),
-    Griewank(dim=40),
     Ackley(dim=12),
     Ackley(dim=15),
     Ackley(dim=20),
@@ -153,15 +146,20 @@ FUNCTIONS = [
 REPEATS = 5
 
 # The number of function evaluations allowed.
-MAX_RUNS = 200
-BATCH_SIZE = 5
+MAX_RUNS = 500
+BATCH_SIZE = 10
 
 # We need to re-initialize the advisor every time we start a new run.
 # So these are functions that provides advisors.
-ADVISORS = [(lambda sp: BlendSearchAdvisor(globalsearch=Advisor, config_space=sp, task_id='default_task_id'),
-             'BlendSearch'),
-            (lambda sp: Advisor(config_space=sp), 'SMBO'),
-            (lambda sp: SyncBatchAdvisor(config_space=sp, batch_size=BATCH_SIZE), 'BatchBO')]
+ADVISORS = [
+    (lambda sp, r: LineBOAdvisor(config_space=sp, random_state=r), 'LineBO'),
+    (lambda sp, r: BlendSearchAdvisor(globalsearch=Advisor, config_space=sp, random_state=r), 'BlendSearch'),
+    (lambda sp, r: SyncBatchAdvisor(config_space=sp, batch_size=BATCH_SIZE, random_state=r), 'BatchBO'),
+    (lambda sp, r: Advisor(config_space=sp, random_state=r), 'BO(Default)'),
+    (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
+                           random_state=r), 'BO(GP+RandomScipy)'),
+
+]
 
 matplotlib.use("Agg")
 
@@ -197,19 +195,24 @@ if __name__ == "__main__":
 
         dim = len(function(x0)['objs'])
 
-        avg_results = {}
+        all_results = dict()
+
+        random_states = list(range(REPEATS))
 
         for advisor_getter, name in ADVISORS:
 
             print("Testing Method " + name)
 
             histories = []
+            time_costs = []
 
             for r in range(REPEATS):
 
                 print(f"{r + 1}/{REPEATS}:")
 
-                advisor = advisor_getter(space)
+                start_time = time.time()
+
+                advisor = advisor_getter(space, random_states[r])
 
                 if name == 'BatchBO':
                     for i in trange(MAX_RUNS // BATCH_SIZE):
@@ -229,17 +232,31 @@ if __name__ == "__main__":
                         if trange == range:
                             print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
 
+                time_costs.append(time.time() - start_time)
                 histories.append(advisor.get_history())
 
             mins = [[h.perfs[0]] for h in histories]
+            minvs = [[h.configurations[0].get_dictionary()] for h in histories]
 
             for i in range(1, MAX_RUNS):
                 for j, h in enumerate(histories):
-                    mins[j].append(min(mins[j][-1], h.perfs[i]))
+                    if h.perfs[i] <= mins[j][-1]:
+                        mins[j].append(h.perfs[i])
+                        minvs[j].append(h.configurations[i].get_dictionary())
+                    else:
+                        mins[j].append(mins[j][-1])
+                        minvs[j].append(minvs[j][-1])
 
-            fmins = [sum(a[i] for a in mins) / REPEATS for i in range(MAX_RUNS)]
+            mean = [np.mean([a[i] for a in mins]) for i in range(MAX_RUNS)]
+            std = [np.std([a[i] for a in mins]) for i in range(MAX_RUNS)]
 
-            avg_results[name] = fmins
+            all_results[name] = dict()
+            all_results[name]['mean'] = mean
+            all_results[name]['std'] = std
+            all_results[name]['configs'] = minvs
+            all_results[name]['values'] = mins
+            all_results[name]['time_costs'] = time_costs
+            all_results[name]['random_states'] = random_states
 
         timestr = time.strftime("%Y_%m_%d__%H_%M_%S", time.localtime())
 
@@ -247,11 +264,14 @@ if __name__ == "__main__":
             os.mkdir("tmp")
 
         with open(f"tmp/{timestr}_{function_name}.txt", "w") as f:
-            f.write(str(avg_results))
+            f.write(json.dumps(all_results))
 
         plt.cla()
-        for k, v in avg_results.items():
-            plt.plot(v, label=k)
+        for k, v in all_results.items():
+            mean = np.array(v['mean'])
+            std = np.array(v['std'])
+            plt.plot(mean, label=k)
+            plt.fill_between(np.arange(len(mean)), mean - std, mean + std, alpha=0.2)
 
         plt.title(function_name)
         plt.legend()
