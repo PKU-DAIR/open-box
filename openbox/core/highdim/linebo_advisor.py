@@ -19,19 +19,40 @@ from openbox.utils.util_funcs import check_random_state
 
 
 class LinearMappedModel(AbstractModel):
+    """
+    A Linear Mapped Model is a 1-d model that uses a 1-d subspace results of an n-d model.
+    Used by acq_maximizer in LineBO
+    """
 
     def __init__(self,
                  father: AbstractModel,
                  x0: np.ndarray,
                  x1: np.ndarray,
                  ):
+        """
+        father: The original model.
+
+        x0, x1: define the subspace and scale.
+
+        Let's say f is this model, and F is the father model. Then we have:
+
+        f(0) = F(x0)
+        f(1) = F(x1)
+
+        f(t) = F(x0 + t(x1 - x0))
+        """
         self.father = father
+
+        # I don't know how I should set the last 2 args. However, they're not used in LineBO.
         super().__init__(np.array([0.0]), [(0.0, 1.0)], father.instance_features, father.pca_components)
 
         self.x0 = x0
         self.t = x1 - x0
 
     def _train(self, X: np.ndarray, Y: np.ndarray) -> 'AbstractModel':
+        """
+        Normally, don't train this model. Train the father model directly.
+        """
         self.father.train(self.x0 + self.t * X, Y)
         return self
 
@@ -51,7 +72,7 @@ class LineBOAdvisor:
                  surrogate: str = 'gp_rbf',
                  constraint_surrogate: str = 'gp_rbf',
                  acq: str = None,
-                 acq_optimizer: str = 'local_random',
+                 acq_optimizer: str = 'random_scipy',
 
                  direction_strategy: str = 'random',
                  direction_switch_interval=5
@@ -61,6 +82,7 @@ class LineBOAdvisor:
         assert self.num_objs == 1
         # Supports one or more constraints
         self.num_constraints = num_constraints
+
         self.config_space = config_space
         self.dim = len(config_space.keys())
         self.batch_size = batch_size
@@ -91,11 +113,11 @@ class LineBOAdvisor:
 
         self.history_container = HistoryContainer(task_id, num_constraints, self.config_space)
 
-        self.cnt = 5
+        self.cnt = 0
 
     def update_subspace(self):
         if self.direction_strategy == 'random':
-            d = np.random.randn(self.dim)
+            d = self.rng.randn(self.dim)
             d = d / np.linalg.norm(d)
             direction = d
         elif self.direction_strategy == 'aligned':
@@ -151,13 +173,13 @@ class LineBOAdvisor:
         return Configuration(self.config_space, vector=oX)
 
     def get_suggestion(self):
+        if len(self.history_container.configurations) == 0:
+            return self.config_space.sample_configuration()
+
         if self.cnt % self.direction_switch_interval == 0 or self.current_subspace is None:
             self.update_subspace()
 
         self.cnt += 1
-
-        if len(self.history_container.configurations) == 0:
-            return self.to_original_space(self.line_space.sample_configuration())
 
         incumbent_value = self.history_container.get_incumbents()[0][1]
         num_config_evaluated = len(self.history_container.configurations)

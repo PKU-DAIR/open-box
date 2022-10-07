@@ -29,15 +29,15 @@ class SearchPiece:
 
 class BlendSearchAdvisor(abc.ABC):
     def __init__(self, config_space: ConfigurationSpace,
-                 dead_line = 0,
-                 globalsearch = Advisor,
-                 localsearch = CFO,
-                 num_constraints = 0,
-                 batch_size = 1,
-                 pure = False,
-                 output_dir = 'logs',
-                 task_id = 'default_task_id',
-                 random_state = None):
+                 dead_line=0,
+                 globalsearch=Advisor,
+                 localsearch=CFO,
+                 num_constraints=0,
+                 batch_size=1,
+                 pure=False,
+                 output_dir='logs',
+                 task_id='default_task_id',
+                 random_state=None):
 
         # System Settings.
         self.rng = check_random_state(random_state)
@@ -63,7 +63,7 @@ class BlendSearchAdvisor(abc.ABC):
         self.all_configs = set()
 
         # init history container
-        self.history_container = HistoryContainer(task_id, self.num_constraints, config_space = self.config_space)
+        self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
 
         # Init
         self.cur = None
@@ -78,10 +78,22 @@ class BlendSearchAdvisor(abc.ABC):
     def __str__(self):
         return f"BlendSearch({self.GlobalSearch.__name__}, {self.LocalSearch.__name__})"
 
+    def make_searcher(self, searcher, args=(), kwargs=None):
+        if kwargs is None:
+            kwargs = dict()
+        if isinstance(searcher, tuple):
+            func = searcher[0]
+            args = args if len(searcher) <= 1 else args + searcher[1]
+            kwargs = kwargs if len(searcher) <= 2 else dict(list(kwargs.items()) + list(searcher[2].items()))
+
+            return func(self.config_space, *args, **kwargs)
+        else:
+            return searcher(self.config_space)
+
     def get_suggestion(self):
         next_config = None
         if self.globals is None:
-            self.globals = SearchPiece(self.GlobalSearch(self.config_space), -MAXINT, None)
+            self.globals = SearchPiece(self.make_searcher(self.GlobalSearch), -MAXINT, None)
             self.cur = self.globals
             next_config = self.globals.search_method.get_suggestion()
             self.globals.config = next_config
@@ -108,7 +120,7 @@ class BlendSearchAdvisor(abc.ABC):
 
         return self.history_container.update_observation(observation)
 
-    def get_suggestions(self, batch_size = None):
+    def get_suggestions(self, batch_size=None):
         if batch_size is None:
             batch_size = self.batch_size
 
@@ -117,7 +129,7 @@ class BlendSearchAdvisor(abc.ABC):
     def update_observations(self, observations: List[Observation]):
         return [self.update_observation(o) for o in observations]
 
-    def sample_random_config(self, excluded_configs = None):
+    def sample_random_config(self, excluded_configs=None):
         if excluded_configs is None:
             excluded_configs = set()
 
@@ -164,7 +176,7 @@ class BlendSearchAdvisor(abc.ABC):
         return cnt >= tot // 2
 
     def create_piece(self, config: Configuration):
-        self.locals.append(SearchPiece(self.LocalSearch(self.config_space, config),
+        self.locals.append(SearchPiece(self.make_searcher(self.LocalSearch, (config, )),
                                        -MAXINT, None))
 
     def del_piece(self, s: SearchPiece):
@@ -191,7 +203,7 @@ class BlendSearchAdvisor(abc.ABC):
         else:
             return self.u * s.perf + self.v * s.cost
 
-    def next(self, config_a: Configuration, delta = 0.05, gaussian = False, recu = 0):
+    def next(self, config_a: Configuration, delta=0.05, gaussian=False, recu=0):
         arr = config_a.get_array().copy()
         d = np.random.randn(*arr.shape)
         if not gaussian:
@@ -207,7 +219,7 @@ class BlendSearchAdvisor(abc.ABC):
             elif isinstance(hp_type, NumericalHyperparameter):
                 arr[i] = min(arr[i] + d[i], 1.0)
 
-        ret = Configuration(self.config_space, vector = arr)
+        ret = Configuration(self.config_space, vector=arr)
         if ret in self.all_configs:
             if recu > 100:
                 self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % 100)

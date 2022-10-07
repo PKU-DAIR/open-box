@@ -1,6 +1,7 @@
 # License: MIT
 import os
 
+
 NUM_THREADS = "1"
 os.environ["OMP_NUM_THREADS"] = NUM_THREADS  # export OMP_NUM_THREADS=1
 os.environ["OPENBLAS_NUM_THREADS"] = NUM_THREADS  # export OPENBLAS_NUM_THREADS=1
@@ -22,10 +23,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ConfigSpace import Constant, Configuration, UniformFloatHyperparameter, ConfigurationSpace
 
+from openbox.core.highdim.turbo_advisor import TuRBOAdvisor
 from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane, BaseTestProblem
 from openbox import Advisor, sp, Observation, get_config_space, get_objective_function
 
-# Define Objective Function
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.generic_advisor import Advisor
 from openbox.core.online.utils.blendsearch import BlendSearchAdvisor
@@ -84,31 +85,6 @@ class Rastrigin(BaseTestProblem):
         return result
 
 
-class Griewank(BaseTestProblem):
-    r"""Generalized Griewank's Function
-
-    d-dimensional function (usually evaluated on `[-600, 600]^d`):
-
-        f(x) = 1/4000 \sum_{i=1}^{d} - \prod_{i=1}^d \cos(x_i / \sqrt{i}) + 1
-
-    """
-
-    def __init__(self, dim=2, noise_std=0, random_state=None):
-        self.dim = dim
-        params = {'x%d' % i: (-600, 600, 100) for i in range(1, 1 + self.dim)}
-        config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-        super().__init__(config_space, noise_std,
-                         optimal_value=0,
-                         random_state=random_state)
-
-    def _evaluate(self, X):
-        result = dict()
-        result['objs'] = [np.sum(X ** 2, axis=-1) / 4000.0 -
-                          np.prod(np.cos(X / (np.arange(1, self.dim + 1)) ** 0.5)) + 1]
-        return result
-
-
 FUNCTIONS = [
     Schwefel(dim=12),
     Schwefel(dim=15),
@@ -146,18 +122,23 @@ FUNCTIONS = [
 REPEATS = 5
 
 # The number of function evaluations allowed.
-MAX_RUNS = 500
-BATCH_SIZE = 10
+MAX_RUNS = 300
+BATCH_SIZE = 5
 
 # We need to re-initialize the advisor every time we start a new run.
 # So these are functions that provides advisors.
 ADVISORS = [
     (lambda sp, r: LineBOAdvisor(config_space=sp, random_state=r), 'LineBO'),
-    (lambda sp, r: BlendSearchAdvisor(globalsearch=Advisor, config_space=sp, random_state=r), 'BlendSearch'),
-    (lambda sp, r: SyncBatchAdvisor(config_space=sp, batch_size=BATCH_SIZE, random_state=r), 'BatchBO'),
-    (lambda sp, r: Advisor(config_space=sp, random_state=r), 'BO(Default)'),
-    (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
-                           random_state=r), 'BO(GP+RandomScipy)'),
+    # (lambda sp, r: BlendSearchAdvisor(
+    #     globalsearch=(Advisor, tuple(), dict(surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy')),
+    #     config_space=sp, random_state=r), 'BlendSearch'),
+    # (lambda sp, r: SyncBatchAdvisor(config_space=sp, surrogate_type='gp', acq_type='ei',
+    #                                 acq_optimizer_type='random_scipy', batch_size=BATCH_SIZE, random_state=r),
+    #  'BatchBO'),
+    # (lambda sp, r: Advisor(config_space=sp, random_state=r), 'BO(Default)'),
+    # (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
+    #                        random_state=r), 'BO(GP+RandomScipy)'),
+    (lambda sp, r: TuRBOAdvisor(config_space=sp, random_state=r), 'TuRBO'),
 
 ]
 
@@ -214,9 +195,10 @@ if __name__ == "__main__":
 
                 advisor = advisor_getter(space, random_states[r])
 
-                if name == 'BatchBO':
+                if name == 'BatchBO' or name == 'TuRBO':
                     for i in trange(MAX_RUNS // BATCH_SIZE):
-                        configs = advisor.get_suggestions()
+                        configs = advisor.get_suggestions(batch_size=BATCH_SIZE)
+                        # print(len(configs))
                         for config in configs:
                             ret = function(config)
                             observation = Observation(config=config, objs=ret['objs'])
