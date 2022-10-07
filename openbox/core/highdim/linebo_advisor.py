@@ -173,13 +173,13 @@ class LineBOAdvisor:
         return Configuration(self.config_space, vector=oX)
 
     def get_suggestion(self):
-        if len(self.history_container.configurations) == 0:
-            return self.config_space.sample_configuration()
-
         if self.cnt % self.direction_switch_interval == 0 or self.current_subspace is None:
             self.update_subspace()
 
         self.cnt += 1
+
+        if len(self.history_container.configurations) == 0:
+            return self.to_original_space(self.line_space.sample_configuration())
 
         incumbent_value = self.history_container.get_incumbents()[0][1]
         num_config_evaluated = len(self.history_container.configurations)

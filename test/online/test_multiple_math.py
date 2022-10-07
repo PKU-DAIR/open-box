@@ -14,7 +14,6 @@ import time
 import argparse
 import json
 
-from openbox.core.highdim.linebo_advisor import LineBOAdvisor
 
 sys.path.insert(0, ".")
 
@@ -26,6 +25,7 @@ from ConfigSpace import Constant, Configuration, UniformFloatHyperparameter, Con
 from openbox.core.highdim.turbo_advisor import TuRBOAdvisor
 from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane, BaseTestProblem
 from openbox import Advisor, sp, Observation, get_config_space, get_objective_function
+from openbox.core.highdim.linebo_advisor import LineBOAdvisor
 
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.generic_advisor import Advisor
