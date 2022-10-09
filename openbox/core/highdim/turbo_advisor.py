@@ -100,7 +100,6 @@ class TuRBOAdvisor:
 
         self.sampled_configs = [Configuration(self.config_space, vector=res[i]) for i in range(count)]
 
-
     def adjust_length(self, perf: float):
         if perf < self.incumbent * 0.9999:
             self.success_count += 1
@@ -135,7 +134,7 @@ class TuRBOAdvisor:
         sobol = Sobol()
         sobol.init(dim_num=self.dim)
 
-        XC = np.array(sobol.generate([(0.0, 1.0)] * self.dim, skip_count)[:self.candidate_count])
+        XC = np.array(sobol.generate([(lb[i], ub[i]) for i in range(lb.shape[0])], skip_count)[:self.candidate_count])
 
         YC = self.objective_surrogate.predict(XC)[0][:, 0]
 

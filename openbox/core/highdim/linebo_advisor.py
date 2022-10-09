@@ -127,7 +127,7 @@ class LineBOAdvisor:
             direction = np.zeros(self.dim)
 
         incumbent = self.config_space.sample_configuration() if len(self.history_container.incumbents) == 0 else \
-            self.history_container.incumbents[-1][0]
+            self.history_container.incumbents[self.rng.randint(0, len(self.history_container.incumbents) - 1)][0]
 
         x = incumbent.get_array()
 
@@ -153,7 +153,8 @@ class LineBOAdvisor:
                 mn = min(mn, (x[i] - scale) / direction[i])
 
         x0 = x - mn * direction
-        x1 = x + x * mx * direction
+        x1 = x + mx * direction
+
         self.current_subspace = (x0, x1)
 
         self.acq = build_acq_func(self.acq_type,

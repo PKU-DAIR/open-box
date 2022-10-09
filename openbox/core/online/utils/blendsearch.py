@@ -88,7 +88,7 @@ class BlendSearchAdvisor(abc.ABC):
 
             return func(self.config_space, *args, **kwargs)
         else:
-            return searcher(self.config_space)
+            return searcher(self.config_space, *args, **kwargs)
 
     def get_suggestion(self):
         next_config = None
