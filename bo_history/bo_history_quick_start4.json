@@ -1,0 +1,704 @@
+{
+  "data": [
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 0,
+      "config": {
+        "x1": 0.0,
+        "x2": 0.0
+      },
+      "objs": [
+        55.602112642270264
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.0006589889526367188
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 1,
+      "config": {
+        "x1": 7.586293086979943,
+        "x2": 14.72108728046764
+      },
+      "objs": [
+        191.03583168258388
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 8.821487426757812e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 2,
+      "config": {
+        "x1": -3.680229667429593,
+        "x2": 10.642383479700793
+      },
+      "objs": [
+        10.546142484797745
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.0003228187561035156
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 3,
+      "config": {
+        "x1": -4.903435836137367,
+        "x2": 1.2908296894138833
+      },
+      "objs": [
+        255.7859160913273
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.0001239776611328125
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 4,
+      "config": {
+        "x1": -3.5547991226859783,
+        "x2": 10.603118213601935
+      },
+      "objs": [
+        8.42584369910519
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00011086463928222656
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 5,
+      "config": {
+        "x1": -1.9993075333156725,
+        "x2": 11.461036310782804
+      },
+      "objs": [
+        9.117125905510038
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00010895729064941406
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 6,
+      "config": {
+        "x1": -1.1536111673587381,
+        "x2": 8.975437773401907
+      },
+      "objs": [
+        14.826698868421321
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.0001938343048095703
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 7,
+      "config": {
+        "x1": 4.185972749069649,
+        "x2": 0.0
+      },
+      "objs": [
+        7.740130805973209
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00011205673217773438
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 8,
+      "config": {
+        "x1": 3.9868873594093532,
+        "x2": 3.543375748447323
+      },
+      "objs": [
+        6.997151789488551
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.222724914550781e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 9,
+      "config": {
+        "x1": 9.165898287063037,
+        "x2": 0.0
+      },
+      "objs": [
+        5.8493813299929585
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 7.390975952148438e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 10,
+      "config": {
+        "x1": 7.234164640854132,
+        "x2": 2.584998726304607
+      },
+      "objs": [
+        17.367707421031984
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 5.5789947509765625e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 11,
+      "config": {
+        "x1": 6.901519984953591,
+        "x2": 0.0
+      },
+      "objs": [
+        19.1909676543806
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.389617919921875e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 12,
+      "config": {
+        "x1": 10.0,
+        "x2": 2.509489830314877
+      },
+      "objs": [
+        2.186650120809902
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 7.796287536621094e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 13,
+      "config": {
+        "x1": 2.651213360203843,
+        "x2": 1.99304085570914
+      },
+      "objs": [
+        2.0131075071740963
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.29425048828125e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 14,
+      "config": {
+        "x1": 10.0,
+        "x2": 0.6839966685762529
+      },
+      "objs": [
+        7.32071585059154
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.175041198730469e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 15,
+      "config": {
+        "x1": 10.0,
+        "x2": 5.507758326815862
+      },
+      "objs": [
+        8.217172327453007
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.508827209472656e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 16,
+      "config": {
+        "x1": -4.269679727137362,
+        "x2": 15.0
+      },
+      "objs": [
+        5.909198193571031
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.103515625e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 17,
+      "config": {
+        "x1": 1.7813445183875816,
+        "x2": 4.946692009947209
+      },
+      "objs": [
+        9.875205048929582
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.198883056640625e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 18,
+      "config": {
+        "x1": -3.230254427851128,
+        "x2": 12.532844596644775
+      },
+      "objs": [
+        0.437517691246212
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 5.1975250244140625e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 19,
+      "config": {
+        "x1": -3.1569699958233195,
+        "x2": 15.0
+      },
+      "objs": [
+        7.62444194675964
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.103515625e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 20,
+      "config": {
+        "x1": 9.271770037715168,
+        "x2": 3.063011096308769
+      },
+      "objs": [
+        1.0199382539874193
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.127357482910156e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 21,
+      "config": {
+        "x1": -3.0089175867456097,
+        "x2": 11.663655806224778
+      },
+      "objs": [
+        0.5691631833175119
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 7.891654968261719e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 22,
+      "config": {
+        "x1": 2.096122010599615,
+        "x2": 3.6952845793244213
+      },
+      "objs": [
+        5.399668270815752
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 4.100799560546875e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 23,
+      "config": {
+        "x1": 3.326992277951577,
+        "x2": 2.130977006178286
+      },
+      "objs": [
+        0.5624570392687982
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 5.888938903808594e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 24,
+      "config": {
+        "x1": 9.266070285464249,
+        "x2": 2.116297864875923
+      },
+      "objs": [
+        0.570585097231529
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 5.817413330078125e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 25,
+      "config": {
+        "x1": 3.0553381650830342,
+        "x2": 2.7848955454834554
+      },
+      "objs": [
+        0.6286549823145648
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00012111663818359375
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 26,
+      "config": {
+        "x1": 9.490152933996708,
+        "x2": 2.6084943527834983
+      },
+      "objs": [
+        0.4244516055929122
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 7.390975952148438e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 27,
+      "config": {
+        "x1": -3.1856132251160827,
+        "x2": 12.124777431761837
+      },
+      "objs": [
+        0.4728610855724771
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 8.320808410644531e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 28,
+      "config": {
+        "x1": 1.0570982426140212,
+        "x2": 11.855527054587222
+      },
+      "objs": [
+        69.38370987502408
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.103515625e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 29,
+      "config": {
+        "x1": 3.1207586872010804,
+        "x2": 2.323924963520322
+      },
+      "objs": [
+        0.4010353519478205
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.723403930664062e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 30,
+      "config": {
+        "x1": -3.4884820400098704,
+        "x2": 13.15379555527946
+      },
+      "objs": [
+        0.9707149191736821
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.198883056640625e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 31,
+      "config": {
+        "x1": 3.085674863983737,
+        "x2": 0.011748892347474735
+      },
+      "objs": [
+        5.736358146797545
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 7.510185241699219e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 32,
+      "config": {
+        "x1": 9.389928526990085,
+        "x2": 2.4205172864380735
+      },
+      "objs": [
+        0.40435479680647646
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 4.029273986816406e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 33,
+      "config": {
+        "x1": 9.39944683218759,
+        "x2": 2.503482142741951
+      },
+      "objs": [
+        0.40344458178434195
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.198883056640625e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 34,
+      "config": {
+        "x1": -4.102302267457635,
+        "x2": 4.788000014517037
+      },
+      "objs": [
+        102.80675513153922
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 4.982948303222656e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 35,
+      "config": {
+        "x1": -3.1167460119060992,
+        "x2": 12.437069407518786
+      },
+      "objs": [
+        0.45000298052198673
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 5.793571472167969e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 36,
+      "config": {
+        "x1": -2.458159379752496,
+        "x2": 9.456135458217185
+      },
+      "objs": [
+        4.083983509306403
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 8.296966552734375e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 37,
+      "config": {
+        "x1": -0.49472515524879235,
+        "x2": 5.19195158259752
+      },
+      "objs": [
+        21.09809150600873
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00010895729064941406
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 38,
+      "config": {
+        "x1": 3.1207466731799514,
+        "x2": 2.15560691838721
+      },
+      "objs": [
+        0.41838976371552583
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 9.322166442871094e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 39,
+      "config": {
+        "x1": 9.728829485144692,
+        "x2": 3.278516259244916
+      },
+      "objs": [
+        1.1246549284799663
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 8.0108642578125e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 40,
+      "config": {
+        "x1": -3.1106736766506877,
+        "x2": 12.185489046567628
+      },
+      "objs": [
+        0.40271169126127937
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 8.296966552734375e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 41,
+      "config": {
+        "x1": 3.1972974763643442,
+        "x2": 2.3443700324953167
+      },
+      "objs": [
+        0.42541756747042925
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00010514259338378906
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 42,
+      "config": {
+        "x1": 9.399442485838646,
+        "x2": 2.5034813870874393
+      },
+      "objs": [
+        0.4034459258109706
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 4.982948303222656e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 43,
+      "config": {
+        "x1": 9.541362709514766,
+        "x2": 1.9109978227685191
+      },
+      "objs": [
+        0.9040979448444748
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 6.699562072753906e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 44,
+      "config": {
+        "x1": 9.357314015467605,
+        "x2": 2.0838073997318163
+      },
+      "objs": [
+        0.5318706490825225
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 7.677078247070312e-05
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 45,
+      "config": {
+        "x1": 9.399442485838646,
+        "x2": 1.9410181931631136
+      },
+      "objs": [
+        0.6638237740340891
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00012922286987304688
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 46,
+      "config": {
+        "x1": 9.49015288602315,
+        "x2": 2.608494393808777
+      },
+      "objs": [
+        0.4244515883053115
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00011587142944335938
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 47,
+      "config": {
+        "x1": 9.595748795732602,
+        "x2": 2.267631848205765
+      },
+      "objs": [
+        0.6641676978781295
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00028586387634277344
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 48,
+      "config": {
+        "x1": 9.399442485838646,
+        "x2": 2.454628144535493
+      },
+      "objs": [
+        0.40096976460249323
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00016808509826660156
+    },
+    {
+      "task_id": "quick_start4",
+      "iteration_id": 49,
+      "config": {
+        "x1": 9.427958786247268,
+        "x2": 2.3625312266050114
+      },
+      "objs": [
+        0.4111961866183247
+      ],
+      "constaints": null,
+      "trial_state": 0,
+      "cost": 0.00013899803161621094
+    }
+  ]
+}

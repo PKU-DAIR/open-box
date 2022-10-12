@@ -2,6 +2,8 @@
 
 import sys
 import time
+import os
+import json
 import traceback
 import math
 from typing import List
@@ -115,13 +117,23 @@ class SMBO(BOBase):
                  task_id='default_task_id',
                  random_state=None,
                  advisor_kwargs: dict = None,
+                 json_path=None,
                  **kwargs):
 
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
+        
+        if json_path is None:
+            raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
+
+        self.file_name = 'bo_history_%s.json' %task_id
+        if os.path.exists(os.path.join(json_path, self.file_name)):
+            raise ValueError('There is already a same task_id in your json_path. Please change task_id or json_path.')
 
         self.num_objs = num_objs
         self.num_constraints = num_constraints
+        self.json_path = json_path
+        self.data = []
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
@@ -259,6 +271,7 @@ class SMBO(BOBase):
                 pass
             else:
                 self.config_advisor.update_observation(observation)
+                self.save_json(observation)
         else:
             self.logger.info('This configuration has been evaluated! Skip it: %s' % config)
             history = self.get_history()
@@ -282,3 +295,26 @@ class SMBO(BOBase):
         #     if obj < self.FAILED_PERF[idx]:
         #         self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, constraints, objs
+
+    
+    def save_json(self, res: Observation):
+
+        data_item = dict(
+                task_id=self.task_id,
+                iteration_id=self.iteration_id,
+                config=res.config.get_dictionary(),
+                objs=res.objs,
+                constaints=res.constraints,
+                trial_state=res.trial_state,
+                cost=res.elapsed_time,
+            )
+        self.data.append(data_item)
+
+        if not os.path.exists(self.json_path):
+            os.makedirs(self.json_path)
+        
+        with open(os.path.join(self.json_path, self.file_name), 'w') as fp:
+            json.dump({'data': self.data}, fp, indent=2)
+        print('Save history to %s' % self.file_name)
+
+
