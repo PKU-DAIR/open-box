@@ -122,9 +122,10 @@ class SMBO(BOBase):
 
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
-        
+
         if json_path is None:
-            raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
+            json_path = os.path.join(os.path.abspath("."),  'bo_history')
+            # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
 
         self.file_name = 'bo_history_%s.json' %task_id
         if os.path.exists(os.path.join(json_path, self.file_name)):
@@ -296,7 +297,6 @@ class SMBO(BOBase):
         #         self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, constraints, objs
 
-    
     def save_json(self, res: Observation):
 
         data_item = dict(
@@ -312,7 +312,7 @@ class SMBO(BOBase):
 
         if not os.path.exists(self.json_path):
             os.makedirs(self.json_path)
-        
+
         with open(os.path.join(self.json_path, self.file_name), 'w') as fp:
             json.dump({'data': self.data}, fp, indent=2)
         print('Save history to %s' % self.file_name)
