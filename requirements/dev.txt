@@ -1,12 +1,12 @@
 dill
 cython
-psutil
-setuptools
+psutil~=5.9.2
+setuptools~=63.4.1
 requests
 statsmodels
 pyyaml
 emcee
-tqdm
+tqdm~=4.64.1
 terminaltables
 matplotlib
 pandas
@@ -16,3 +16,4 @@ platypus-opt==1.0.4
 scikit-optimize>=0.8
 ConfigSpace>=0.4.20,<0.5
 scikit-learn>=0.21.3
+pyecharts~=1.9.1

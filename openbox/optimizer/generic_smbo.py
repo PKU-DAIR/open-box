@@ -7,6 +7,7 @@ import json
 import traceback
 import math
 from typing import List
+import numpy as np
 from collections import OrderedDict
 from tqdm import tqdm
 from openbox.optimizer.base import BOBase
@@ -118,6 +119,7 @@ class SMBO(BOBase):
                  random_state=None,
                  advisor_kwargs: dict = None,
                  json_path=None,
+                 vis_path=None,
                  **kwargs):
 
         if task_id is None:
@@ -126,14 +128,25 @@ class SMBO(BOBase):
         if json_path is None:
             json_path = os.path.join(os.path.abspath("."),  'bo_history')
             # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
-
-        self.file_name = 'bo_history_%s.json' %task_id
-        if os.path.exists(os.path.join(json_path, self.file_name)):
+        self.json_path = json_path
+        if not os.path.exists(self.json_path):
+            os.makedirs(self.json_path)
+        self.json_file_name = 'bo_history_%s.json' % task_id
+        if os.path.exists(os.path.join(json_path, self.json_file_name)):
             raise ValueError('There is already a same task_id in your json_path. Please change task_id or json_path.')
+
+        if vis_path is None:
+            vis_path = os.path.join(os.path.abspath("."), 'bo_visualization')
+            # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
+        self.vis_path = vis_path
+        if not os.path.exists(self.vis_path):
+            os.makedirs(self.vis_path)
+        self.vis_file_name = 'bo_history_%s.html' % task_id
+        if os.path.exists(os.path.join(vis_path, self.vis_file_name)):
+            raise ValueError('There is already a same task_id in your vis_path. Please change task_id or vis_path.')
 
         self.num_objs = num_objs
         self.num_constraints = num_constraints
-        self.json_path = json_path
         self.data = []
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
@@ -225,6 +238,8 @@ class SMBO(BOBase):
             self.iterate(budget_left=self.budget_left)
             runtime = time.time() - start_time
             self.budget_left -= runtime
+
+        self.visualize()
         return self.get_history()
 
     def iterate(self, budget_left=None):
@@ -310,11 +325,72 @@ class SMBO(BOBase):
             )
         self.data.append(data_item)
 
-        if not os.path.exists(self.json_path):
-            os.makedirs(self.json_path)
-
-        with open(os.path.join(self.json_path, self.file_name), 'w') as fp:
+        with open(os.path.join(self.json_path, self.json_file_name), 'w') as fp:
             json.dump({'data': self.data}, fp, indent=2)
-        print('Save history to %s' % self.file_name)
+        print('Save history to %s' % self.json_file_name)
 
+    def load_json(self):
+        with open(os.path.join(self.json_path, self.json_file_name), 'r') as fp:
+            json_data = json.load(fp)
 
+        json_data = json_data['data']
+
+        table_list = []
+        rh_config = {}
+        option = {'data': [], 'schema': [], 'visualMap': {}}
+        perf_list = []
+        for rh in json_data:
+            result = round(rh['objs'][0], 4)
+            config_str = str(rh['config'])
+            if len(config_str) > 35:
+                config_str = config_str[1:35]
+            else:
+                config_str = config_str[1:-1]
+            table_list.append(
+                [rh['iteration_id'], result, config_str, rh['trial_state'], rh['cost']])
+            rh_config[str(rh['iteration_id'])] = rh['config']
+            config_values = []
+            for parameter in rh['config'].keys():
+                config_values.append(rh['config'][parameter])
+            config_values.append(result)
+            option['data'].append(config_values)
+            perf_list.append(result)
+
+        if len(json_data) > 0:
+            option['schema'] = list(json_data[0]['config'].keys()) + ['perf']
+            option['visualMap']['min'] = np.percentile(perf_list, 0)
+            option['visualMap']['max'] = np.percentile(perf_list, 90)
+            option['visualMap']['dimension'] = len(option['schema']) - 1
+        else:
+            option['visualMap']['min'] = 0
+            option['visualMap']['max'] = 100
+            option['visualMap']['dimension'] = 0
+
+        line_data = {'min': [], 'over': [], 'scat': []}
+        import sys
+
+        min_value = sys.maxsize
+
+        for idx, perf in enumerate(perf_list):
+            if perf <= min_value:
+                min_value = perf
+                line_data['min'].append([idx, perf])
+                line_data['scat'].append([idx, perf])
+            else:
+                line_data['over'].append([idx, perf])
+        line_data['min'].append([len(option['data']), min_value])
+        line_data['scat'].append([len(option['data']), min_value])
+
+        return {'line_data': line_data, 'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config}
+
+    def visualize(self):
+        draw_data = self.load_json()
+
+        # task information table
+        draw_data['task_inf'] = {
+            'table_field': ['task_id', 'Advisor Type', 'Surrogate Type', 'max_runs', 'Time Limit Per Trial'],
+            'table_data': [self.task_id, self.advisor_type, self.surrogate_type, self.max_iterations, self.time_limit_per_trial]
+        }
+        print(draw_data)
+        from openbox.utils.visualization.visualization_for_openbox import vis_openbox
+        vis_openbox(draw_data, os.path.join(self.vis_path, self.vis_file_name))

@@ -16,3 +16,4 @@ platypus-opt==1.0.4
 scikit-optimize>=0.8
 ConfigSpace>=0.4.20,<0.5
 scikit-learn>=0.21.3
+pyecharts~=1.9.1
