@@ -329,6 +329,13 @@ class SMBO(BOBase):
             json.dump({'data': self.data}, fp, indent=2)
         print('Save history to %s' % self.json_file_name)
 
+        with open(os.path.join(self.json_path, 'visual_'+self.json_file_name), 'w') as fp:
+            fp.write('var info=')
+            json.dump({'data': self.data}, fp, indent=2)
+            fp.write(';')
+        print('Save history to visual_%s' % self.json_file_name)
+
+
     def load_json(self):
         with open(os.path.join(self.json_path, self.json_file_name), 'r') as fp:
             json_data = json.load(fp)
@@ -394,3 +401,12 @@ class SMBO(BOBase):
         print(draw_data)
         from openbox.utils.visualization.visualization_for_openbox import vis_openbox
         vis_openbox(draw_data, os.path.join(self.vis_path, self.vis_file_name))
+
+        # f = open(os.path.join(self.vis_path, "visual_template.html"),"r") 
+        # l = open(os.path.join(self.vis_path, "local_"+self.vis_file_name),"w")
+
+        # for content in f.readlines():
+        #     l.write(content)
+
+        # f.close()
+        # l.close()
