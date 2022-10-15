@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>openbox visualiztion</title>
+    <meta charset="UTF-8">
+    
+</head>
+<body>
+    <script>
+        document.write('<h1>visualization</h1>');
+    </script>
+    <script type="text/javascript" src='D:\xbc\Fighting\AutoML\openbox\visualization\open-box\bo_history\visual_bo_history_test_01.json'></script>
+    <script>
+        // document.write(typeof(data));
+        document.write('<div>task_id: ' + info.data[0].task_id + '</div><br></br>');
+        for (var i=0, len=info.data.length; i<len; i++){
+            document.write('<div>iteration_id: ' + info.data[i].iteration_id + '</div>');
+            document.write('<div>objs: ' + info.data[i].objs + '</div>');
+            document.write('<br></br>');
+        }
+    </script>
+</body>
+</html>
