@@ -1,6 +1,7 @@
 # License: MIT
 
 import sys
+import re
 import time
 import os
 import json
@@ -119,6 +120,7 @@ class SMBO(BOBase):
                  random_state=None,
                  advisor_kwargs: dict = None,
                  json_path=None,
+                 vis_path_tmp=None,
                  vis_path=None,
                  **kwargs):
 
@@ -135,15 +137,29 @@ class SMBO(BOBase):
         if os.path.exists(os.path.join(json_path, self.json_file_name)):
             raise ValueError('There is already a same task_id in your json_path. Please change task_id or json_path.')
 
+        if vis_path_tmp is None:
+            vis_path_tmp = os.path.join(os.path.abspath("."), 'bo_visualization_tmp')
+            # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
+        self.vis_path_tmp = vis_path_tmp
+        if not os.path.exists(self.vis_path_tmp):
+            os.makedirs(self.vis_path_tmp)
+        self.vis_file_name_tmp = 'bo_visualization_tmp_%s.html' % task_id
+        if os.path.exists(os.path.join(vis_path_tmp, self.vis_file_name_tmp)):
+            raise ValueError('There is already a same task_id in your vis_path_tmp. Please change task_id or vis_path_tmp.')
+
         if vis_path is None:
             vis_path = os.path.join(os.path.abspath("."), 'bo_visualization')
             # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
         self.vis_path = vis_path
         if not os.path.exists(self.vis_path):
             os.makedirs(self.vis_path)
-        self.vis_file_name = 'bo_history_%s.html' % task_id
+        self.vis_file_name = 'bo_visualization_%s.html' % task_id
         if os.path.exists(os.path.join(vis_path, self.vis_file_name)):
             raise ValueError('There is already a same task_id in your vis_path. Please change task_id or vis_path.')
+
+        # generate visualization html file from template
+        self.generate_html()
+        pass
 
         self.num_objs = num_objs
         self.num_constraints = num_constraints
@@ -335,7 +351,6 @@ class SMBO(BOBase):
             fp.write(';')
         print('Save history to visual_%s' % self.json_file_name)
 
-
     def load_json(self):
         with open(os.path.join(self.json_path, self.json_file_name), 'r') as fp:
             json_data = json.load(fp)
@@ -400,7 +415,7 @@ class SMBO(BOBase):
         }
         print(draw_data)
         from openbox.utils.visualization.visualization_for_openbox import vis_openbox
-        vis_openbox(draw_data, os.path.join(self.vis_path, self.vis_file_name))
+        vis_openbox(draw_data, os.path.join(self.vis_path_tmp, self.vis_file_name_tmp))
 
         # f = open(os.path.join(self.vis_path, "visual_template.html"),"r") 
         # l = open(os.path.join(self.vis_path, "local_"+self.vis_file_name),"w")
@@ -410,3 +425,21 @@ class SMBO(BOBase):
 
         # f.close()
         # l.close()
+
+    def generate_html(self):
+        visual_json_path = os.path.join(self.json_path, 'visual_'+self.json_file_name)
+        template_path = os.path.join(os.path.abspath("."), 'bo_visualization/templates/visual_template.html')
+        html_path = os.path.join(self.vis_path, self.vis_file_name)
+
+        html_text = ''
+        with open(template_path, 'r') as f:
+            html_text = f.read()
+
+        result = re.sub("<script type=\"text/javascript\" src=\"json_path\"></script>",
+                        "<script type=\"text/javascript\" src=" + repr(visual_json_path) + "></script>", html_text)
+
+        with open(html_path, "w+") as f:
+            f.write(result)
+
+
+
