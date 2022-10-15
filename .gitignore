@@ -23,7 +23,7 @@ logs/
 
 # Temp files.
 bo_history/
-bo_visualization/
+bo_visualization_tmp/
 
 # TensorboardX files.
 runs/
