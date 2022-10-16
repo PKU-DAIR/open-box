@@ -347,7 +347,7 @@ class SMBO(BOBase):
 
         with open(os.path.join(self.json_path, 'visual_'+self.json_file_name), 'w') as fp:
             fp.write('var info=')
-            json.dump({'data': self.data}, fp, indent=2)
+            json.dump({'data': self.load_json()}, fp, indent=2)
             fp.write(';')
         print('Save history to visual_%s' % self.json_file_name)
 
@@ -403,17 +403,20 @@ class SMBO(BOBase):
         line_data['min'].append([len(option['data']), min_value])
         line_data['scat'].append([len(option['data']), min_value])
 
-        return {'line_data': line_data, 'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config}
+        draw_data = {'line_data': line_data, 'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config,
+                     'task_inf': {
+                         'table_field': ['task_id', 'Advisor Type', 'Surrogate Type', 'max_runs',
+                                         'Time Limit Per Trial'],
+                         'table_data': [self.task_id, self.advisor_type, self.surrogate_type, self.max_iterations,
+                                        self.time_limit_per_trial]
+                     }}
+
+        return draw_data
 
     def visualize(self):
         draw_data = self.load_json()
 
-        # task information table
-        draw_data['task_inf'] = {
-            'table_field': ['task_id', 'Advisor Type', 'Surrogate Type', 'max_runs', 'Time Limit Per Trial'],
-            'table_data': [self.task_id, self.advisor_type, self.surrogate_type, self.max_iterations, self.time_limit_per_trial]
-        }
-        print(draw_data)
+        # print(draw_data)
         from openbox.utils.visualization.visualization_for_openbox import vis_openbox
         vis_openbox(draw_data, os.path.join(self.vis_path_tmp, self.vis_file_name_tmp))
 
@@ -427,19 +430,55 @@ class SMBO(BOBase):
         # l.close()
 
     def generate_html(self):
-        visual_json_path = os.path.join(self.json_path, 'visual_'+self.json_file_name)
+        static_path = os.path.join(os.path.abspath("."), 'bo_visualization/static')
         template_path = os.path.join(os.path.abspath("."), 'bo_visualization/templates/visual_template.html')
         html_path = os.path.join(self.vis_path, self.vis_file_name)
 
-        html_text = ''
-        with open(template_path, 'r') as f:
+        with open(template_path, 'r',encoding='utf-8') as f:
             html_text = f.read()
 
-        result = re.sub("<script type=\"text/javascript\" src=\"json_path\"></script>",
+        link1_path = os.path.join(static_path, 'vendor/bootstrap/css/bootstrap.min.css')
+        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/vendor/bootstrap/css/bootstrap.min.css\">",
+                           "<link rel=\"stylesheet\" href=" + repr(link1_path) + ">", html_text)
+
+        link2_path = os.path.join(static_path, 'css/style.default.css')
+        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/style.default.css\" id=\"theme-stylesheet\">",
+                           "<link rel=\"stylesheet\" href=" + repr(link2_path) + " id=\"theme-stylesheet\">", html_text)
+
+        link3_path = os.path.join(static_path, 'css/custom.css')
+        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/custom.css\">",
+                           "<link rel=\"stylesheet\" href=" + repr(link3_path) + ">", html_text)
+
+        visual_json_path = os.path.join(self.json_path, 'visual_'+self.json_file_name)
+        html_text = re.sub("<script type=\"text/javascript\" src='json_path'></script>",
                         "<script type=\"text/javascript\" src=" + repr(visual_json_path) + "></script>", html_text)
 
+        script1_path = os.path.join(static_path, 'vendor/jquery/jquery.min.js')
+        html_text = re.sub("<script src=\"../static/vendor/jquery/jquery.min.js\"></script>",
+                        "<script src=" + repr(script1_path) + "></script>", html_text)
+
+        script2_path = os.path.join(static_path, 'vendor/bootstrap/js/bootstrap.bundle.min.js')
+        html_text = re.sub("<script src=\"../static/vendor/bootstrap/js/bootstrap.bundle.min.js\"></script>",
+                        "<script src=" + repr(script2_path) + "></script>", html_text)
+
+        script3_path = os.path.join(static_path, 'vendor/jquery.cookie/jquery.cookie.js')
+        html_text = re.sub("<script src=\"../static/vendor/jquery.cookie/jquery.cookie.js\"></script>",
+                        "<script src=" + repr(script3_path) + "></script>", html_text)
+
+        script4_path = os.path.join(static_path, 'vendor/datatables/js/datatables.js')
+        html_text = re.sub("<script src=\"../static/vendor/datatables/js/datatables.js\"></script>",
+                        "<script src=" + repr(script4_path) + "></script>", html_text)
+
+        script5_path = os.path.join(static_path, 'js/echarts.min.js')
+        html_text = re.sub("<script src=\"../static/js/echarts.min.js\"></script>",
+                        "<script src=" + repr(script5_path) + "></script>", html_text)
+
+        script6_path = os.path.join(static_path, 'js/common.js')
+        html_text = re.sub("<script src=\"../static/js/common.js\"></script>",
+                        "<script src=" + repr(script6_path) + "></script>", html_text)
+
         with open(html_path, "w+") as f:
-            f.write(result)
+            f.write(html_text)
 
 
 
