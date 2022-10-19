@@ -215,7 +215,7 @@ class BlendSearchAdvisor(abc.ABC):
         for i, key in enumerate(self.config_space.keys()):
             hp_type = self.config_space.get_hyperparameter(key)
             if isinstance(hp_type, CategoricalHyperparameter) or isinstance(hp_type, OrdinalHyperparameter):
-                arr[i] = self.rng.randint(0, hp_type.get_size() - 1)
+                arr[i] = self.rng.randint(0, hp_type.get_size())
             elif isinstance(hp_type, NumericalHyperparameter):
                 arr[i] = min(arr[i] + d[i], 1.0)
 

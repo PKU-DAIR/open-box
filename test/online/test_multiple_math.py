@@ -1,7 +1,6 @@
 # License: MIT
 import os
 
-
 NUM_THREADS = "1"
 os.environ["OMP_NUM_THREADS"] = NUM_THREADS  # export OMP_NUM_THREADS=1
 os.environ["OPENBLAS_NUM_THREADS"] = NUM_THREADS  # export OPENBLAS_NUM_THREADS=1
@@ -13,7 +12,6 @@ import sys
 import time
 import argparse
 import json
-
 
 sys.path.insert(0, ".")
 
@@ -86,40 +84,11 @@ class Rastrigin(BaseTestProblem):
 
 
 FUNCTIONS = [
-    Schwefel(dim=12),
-    Schwefel(dim=15),
-    Schwefel(dim=20),
-    Schwefel(dim=25),
-    Schwefel(dim=30),
-    Schwefel(dim=40),
-    Rastrigin(dim=12),
-    Rastrigin(dim=15),
-    Rastrigin(dim=20),
-    Rastrigin(dim=25),
-    Rastrigin(dim=30),
-    Rastrigin(dim=40),
     Ackley(dim=12),
-    Ackley(dim=15),
-    Ackley(dim=20),
-    Ackley(dim=25),
-    Ackley(dim=30),
-    Ackley(dim=40),
-    Rosenbrock(dim=12),
-    Rosenbrock(dim=15),
-    Rosenbrock(dim=20),
-    Rosenbrock(dim=25),
-    Rosenbrock(dim=30),
-    Rosenbrock(dim=40),
-    Keane(dim=12),
-    Keane(dim=15),
-    Keane(dim=20),
-    Keane(dim=25),
-    Keane(dim=30),
-    Keane(dim=40),
 ]
 
 # Run 5 times for each dataset, and get average value
-REPEATS = 5
+REPEATS = 1
 
 # The number of function evaluations allowed.
 MAX_RUNS = 300
@@ -128,7 +97,7 @@ BATCH_SIZE = 5
 # We need to re-initialize the advisor every time we start a new run.
 # So these are functions that provides advisors.
 ADVISORS = [
-    (lambda sp, r: LineBOAdvisor(config_space=sp, random_state=r), 'LineBO'),
+    (lambda sp, r: LineBOAdvisor(config_space=sp, random_state=r, direction_strategy='coordinate'), 'LineBO(coordinate)'),
     # (lambda sp, r: BlendSearchAdvisor(
     #     globalsearch=(Advisor, tuple(), dict(surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy')),
     #     config_space=sp, random_state=r), 'BlendSearch'),
@@ -138,7 +107,7 @@ ADVISORS = [
     # (lambda sp, r: Advisor(config_space=sp, random_state=r), 'BO(Default)'),
     # (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
     #                        random_state=r), 'BO(GP+RandomScipy)'),
-    (lambda sp, r: TuRBOAdvisor(config_space=sp, random_state=r), 'TuRBO'),
+    # (lambda sp, r: TuRBOAdvisor(config_space=sp, random_state=r), 'TuRBO'),
 
 ]
 
@@ -187,41 +156,82 @@ if __name__ == "__main__":
             histories = []
             time_costs = []
 
-            for r in range(REPEATS):
+            try:
+                for r in range(REPEATS):
 
-                print(f"{r + 1}/{REPEATS}:")
+                    print(f"{r + 1}/{REPEATS}:")
 
-                start_time = time.time()
+                    start_time = time.time()
 
-                advisor = advisor_getter(space, random_states[r])
+                    advisor = advisor_getter(space, random_states[r])
 
-                if name == 'BatchBO' or name == 'TuRBO':
-                    for i in trange(MAX_RUNS // BATCH_SIZE):
-                        configs = advisor.get_suggestions(batch_size=BATCH_SIZE)
-                        # print(len(configs))
-                        for config in configs:
+                    if name == 'BatchBO' or name == 'TuRBO':
+                        for i in trange(MAX_RUNS // BATCH_SIZE):
+                            configs = advisor.get_suggestions(batch_size=BATCH_SIZE)
+                            # print(len(configs))
+                            for config in configs:
+                                ret = function(config)
+                                observation = Observation(config=config, objs=ret['objs'])
+                                advisor.update_observation(observation)
+                            if trange == range:
+                                print('===== ITER %d/%d.' % ((i + 1) * BATCH_SIZE, MAX_RUNS))
+                    else:
+                        for i in trange(MAX_RUNS):
+                            config = advisor.get_suggestion()
+                            # print(config.get_array())
+                            # print("function return ", config.get_array())
                             ret = function(config)
                             observation = Observation(config=config, objs=ret['objs'])
                             advisor.update_observation(observation)
-                        if trange == range:
-                            print('===== ITER %d/%d.' % ((i + 1) * BATCH_SIZE, MAX_RUNS))
-                else:
-                    for i in trange(MAX_RUNS):
-                        config = advisor.get_suggestion()
-                        ret = function(config)
-                        observation = Observation(config=config, objs=ret['objs'])
-                        advisor.update_observation(observation)
-                        if trange == range:
-                            print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
+                            # print("result ", ret['objs'])
+                            if trange == range:
+                                print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
 
+                    time_costs.append(time.time() - start_time)
+                    histories.append(advisor.get_history())
+
+            except KeyboardInterrupt:
                 time_costs.append(time.time() - start_time)
                 histories.append(advisor.get_history())
+
+            if True and ("LineBO" in name):
+                print("Plotting history evaluations:")
+                plt.cla()
+                plt.scatter(np.array([i['x1'] for i in advisor.get_history().configurations]),
+                            np.array([i['x2'] for i in advisor.get_history().configurations]),
+                            c=np.array([(i.get_array()[2], 0, 1 - i.get_array()[2]) for i in
+                                        advisor.get_history().configurations]))
+
+                for x0, x1 in advisor.history_lines:
+                    c0 = Configuration(space, vector=x0)
+                    c1 = Configuration(space, vector=x1)
+                    plt.plot([c0['x1'], c1['x1']], [c0['x2'], c1['x2']])
+
+                if not os.path.exists("tmp"):
+                    os.mkdir("tmp")
+
+                plt.savefig(f"tmp/TMP.jpg")
+
+                print("Testing GP accuracy:")
+
+                # print(advisor.last_gp_data)
+
+                for i in range(50):
+                    config = space.sample_configuration()
+
+                    config = advisor.to_original_space(advisor.line_space.sample_configuration())
+                    # config = Configuration(space, vector = advisor.last_gp_data[0][i] + np.random.randn(12) * 0.01)
+                    res1 = function(config)['objs'][0]
+                    res2 = advisor.objective_surrogate.predict(np.array([config.get_array()]))
+                    print(config.get_array())
+                    print(
+                        f"Sampled point at [{config['x1']},{config['x2']}], function return {res1}, gp return {res2}")
 
             mins = [[h.perfs[0]] for h in histories]
             minvs = [[h.configurations[0].get_dictionary()] for h in histories]
 
-            for i in range(1, MAX_RUNS):
-                for j, h in enumerate(histories):
+            for j, h in enumerate(histories):
+                for i in range(1, len(h.perfs)):
                     if h.perfs[i] <= mins[j][-1]:
                         mins[j].append(h.perfs[i])
                         minvs[j].append(h.configurations[i].get_dictionary())
@@ -229,8 +239,8 @@ if __name__ == "__main__":
                         mins[j].append(mins[j][-1])
                         minvs[j].append(minvs[j][-1])
 
-            mean = [np.mean([a[i] for a in mins]) for i in range(MAX_RUNS)]
-            std = [np.std([a[i] for a in mins]) for i in range(MAX_RUNS)]
+            mean = [np.mean([a[i] for a in mins if i < len(a)]) for i in range(MAX_RUNS)]
+            std = [np.std([a[i] for a in mins if i < len(a)]) for i in range(MAX_RUNS)]
 
             all_results[name] = dict()
             all_results[name]['mean'] = mean

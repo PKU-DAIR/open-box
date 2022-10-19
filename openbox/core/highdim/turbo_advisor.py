@@ -92,7 +92,7 @@ class TuRBOAdvisor:
         if count is None:
             count = self.rand_count
 
-        layered_dim = self.rng.randint(0, self.dim - 1)
+        layered_dim = self.rng.randint(0, self.dim)
 
         res = self.rng.random((count, self.dim))
         for i in range(count):

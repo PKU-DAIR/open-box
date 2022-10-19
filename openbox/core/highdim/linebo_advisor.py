@@ -66,17 +66,21 @@ class LineBOAdvisor:
                  num_objs=1,
                  num_constraints=0,
                  task_id='default_task_id',
-                 batch_size=10,
                  random_state=None,
 
                  surrogate: str = 'gp_rbf',
                  constraint_surrogate: str = 'gp_rbf',
-                 acq: str = None,
-                 acq_optimizer: str = 'random_scipy',
 
-                 direction_strategy: str = 'random',
-                 direction_switch_interval=5
+                 acq: str = 'ei',
+                 acq_optimizer: str = 'local_random',
+
+                 direction_strategy: str = 'coordinate',
+
+                 subbo_evals=10,
+                 subbo_samples=5000,
+                 gradient_evals=1
                  ):
+        self.last_gp_data = None
         self.num_objs = num_objs
         # Does not support multi-obj!
         assert self.num_objs == 1
@@ -85,7 +89,6 @@ class LineBOAdvisor:
 
         self.config_space = config_space
         self.dim = len(config_space.keys())
-        self.batch_size = batch_size
         self.rng = check_random_state(random_state)
         self.task_id = task_id
 
@@ -103,33 +106,87 @@ class LineBOAdvisor:
         self.line_space = ConfigurationSpace()
         self.line_space.add_hyperparameters([UniformFloatHyperparameter('x', 0, 1)])
 
-        assert direction_strategy in ['random', 'aligned', 'descent']
+        assert direction_strategy in ['random', 'coordinate', 'gradient', 'mixed']
         self.direction_strategy = direction_strategy
-        self.direction_switch_interval = direction_switch_interval
+        self.subbo_evals = subbo_evals
+        self.subbo_samples = subbo_samples
+        self.gradient_evals = gradient_evals
 
         self.current_subspace: Optional[Union[np.ndarray, np.ndarray]] = None
-        self.acq: Optional[AbstractAcquisitionFunction] = None
+        self.global_acq = build_acq_func(self.acq_type, self.objective_surrogate, self.constraint_surrogates,
+                                         config_space=self.config_space)
+
+        self.subspace_acq: Optional[AbstractAcquisitionFunction] = None
         self.acq_optimizer = None
 
         self.history_container = HistoryContainer(task_id, num_constraints, self.config_space)
 
+        self.sub_history_container = None
+
         self.cnt = 0
 
+        self.visited_incumbents = []
+        self.history_lines = []
+
     def update_subspace(self):
-        if self.direction_strategy == 'random':
+        incumbent = self.config_space.sample_configuration() if len(self.history_container.incumbents) == 0 else \
+            self.history_container.incumbents[self.rng.randint(0, len(self.history_container.incumbents))][0]
+
+        x = incumbent.get_array()
+
+        direction_strategy = self.direction_strategy
+
+        if direction_strategy == 'mixed':
+            direction_strategy = 'gradient' if self.cnt > 500 else 'coordinate'
+
+        if direction_strategy == 'random':
             d = self.rng.randn(self.dim)
             d = d / np.linalg.norm(d)
             direction = d
-        elif self.direction_strategy == 'aligned':
+        elif direction_strategy == 'coordinate':
             direction = np.zeros(self.dim)
-            direction[self.rng.randint(0, self.dim - 1)] = 1
+            direction[(self.cnt // self.subbo_evals) % self.dim] = 1
+        elif direction_strategy == 'gradient':
+            # print("x", self.cnt)
+            if self.cnt == 0 or self.rng.randn(0, 2) == 1:
+                d = self.rng.randn(self.dim)
+                d = d / np.linalg.norm(d)
+                direction = d
+            else:
+
+                self.visited_incumbents.append(incumbent)
+
+                def eval_grad(a: np.ndarray):
+                    eps = np.linalg.norm(a) * 1e-4
+
+                    toeval = [a]
+                    res = np.zeros(self.dim)
+
+                    for i in range(self.dim):
+                        a1 = a.copy()
+                        a1[i] += eps
+                        toeval.append(a1)
+
+                    r = self.objective_surrogate.predict(np.array(toeval))[0]
+
+                    for i in range(self.dim):
+                        res[i] = (r[i + 1] - r[0]) / eps
+
+                    return res
+
+                for i in range(self.gradient_evals - 1):
+                    grad = eval_grad(x)
+                    x += grad * 0.01  # NOT USED. Maybe not reasonable.
+
+                grad = eval_grad(x)
+                ngrad = np.linalg.norm(grad)
+                # print("grad ", grad)
+                # print("|grad| ", ngrad)
+
+                direction = grad / ngrad
+
         else:
-            direction = np.zeros(self.dim)
-
-        incumbent = self.config_space.sample_configuration() if len(self.history_container.incumbents) == 0 else \
-            self.history_container.incumbents[self.rng.randint(0, len(self.history_container.incumbents) - 1)][0]
-
-        x = incumbent.get_array()
+            raise ValueError("Unknown Direction Strategy: " + self.direction_strategy)
 
         mx = 1e100
         mn = 1e100
@@ -156,78 +213,109 @@ class LineBOAdvisor:
         x1 = x + mx * direction
 
         self.current_subspace = (x0, x1)
+        self.history_lines.append((x0, x1))
 
-        self.acq = build_acq_func(self.acq_type,
-                                  LinearMappedModel(self.objective_surrogate, x0, x1),
-                                  [LinearMappedModel(i, x0, x1) for i in self.constraint_surrogates],
-                                  config_space=self.line_space)
-        self.acq_optimizer = build_optimizer(func_str=self.acq_optimizer_type,
-                                             acq_func=self.acq,
-                                             config_space=self.line_space,
-                                             rng=self.rng)
+        if self.subbo_evals != 0:
+            self.subspace_acq = build_acq_func(self.acq_type,
+                                               LinearMappedModel(self.objective_surrogate, x0, x1),
+                                               [LinearMappedModel(i, x0, x1) for i in self.constraint_surrogates],
+                                               config_space=self.line_space)
+            self.acq_optimizer = build_optimizer(func_str=self.acq_optimizer_type,
+                                                 acq_func=self.subspace_acq,
+                                                 config_space=self.line_space,
+                                                 rng=self.rng)
+            self.sub_history_container = HistoryContainer(task_id=self.task_id,
+                                                          num_constraints=self.num_constraints,
+                                                          config_space=self.line_space)
+
+        # print("subspace updated ", self.current_subspace)
 
     def to_original_space(self, X):
         if isinstance(X, Configuration):
             X = X.get_array()
 
-        oX = self.current_subspace[0] + (self.current_subspace[1] - self.current_subspace[0]) * X
+        oX = self.current_subspace[0] + (self.current_subspace[1] - self.current_subspace[0]) * X.item()
         return Configuration(self.config_space, vector=oX)
 
     def get_suggestion(self):
-        if self.cnt % self.direction_switch_interval == 0 or self.current_subspace is None:
-            self.update_subspace()
-
-        self.cnt += 1
-
         if len(self.history_container.configurations) == 0:
-            return self.to_original_space(self.line_space.sample_configuration())
+            return self.config_space.sample_configuration()
 
         incumbent_value = self.history_container.get_incumbents()[0][1]
         num_config_evaluated = len(self.history_container.configurations)
-        self.acq.update(eta=incumbent_value,
-                        num_data=num_config_evaluated)
 
         X = convert_configurations_to_array(self.history_container.configurations)
         Y = self.history_container.get_transformed_perfs(transform=None)
         cY = self.history_container.get_transformed_constraint_perfs(transform='bilog')
+        
+        self.last_gp_data = (X, Y)
 
         self.objective_surrogate.train(X, Y[:, 0] if Y.ndim == 2 else Y)
+
         for i in range(self.num_constraints):
             self.constraint_surrogates[i].train(X, cY[:, i])
 
-        challengers = self.acq_optimizer.maximize(runhistory=HistoryContainer(task_id=self.task_id,
-                                                                              num_constraints=self.num_constraints,
-                                                                              config_space=self.line_space),
-                                                  num_points=5000)
+        self.global_acq.update(eta=incumbent_value,
+                               num_data=num_config_evaluated)
 
-        ret = None
+        interval = self.subbo_evals if self.subbo_evals != 0 else 1
+        if self.cnt % interval == 0 or self.current_subspace is None:
+            self.update_subspace()
 
-        for config in challengers.challengers:
-            if config not in self.history_container.configurations:
-                ret = config
-                break
+        self.cnt += 1
 
-        if ret is None:
-            return self.to_original_space(self.line_space.sample_configuration())
+        if self.subbo_evals != 0:
+
+            sub_num_config_evaluated = len(self.sub_history_container.configurations)
+
+            if sub_num_config_evaluated == 0:
+                return self.to_original_space(self.line_space.sample_configuration())
+
+            sub_incumbent_value = self.sub_history_container.get_incumbents()[0][1]
+
+            self.subspace_acq.update(eta=sub_incumbent_value, num_data=sub_num_config_evaluated)
+
+            challengers = self.acq_optimizer.maximize(runhistory=self.sub_history_container,
+                                                      num_points=self.subbo_samples)
+            ret = None
+
+            for config in challengers.challengers:
+                c = self.to_original_space(config)
+                cx = c.get_array()
+                if any(np.linalg.norm(cx - i.get_array()) < 1e-6 for i in self.history_container.configurations):
+                    continue
+
+                if config not in self.history_container.configurations:
+                    ret = c
+                    break
+
+            if ret is not None:
+                return ret
+            else:
+                return self.to_original_space(self.line_space.sample_configuration())
         else:
-            return self.to_original_space(ret)
+            # grid_search
+            gs_X = np.linspace(self.current_subspace[0], self.current_subspace[1], self.subbo_samples)
+            gs_configs = [Configuration(self.config_space, vector=gs_X[i]) for i in range(self.subbo_samples)]
+            res = self.objective_surrogate.predict(gs_X)[0].flatten()
+
+            # select best of grid_search result
+            ranks = np.argsort(res)
+
+            ans = None
+
+            for i in range(self.subbo_samples):
+                if gs_configs[ranks[i]] not in self.history_container.configurations:
+                    ans = gs_configs[ranks[i]]
+                    break
+
+            if ans is None:
+                ans = self.config_space.sample_configuration()
+
+            return ans
 
     def update_observation(self, observation: Observation):
         self.history_container.update_observation(observation)
-
-        incumbent_value = self.history_container.get_incumbents()[0][1]
-        num_config_evaluated = len(self.history_container.configurations)
-        self.acq.update(eta=incumbent_value,
-                        num_data=num_config_evaluated)
-
-    def get_suggestions(self, batch_size=None):
-        if batch_size is None:
-            batch_size = self.batch_size
-
-        return [self.get_suggestion() for i in range(batch_size)]
-
-    def update_observations(self, observations: List[Observation]):
-        return [self.update_observation(o) for o in observations]
 
     def get_history(self):
         return self.history_container
