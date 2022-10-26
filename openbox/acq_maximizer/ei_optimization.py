@@ -1257,6 +1257,7 @@ class ChallengerList(object):
         if self._index == len(self.challengers):
             raise StopIteration
         else:
+            # 根据random_configuration_chooser中的概率，要么随机选择点，要么返回最好的
             if self.random_configuration_chooser.check(self._iteration):
                 config = self.configuration_space.sample_configuration()
                 config.origin = 'Random Search'

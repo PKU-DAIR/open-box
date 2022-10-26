@@ -85,7 +85,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         elif init_strategy == 'random_explore_first':
             num_random_config = self.init_num - 1
             candidate_configs = self.sample_random_configs(100)
-            return self.max_min_distance(default_config,candidate_configs,num_random_config)
+            return self.max_min_distance(default_config, candidate_configs, num_random_config)
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
@@ -95,7 +95,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         initial_configs.append(default_config)
 
         for config in src_configs:
-            dis = np.linalg.norm(config.get_array()-default_config.get_array())  # get_array may have NaN problems
+            dis = np.linalg.norm(config.get_array() - default_config.get_array())  # get_array may have NaN problems
             min_dis.append(dis)
         min_dis = np.array(min_dis)
 
@@ -107,7 +107,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             for j in range(len(src_configs)):
                 if src_configs[j] in initial_configs:
                     continue
-                updated_dis = np.linalg.norm(src_configs[j].get_array()-furthest_config.get_array())
+                updated_dis = np.linalg.norm(src_configs[j].get_array() - furthest_config.get_array())
                 min_dis[j] = min(updated_dis, min_dis[j])
 
         return initial_configs
@@ -130,11 +130,14 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(1)[0]
         elif self.optimization_strategy == 'bo':
+            ################### train #####################
             self.surrogate_model.train(X, Y)
             incumbent_value = self.history_container.get_incumbents()[0][1]
+            # update acquisition function's parameter, pass the trained surrogate model to it
             self.acquisition_function.update(model=self.surrogate_model,
                                              eta=incumbent_value,
                                              num_data=num_config_evaluated)
+
             challengers = self.optimizer.maximize(runhistory=self.history_container,
                                                   num_points=5000)
             is_repeated_config = True

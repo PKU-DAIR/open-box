@@ -5,6 +5,7 @@ import re
 import time
 import os
 import json
+import copy
 import traceback
 import math
 from typing import List
@@ -99,6 +100,7 @@ class SMBO(BOBase):
     random_state : int
         Random seed for RNG.
     """
+
     def __init__(self, objective_function: callable, config_space,
                  num_constraints=0,
                  num_objs=1,
@@ -124,11 +126,13 @@ class SMBO(BOBase):
                  vis_path=None,
                  **kwargs):
 
+        # iteration numbers
+        self.i = 0
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
         if json_path is None:
-            json_path = os.path.join(os.path.abspath("."),  'bo_history')
+            json_path = os.path.join(os.path.abspath("."), 'bo_history')
             # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
         self.json_path = json_path
         if not os.path.exists(self.json_path):
@@ -145,7 +149,8 @@ class SMBO(BOBase):
             os.makedirs(self.vis_path_tmp)
         self.vis_file_name_tmp = 'bo_visualization_tmp_%s.html' % task_id
         if os.path.exists(os.path.join(vis_path_tmp, self.vis_file_name_tmp)):
-            raise ValueError('There is already a same task_id in your vis_path_tmp. Please change task_id or vis_path_tmp.')
+            raise ValueError(
+                'There is already a same task_id in your vis_path_tmp. Please change task_id or vis_path_tmp.')
 
         if vis_path is None:
             vis_path = os.path.join(os.path.abspath("."), 'bo_visualization')
@@ -251,16 +256,21 @@ class SMBO(BOBase):
                 self.logger.info('Time %f elapsed!' % self.runtime_limit)
                 break
             start_time = time.time()
+            self.i += 1
             self.iterate(budget_left=self.budget_left)
             runtime = time.time() - start_time
             self.budget_left -= runtime
 
-        self.visualize()
+        # self.visualize()
         return self.get_history()
 
     def iterate(self, budget_left=None):
         # get configuration suggestion from advisor
         config = self.config_advisor.get_suggestion()
+
+        # config_array = np.array([list(config.get_dictionary().values())])
+        # predic_objs, var = self.config_advisor.surrogate_model.predict(config_array)
+        # print(predic_objs, var)
 
         trial_state = SUCCESS
         _budget_left = int(1e10) if budget_left is None else budget_left
@@ -331,35 +341,40 @@ class SMBO(BOBase):
     def save_json(self, res: Observation):
 
         data_item = dict(
-                task_id=self.task_id,
-                iteration_id=self.iteration_id,
-                config=res.config.get_dictionary(),
-                objs=res.objs,
-                constaints=res.constraints,
-                trial_state=res.trial_state,
-                cost=res.elapsed_time,
-            )
+            task_id=self.task_id,
+            iteration_id=self.iteration_id,
+            config=res.config.get_dictionary(),
+            objs=res.objs,
+            constaints=res.constraints,
+            trial_state=res.trial_state,
+            cost=res.elapsed_time,
+        )
         self.data.append(data_item)
 
-        with open(os.path.join(self.json_path, self.json_file_name), 'w') as fp:
-            json.dump({'data': self.data}, fp, indent=2)
-        print('Save history to %s' % self.json_file_name)
+        if self.i % 5 == 0 or self.i >= self.max_iterations:
+            with open(os.path.join(self.json_path, self.json_file_name), 'w') as fp:
+                json.dump({'data': self.data}, fp, indent=2)
+            print('Save history to %s' % self.json_file_name)
 
-        with open(os.path.join(self.json_path, 'visual_'+self.json_file_name), 'w') as fp:
-            fp.write('var info=')
-            json.dump({'data': self.load_json()}, fp, indent=2)
-            fp.write(';')
-        print('Save history to visual_%s' % self.json_file_name)
+            with open(os.path.join(self.json_path, 'visual_' + self.json_file_name), 'w') as fp:
+                fp.write('var info=')
+                json.dump({'data': self.process_data()}, fp, indent=2)
+                fp.write(';')
+            print('Save history to visual_%s' % self.json_file_name)
 
-    def load_json(self):
-        with open(os.path.join(self.json_path, self.json_file_name), 'r') as fp:
-            json_data = json.load(fp)
+    def process_data(self):
+        # with open(os.path.join(self.json_path, self.json_file_name), 'r') as fp:
+        #     json_data = json.load(fp)
 
-        json_data = json_data['data']
+        json_data = self.data
 
+        # Config Table data
         table_list = []
+        # all the config list
         rh_config = {}
+        # Parallel Data
         option = {'data': [], 'schema': [], 'visualMap': {}}
+        # all the performance
         perf_list = []
         for rh in json_data:
             result = round(rh['objs'][0], 4)
@@ -368,8 +383,10 @@ class SMBO(BOBase):
                 config_str = config_str[1:35]
             else:
                 config_str = config_str[1:-1]
+
             table_list.append(
                 [rh['iteration_id'], result, config_str, rh['trial_state'], rh['cost']])
+
             rh_config[str(rh['iteration_id'])] = rh['config']
             config_values = []
             for parameter in rh['config'].keys():
@@ -388,6 +405,7 @@ class SMBO(BOBase):
             option['visualMap']['max'] = 100
             option['visualMap']['dimension'] = 0
 
+        # Line Data
         line_data = {'min': [], 'over': [], 'scat': []}
         import sys
 
@@ -403,15 +421,76 @@ class SMBO(BOBase):
         line_data['min'].append([len(option['data']), min_value])
         line_data['scat'].append([len(option['data']), min_value])
 
-        draw_data = {'line_data': line_data, 'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config,
-                     'task_inf': {
-                         'table_field': ['task_id', 'Advisor Type', 'Surrogate Type', 'max_runs',
-                                         'Time Limit Per Trial'],
-                         'table_data': [self.task_id, self.advisor_type, self.surrogate_type, self.max_iterations,
-                                        self.time_limit_per_trial]
-                     }}
+        # Importance data
+        history = self.get_history()
+        importance_dict = history.get_importance(method='shap', return_dict=True)
+        importance = {
+            'x': list(importance_dict.keys()),
+            'data': dict()
+        }
+
+        for key, value in importance_dict.items():
+            for i in range(len(value)):
+                y_name = 'opt-value-' + str(i + 1)
+                if y_name not in importance['data']:
+                    importance['data'][y_name] = list()
+                importance['data'][y_name].append(value[i])
+
+        draw_data = {
+            'line_data': line_data, 'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config,
+            'importance_data': importance,
+            'task_inf': {
+                'table_field': ['task_id', 'Advisor Type', 'Surrogate Type', 'max_runs',
+                                'Time Limit Per Trial'],
+                'table_data': [self.task_id, self.advisor_type, self.surrogate_type, self.max_iterations,
+                               self.time_limit_per_trial]
+            },
+            'pre_label_data': None,
+            'grade_data': None
+        }
+
+        if self.i >= self.max_iterations:
+            draw_data['pre_label_data'], draw_data['grade_data'] = self.verify_surrogate()
 
         return draw_data
+
+    def verify_surrogate(self):
+        his = self.config_advisor.history_container
+        # only get successful observations
+        confs = [his.configurations[i] for i in range(len(his.configurations)) if i not in his.failed_index]
+        perfs = his.successful_perfs
+
+        N = len(perfs)
+        if len(confs) != N or N == 0:
+            return None, None
+
+        from openbox.utils.config_space.util import convert_configurations_to_array
+        X_all = convert_configurations_to_array(confs)
+        Y_all = np.array(perfs, dtype=np.float64)
+
+        # leave one out validation
+        pre_perfs = []
+        for i in range(N):
+            X = np.concatenate((X_all[:i, :], X_all[i+1:, :]), axis=0)
+            Y = np.concatenate((Y_all[:i], Y_all[i+1:]))
+            tmp_model = copy.deepcopy(self.config_advisor.surrogate_model)
+            tmp_model.train(X, Y)
+
+            test_X = X_all[i:i+1, :]
+            pre_mean, pre_var = tmp_model.predict(test_X)
+            # 这里多目标可能要改
+            pre_perfs.append(pre_mean[0][0])
+
+        ranks = [0 for i in range(N)]
+        pre_ranks = [0 for i in range(N)]
+        tmp = np.argsort(perfs).astype(int)
+        pre_tmp = np.argsort(pre_perfs).astype(int)
+
+        for i in range(N):
+            ranks[tmp[i]] = i + 1
+            pre_ranks[pre_tmp[i]] = i + 1
+
+        return {'x': perfs, 'y': pre_perfs}, {'x': ranks, 'y': pre_ranks}
 
     def visualize(self):
         draw_data = self.load_json()
@@ -420,21 +499,12 @@ class SMBO(BOBase):
         from openbox.utils.visualization.visualization_for_openbox import vis_openbox
         vis_openbox(draw_data, os.path.join(self.vis_path_tmp, self.vis_file_name_tmp))
 
-        # f = open(os.path.join(self.vis_path, "visual_template.html"),"r") 
-        # l = open(os.path.join(self.vis_path, "local_"+self.vis_file_name),"w")
-
-        # for content in f.readlines():
-        #     l.write(content)
-
-        # f.close()
-        # l.close()
-
     def generate_html(self):
         static_path = os.path.join(os.path.abspath("."), 'bo_visualization/static')
         template_path = os.path.join(os.path.abspath("."), 'bo_visualization/templates/visual_template.html')
         html_path = os.path.join(self.vis_path, self.vis_file_name)
 
-        with open(template_path, 'r',encoding='utf-8') as f:
+        with open(template_path, 'r', encoding='utf-8') as f:
             html_text = f.read()
 
         link1_path = os.path.join(static_path, 'vendor/bootstrap/css/bootstrap.min.css')
@@ -449,36 +519,33 @@ class SMBO(BOBase):
         html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/custom.css\">",
                            "<link rel=\"stylesheet\" href=" + repr(link3_path) + ">", html_text)
 
-        visual_json_path = os.path.join(self.json_path, 'visual_'+self.json_file_name)
+        visual_json_path = os.path.join(self.json_path, 'visual_' + self.json_file_name)
         html_text = re.sub("<script type=\"text/javascript\" src='json_path'></script>",
-                        "<script type=\"text/javascript\" src=" + repr(visual_json_path) + "></script>", html_text)
+                           "<script type=\"text/javascript\" src=" + repr(visual_json_path) + "></script>", html_text)
 
         script1_path = os.path.join(static_path, 'vendor/jquery/jquery.min.js')
         html_text = re.sub("<script src=\"../static/vendor/jquery/jquery.min.js\"></script>",
-                        "<script src=" + repr(script1_path) + "></script>", html_text)
+                           "<script src=" + repr(script1_path) + "></script>", html_text)
 
         script2_path = os.path.join(static_path, 'vendor/bootstrap/js/bootstrap.bundle.min.js')
         html_text = re.sub("<script src=\"../static/vendor/bootstrap/js/bootstrap.bundle.min.js\"></script>",
-                        "<script src=" + repr(script2_path) + "></script>", html_text)
+                           "<script src=" + repr(script2_path) + "></script>", html_text)
 
         script3_path = os.path.join(static_path, 'vendor/jquery.cookie/jquery.cookie.js')
         html_text = re.sub("<script src=\"../static/vendor/jquery.cookie/jquery.cookie.js\"></script>",
-                        "<script src=" + repr(script3_path) + "></script>", html_text)
+                           "<script src=" + repr(script3_path) + "></script>", html_text)
 
         script4_path = os.path.join(static_path, 'vendor/datatables/js/datatables.js')
         html_text = re.sub("<script src=\"../static/vendor/datatables/js/datatables.js\"></script>",
-                        "<script src=" + repr(script4_path) + "></script>", html_text)
+                           "<script src=" + repr(script4_path) + "></script>", html_text)
 
         script5_path = os.path.join(static_path, 'js/echarts.min.js')
         html_text = re.sub("<script src=\"../static/js/echarts.min.js\"></script>",
-                        "<script src=" + repr(script5_path) + "></script>", html_text)
+                           "<script src=" + repr(script5_path) + "></script>", html_text)
 
         script6_path = os.path.join(static_path, 'js/common.js')
         html_text = re.sub("<script src=\"../static/js/common.js\"></script>",
-                        "<script src=" + repr(script6_path) + "></script>", html_text)
+                           "<script src=" + repr(script6_path) + "></script>", html_text)
 
         with open(html_path, "w+") as f:
             f.write(html_text)
-
-
-
