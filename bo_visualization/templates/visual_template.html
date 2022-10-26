@@ -26,6 +26,7 @@
                                 style="background: #4fbfa8;color: white"> Refresh</button>
                         </div>
                         <br />
+                        <!--  BEGIN TASK INFO  -->
                         <div class="row">
                             <table id="task-inf-tab" class="table table-bordered table-hover table-striped">
                                 <thead>
@@ -40,32 +41,75 @@
 
                             </table>
                         </div>
-                        <div class="row">
+                        <!--  END TASK INFO  -->
 
-                            <div class="col-md-6  col-lg-12" id="line" style="height: 400px;zoom:1.25"></div>
+                        <!--  BEGIN SWITCH TAB  -->
+                        <ul class="nav nav-tabs nav-tabs-solid nav-justified" role="tablist">
+                            <li class="nav-item">
+                                <b class="nav-link active" data-toggle="tab" role="tab" href="#obj">目标函数</b>
+                            </li>
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#surrogate">代理模型</b>
+                            </li>
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#para">参数重要性</b>
+                            </li>
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#history">运行数据</b>
+                            </li>
+                        </ul>
+                        <!--  END SWITCH TAB  -->
 
-                        </div>
-                        <br>
-                        <div class="row">
+                        <!--  BEGIN INFORMATION TAB  -->
+                        <div class="container-fluid tab-content" id="myTabContent">
 
-                            <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;zoom:1.25">
+                            <!--  BEGIN OBJECTIVE TAB  -->
+                            <div class="tab-pane active" id="obj" role="tabpanel">
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="line" style="height: 400px;zoom:1.25"></div>
+
+                                </div>
+                                <br>
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;zoom:1.25">
+                                    </div>
+    
+                                </div>
                             </div>
+                            <!--  END OBJECTIVE TAB  -->
 
+                            <!--  BEGIN SURROGATE TAB  -->
+                            <div class="tab-pane fade" id="surrogate" role="tabpanel">
+                                <p>surrogate model virtualization</p>
+                            </div>
+                            <!--  END SURROGATE TAB  -->
+
+                            <!--  BEGIN PARA TAB  -->
+                            <div class="tab-pane fade" id="para" role="tabpanel">
+                                <p>parameter importance virtualization</p>
+                            </div>
+                            <!--  END PARA TAB  -->
+
+                            <!--  BEGIN HISTORY TAB  -->
+                            <div class="tab-pane fade" id="history" role="tabpanel">
+                                <table id="pipeline_table" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th> Index </th>
+                                            <th> Result </th>
+                                            <th> Configuration </th>
+                                            <th> Status </th>
+                                            <th> Cost </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!--  END HISTORY TAB  -->
                         </div>
-                        <table id="pipeline_table" class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th> Index </th>
-                                    <th> Result </th>
-                                    <th> Configuration </th>
-                                    <th> Status </th>
-                                    <th> Cost </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-
                     </div>
                 </div>
             </div>
