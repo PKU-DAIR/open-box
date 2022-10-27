@@ -26,6 +26,7 @@
                                 style="background: #4fbfa8;color: white"> Refresh</button>
                         </div>
                         <br />
+                        <!--  BEGIN TASK INFO  -->
                         <div class="row">
                             <table id="task-inf-tab" class="table table-bordered table-hover table-striped">
                                 <thead>
@@ -40,32 +41,87 @@
 
                             </table>
                         </div>
-                        <div class="row">
+                        <!--  END TASK INFO  -->
 
-                            <div class="col-md-6  col-lg-12" id="line" style="height: 400px;zoom:1.25"></div>
+                        <!--  BEGIN SWITCH TAB  -->
+                        <ul class="nav nav-tabs nav-tabs-solid nav-justified" role="tablist">
+                            <li class="nav-item">
+                                <b class="nav-link active" data-toggle="tab" role="tab" href="#obj">Objective Function</b>
+                            </li>
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#surrogate">Surrogate Model</b>
+                            </li>
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#para">Parameter Importance</b>
+                            </li>
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#history">Historical configurations</b>
+                            </li>
+                        </ul>
+                        <!--  END SWITCH TAB  -->
 
-                        </div>
-                        <br>
-                        <div class="row">
+                        <!--  BEGIN INFORMATION TAB  -->
+                        <div class="container-fluid tab-content" id="myTabContent">
 
-                            <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;zoom:1.25">
+                            <!--  BEGIN OBJECTIVE TAB  -->
+                            <div class="tab-pane active" id="obj" role="tabpanel">
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="line" style="height: 400px; zoom:1.25"></div>
+
+                                </div>
+                                <br>
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;zoom:1.25">
+                                    </div>
+
+                                </div>
+
                             </div>
+                            <!--  END OBJECTIVE TAB  -->
 
+                            <!--  BEGIN SURROGATE TAB  -->
+                            <div class="tab-pane fade" id="surrogate" role="tabpanel">
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="pre_label_scatter" style="height: 500px; width: 650px; zoom:1.25"></div>
+
+                                </div>
+                                <br>
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="grade_scatter" style="height: 500px; width: 650px; zoom:1.25">
+                                    </div>
+
+                                </div>
+                            </div>
+                            <!--  END SURROGATE TAB  -->
+
+                            <!--  BEGIN PARA TAB  -->
+                            <div class="tab-pane fade" id="para" role="tabpanel">
+                                    <div class="col-md-6  col-lg-12" id="para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
+                            </div>
+                            <!--  END PARA TAB  -->
+
+                            <!--  BEGIN HISTORY TAB  -->
+                            <div class="tab-pane fade" id="history" role="tabpanel">
+                                <table id="pipeline_table" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th> Index </th>
+                                            <th> Result </th>
+                                            <th> Configuration </th>
+                                            <th> Status </th>
+                                            <th> Cost </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!--  END HISTORY TAB  -->
                         </div>
-                        <table id="pipeline_table" class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th> Index </th>
-                                    <th> Result </th>
-                                    <th> Configuration </th>
-                                    <th> Status </th>
-                                    <th> Cost </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-
                     </div>
                 </div>
             </div>
@@ -138,8 +194,9 @@
             $('#rh_config_div').append("<pre>" + JSON.stringify(rh_config[rh_id], null, 2) + "</pre>")
             $('#myModal').modal('show');
         }
-        var parallel_coordinates_chart = echarts.init($('#parallel_coordinates')[0]);
 
+        // initialize Parallel Chart
+        var parallel_coordinates_chart = echarts.init($('#parallel_coordinates')[0]);
         var parallel_coordinates_option = {
             visualMap: {
                 show: true,
@@ -161,6 +218,7 @@
             ]
         };
 
+        // initialize Line Chart
         var line_chart = echarts.init($('#line')[0]);
         var line_option = {
             tooltip: {
@@ -234,15 +292,72 @@
                     name: 'Scatter',
                     type: 'scatter',
                     color: 'grey',
-                    type: 'scatter',
                 },
                 {
+                    name: 'Scatter',
                     type: 'scatter',
                     color: '#4fbfa8',
                 },
             ]
         };
 
+        if(data['pre_label_data'] != null) {
+            verify_surrogate_model();
+        }
+
+        // initialize the Parameter Importance Chart
+        let legend_list = [];
+        let series_list = [];
+        for(var key in data["importance_data"]["data"]) {
+            legend_list.push(key);
+
+            series_list.push(
+            {
+                  name: key,
+                  type: 'bar',
+                  data: data["importance_data"]["data"][key],
+                  markPoint: {
+                    data: [
+                      { type: 'max', name: 'Max' },
+                      { type: 'min', name: 'Min' }
+                    ]
+                  },
+                  markLine: {
+                    data: [{ type: 'average', name: 'Avg' }]
+                  }
+                }
+            )
+        }
+        var para_chart = echarts.init($('#para_importance')[0]);
+        var para_option = {
+            title: {
+                text: 'Parameter Importance',
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: legend_list
+            },
+
+            xAxis: [
+                {
+                  type: 'category',
+                  // prettier-ignore
+                  data: data["importance_data"]["x"]
+                }
+              ],
+            yAxis: [
+                {
+                    type: 'value'
+                }
+            ],
+            series: series_list,
+
+        }
+        para_option && para_chart.setOption(para_option);
+
+        // process the data
         get_history();
 
         function refresh() {
@@ -270,10 +385,11 @@
             parallel_coordinates_option['visualMap']['min'] = parallel_option['visualMap']['min'];
             parallel_coordinates_option['visualMap']['max'] = parallel_option['visualMap']['max'];
             parallel_coordinates_option['visualMap']['dimension'] = parallel_option['visualMap']['dimension'];
+            parallel_coordinates_option && parallel_coordinates_chart.setOption(parallel_coordinates_option);
+
             line_option['series'][0]['data'] = data['line_data']['min'];
             line_option['series'][1]['data'] = data['line_data']['over'];
             line_option['series'][2]['data'] = data['line_data']['scat'];
-            parallel_coordinates_option && parallel_coordinates_chart.setOption(parallel_coordinates_option);
             line_option && line_chart.setOption(line_option);
 
             rh_config = data['rh_config'];
@@ -292,7 +408,185 @@
 
         }
 
+        function verify_surrogate_model() {
+            var markLineOpt1 = {
+            animation: false,
+            label: {
+                formatter: 'y = x',
+                align: 'right'
+            },
+            lineStyle: {
+                type: 'solid'
+            },
+            tooltip: {
+                formatter: 'y = x'
+            },
+            data: [
+                [
+                    {
+                        coord: [data['pre_label_data']['min'], data['pre_label_data']['min']],
+                        symbol: 'none'
+                    },
+                    {
+                        coord: [data['pre_label_data']['max'], data['pre_label_data']['max']],
+                        symbol: 'none'
+                    }
+                ]
+            ]
+        };
+            // initialize Predict-Label Scatter Chart
+            var pre_label_chart = echarts.init($('#pre_label_scatter')[0]);
+            var pre_label_option = {
+                grid: {
+                    left: '150px',
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                xAxis: {
+                    type: 'value',
+                    name: 'predicted objective value',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: ['black'],
+                            width: 1,
+                            type: 'solid'
+                        }
+                    },
+                    min: data['pre_label_data']['min'],
+                    max: data['pre_label_data']['max']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'ground truth',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: ['black'],
+                            width: 1,
+                            type: 'solid'
+                        }
+                    },
+                    min: data['pre_label_data']['min'],
+                    max: data['pre_label_data']['max']
+                },
+                series: [
+                    {
+                        name: 'optimal obj 1',
+                        type: 'scatter',
+                        color: '#50a3ba',
+                        data: data['pre_label_data']['data'],
+                        markLine: markLineOpt1
+                    },
 
+                ]
+            }
+            pre_label_option && pre_label_chart.setOption(pre_label_option);
+
+            var markLineOpt2 = {
+                animation: false,
+                label: {
+                    formatter: 'y = x',
+                    align: 'right'
+                },
+                lineStyle: {
+                    type: 'solid'
+                },
+                tooltip: {
+                    formatter: 'y = x'
+                },
+                data: [
+                    [
+                        {
+                            coord: [data['grade_data']['min'], data['grade_data']['min']],
+                            symbol: 'none'
+                        },
+                        {
+                            coord: [data['grade_data']['max'], data['grade_data']['max']],
+                            symbol: 'none'
+                        }
+                    ]
+                ]
+            };
+            // initialize Rank Grade Scatter Chart
+            var grade_chart = echarts.init($('#grade_scatter')[0]);
+            var grade_option = {
+                grid: {
+                    left: '150px',
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                xAxis: {
+                    type: 'value',
+                    name: 'predicted objective value rank',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: ['black'],
+                            width: 1,
+                            type: 'solid'
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'ground truth',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: ['black'],
+                            width: 1,
+                            type: 'solid'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: 'optimal obj 1',
+                        type: 'scatter',
+                        color: '#4fbfa8',
+                        data: data['grade_data']['data'],
+                        markLine: markLineOpt2
+                    },
+
+                ]
+            }
+            grade_option && grade_chart.setOption(grade_option);
+        }
 
         var lineStyle = {
             normal: {

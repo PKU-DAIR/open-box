@@ -126,8 +126,6 @@ class SMBO(BOBase):
                  vis_path=None,
                  **kwargs):
 
-        # iteration numbers
-        self.i = 0
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
@@ -256,7 +254,6 @@ class SMBO(BOBase):
                 self.logger.info('Time %f elapsed!' % self.runtime_limit)
                 break
             start_time = time.time()
-            self.i += 1
             self.iterate(budget_left=self.budget_left)
             runtime = time.time() - start_time
             self.budget_left -= runtime
@@ -265,6 +262,7 @@ class SMBO(BOBase):
         return self.get_history()
 
     def iterate(self, budget_left=None):
+        self.iteration_id += 1
         # get configuration suggestion from advisor
         config = self.config_advisor.get_suggestion()
 
@@ -324,7 +322,6 @@ class SMBO(BOBase):
             if self.num_objs == 1:
                 objs = (objs,)
 
-        self.iteration_id += 1
         # Logging.
         if self.num_constraints > 0:
             self.logger.info('Iteration %d, objective value: %s. constraints: %s.'
@@ -351,16 +348,16 @@ class SMBO(BOBase):
         )
         self.data.append(data_item)
 
-        if self.i % 5 == 0 or self.i >= self.max_iterations:
+        if self.iteration_id % 5 == 0 or self.iteration_id >= self.max_iterations:
             with open(os.path.join(self.json_path, self.json_file_name), 'w') as fp:
                 json.dump({'data': self.data}, fp, indent=2)
-            print('Save history to %s' % self.json_file_name)
+            print('Iteration %d, Save history to %s' % (self.iteration_id, self.json_file_name))
 
             with open(os.path.join(self.json_path, 'visual_' + self.json_file_name), 'w') as fp:
                 fp.write('var info=')
                 json.dump({'data': self.process_data()}, fp, indent=2)
                 fp.write(';')
-            print('Save history to visual_%s' % self.json_file_name)
+            print('Iteration %d, Save history to visual_%s' % (self.iteration_id, self.json_file_name))
 
     def process_data(self):
         # with open(os.path.join(self.json_path, self.json_file_name), 'r') as fp:
@@ -449,7 +446,7 @@ class SMBO(BOBase):
             'grade_data': None
         }
 
-        if self.i >= self.max_iterations:
+        if self.iteration_id >= self.max_iterations:
             draw_data['pre_label_data'], draw_data['grade_data'] = self.verify_surrogate()
 
         return draw_data
@@ -462,6 +459,7 @@ class SMBO(BOBase):
 
         N = len(perfs)
         if len(confs) != N or N == 0:
+            print("No equal!")
             return None, None
 
         from openbox.utils.config_space.util import convert_configurations_to_array
@@ -471,12 +469,13 @@ class SMBO(BOBase):
         # leave one out validation
         pre_perfs = []
         for i in range(N):
-            X = np.concatenate((X_all[:i, :], X_all[i+1:, :]), axis=0)
-            Y = np.concatenate((Y_all[:i], Y_all[i+1:]))
+            X = np.concatenate((X_all[:i, :], X_all[i + 1:, :]), axis=0)
+            Y = np.concatenate((Y_all[:i], Y_all[i + 1:]))
+            # 如果是多目标，那么这就会是一个模型列表
             tmp_model = copy.deepcopy(self.config_advisor.surrogate_model)
             tmp_model.train(X, Y)
 
-            test_X = X_all[i:i+1, :]
+            test_X = X_all[i:i + 1, :]
             pre_mean, pre_var = tmp_model.predict(test_X)
             # 这里多目标可能要改
             pre_perfs.append(pre_mean[0][0])
@@ -490,7 +489,15 @@ class SMBO(BOBase):
             ranks[tmp[i]] = i + 1
             pre_ranks[pre_tmp[i]] = i + 1
 
-        return {'x': perfs, 'y': pre_perfs}, {'x': ranks, 'y': pre_ranks}
+        return {
+                   'data': [[pre_perfs[i], perfs[i]] for i in range(len(perfs))],
+                    'min': round(min(min(min(pre_perfs), min(perfs)), 0), 3),
+                    'max': round(max(min(pre_perfs), max(perfs)), 3)
+               }, {
+                   'data': [[pre_ranks[i], ranks[i]] for i in range(len(ranks))],
+                    'min': round(min(min(min(pre_ranks), min(ranks)), 0), 3),
+                    'max': round(max(min(pre_ranks), max(ranks)), 3)
+               }
 
     def visualize(self):
         draw_data = self.load_json()
