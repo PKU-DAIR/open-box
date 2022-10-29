@@ -286,7 +286,7 @@ class HistoryContainer(object):
         hip.Experiment.from_iterable(visualize_data).display()
         return
 
-    def get_importance(self, method='fanova', config_space=None, return_dict=False):
+    def get_importance(self, method='fanova', config_space=None, return_dict=False, return_allvalue=False):
         def _get_X(configurations, config_space):
             X_from_dict = np.array([get_config_values(config, config_space) for config in configurations],
                                    dtype=object)
@@ -320,6 +320,7 @@ class HistoryContainer(object):
                           "hyperparameters, we recommend setting the method to fanova.")
 
             X = _get_X(self.configurations, config_space)
+            obj_shape_value = []
 
             for col_idx in range(num_objs):
                 # Fit a LightGBMRegressor with observations
@@ -327,11 +328,18 @@ class HistoryContainer(object):
                 lgbr.fit(X, Y[:, col_idx])
                 explainer = shap.TreeExplainer(lgbr)
                 shap_values = explainer.shap_values(X)
+                if type(shap_values) == type(X):
+                    obj_shape_value.append(shap_values.tolist())
+                else:
+                    obj_shape_value.append(shap_values)
                 feature_importance = np.mean(np.abs(shap_values), axis=0)
 
                 keys = [hp.name for hp in config_space.get_hyperparameters()]
                 for i, hp_name in enumerate(keys):
                     importance_dict[hp_name].append(feature_importance[i])
+            
+            if return_allvalue:
+                return dict({'X': X.tolist(), 'obj_shape_value':obj_shape_value, 'importance_dict':importance_dict})
 
         elif method == 'fanova':
             try:

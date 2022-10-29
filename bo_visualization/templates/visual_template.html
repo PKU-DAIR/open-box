@@ -65,6 +65,7 @@
 
                             <!--  BEGIN OBJECTIVE TAB  -->
                             <div class="tab-pane active" id="obj" role="tabpanel">
+                                <br>
                                 <div class="row">
 
                                     <div class="col-md-6  col-lg-12" id="line" style="height: 400px; zoom:1.25"></div>
@@ -100,7 +101,10 @@
 
                             <!--  BEGIN PARA TAB  -->
                             <div class="tab-pane fade" id="para" role="tabpanel">
-                                    <div class="col-md-6  col-lg-12" id="para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
+                                <br>
+                                <div class="col-md-6  col-lg-12" id="para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
+                                <br>
+                                <div class="col-md-6  col-lg-12" id="single_para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
                             </div>
                             <!--  END PARA TAB  -->
 
@@ -198,6 +202,13 @@
         // initialize Parallel Chart
         var parallel_coordinates_chart = echarts.init($('#parallel_coordinates')[0]);
         var parallel_coordinates_option = {
+            title:{
+                text: 'Parallel Coordinates Plot',
+                subtext: 'This shows the features of individual observation of each round.'
+            },
+            parallel: {
+                top: 100
+            },
             visualMap: {
                 show: true,
                 seriesIndex: 0,
@@ -221,6 +232,10 @@
         // initialize Line Chart
         var line_chart = echarts.init($('#line')[0]);
         var line_option = {
+            title:{
+                text: 'Objective Value',
+                subtext: 'This shows min objective value after n iterations.'
+            },
             tooltip: {
                 trigger: 'axis',
                 axisPointer: {
@@ -242,7 +257,11 @@
                 },
             ],
             legend: {
-                left: 10
+                left: 10,
+                top: 50
+            },
+            grid:{
+                top: 90
             },
             xAxis: {
 
@@ -337,9 +356,12 @@
                 trigger: 'axis'
             },
             legend: {
-                data: legend_list
+                data: legend_list,
+                top: '30'
             },
-
+            grid:{
+                top: '60'
+            },
             xAxis: [
                 {
                   type: 'category',
@@ -356,6 +378,51 @@
 
         }
         para_option && para_chart.setOption(para_option);
+
+        // initialize the Single Parameter Importance Chart
+        let X = data["importance_data"]["X"];
+        let para_num = data["importance_data"]["x"].length;
+        let obj_shap_value = data["importance_data"]["obj_shap_value"];
+        let slist = [];
+        for(var j=0; j<para_num; j++){
+            let val2shap = [];
+            for(var i=0; i < X.length; i++){
+                let pair = [X[i][j], obj_shap_value[0][i][j]];
+                val2shap.push(pair);
+            }
+            slist.push({name:data["importance_data"]["x"][j], type:'scatter', data: val2shap});
+        }
+        var spara_chart = echarts.init($('#single_para_importance')[0]);
+        var spara_option = {
+            title: {
+                text: 'Single Parameter Importance',
+                subtext: 'This chart shows how the model depends on the given feature.\n -- X-axis is the value of the feature.\n -- Y-axis is the SHAP value for that feature.\n -- Shap value represents how much knowing that feature\'s value changes the output.\n',
+            },
+            grid:{
+                top:'120',
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                selectedMode: 'single',
+                top:'90'
+            },
+            xAxis: {
+                name: 'para value\n',
+                nameLocation:'center',
+            },
+            yAxis: {
+                name: 'shap value\n',
+                nameLocation:'center',
+                axisTick: {
+                    show: false
+                }
+            },
+            series: slist,
+        };
+        spara_option && spara_chart.setOption(spara_option);
+
 
         // process the data
         get_history();

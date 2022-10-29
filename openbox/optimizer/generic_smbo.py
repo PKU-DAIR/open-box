@@ -420,11 +420,15 @@ class SMBO(BOBase):
 
         # Importance data
         history = self.get_history()
-        importance_dict = history.get_importance(method='shap', return_dict=True)
+        history_dict = history.get_importance(method='shap', return_allvalue=True)
+        importance_dict = history_dict['importance_dict']
         importance = {
+            'X': list(history_dict['X']),
             'x': list(importance_dict.keys()),
-            'data': dict()
+            'data': dict(),
+            'obj_shap_value': history_dict['obj_shape_value']
         }
+        
 
         for key, value in importance_dict.items():
             for i in range(len(value)):
