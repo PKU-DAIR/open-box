@@ -20,71 +20,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ConfigSpace import Constant, Configuration, UniformFloatHyperparameter, ConfigurationSpace
 
-from openbox.core.highdim.turbo_advisor import TuRBOAdvisor
-from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane, BaseTestProblem
+# from openbox.core.highdim.safeopt_advisor import SafeOptAdvisor
+# from openbox.core.highdim.turbo_advisor import TuRBOAdvisor
+from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane, Gaussian
 from openbox import Advisor, sp, Observation, get_config_space, get_objective_function
 from openbox.core.highdim.linebo_advisor import LineBOAdvisor
-
-from openbox.core.sync_batch_advisor import SyncBatchAdvisor
-from openbox.core.generic_advisor import Advisor
-from openbox.core.online.utils.blendsearch import BlendSearchAdvisor
 
 try:
     from tqdm import trange
 except ModuleNotFoundError:
     trange = range
 
-
-class Schwefel(BaseTestProblem):
-    r"""Generalized Schwefel's Problem 2.26.
-
-    d-dimensional function (usually evaluated on `[-500, 500]^d`):
-
-        f(x) = \sum_{i=1}^{d} -x_i sin(\sqrt{\abs{x_i}})
-
-    """
-
-    def __init__(self, dim=2, noise_std=0, random_state=None):
-        self.dim = dim
-        params = {'x%d' % i: (-500.0, 500.0, 100.0) for i in range(1, 1 + self.dim)}
-        config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-        super().__init__(config_space, noise_std,
-                         optimal_value=-12596.5,
-                         random_state=random_state)
-
-    def _evaluate(self, X):
-        result = dict()
-        result['objs'] = [np.sum(-X * np.sin(np.sqrt(np.abs(X))), axis=-1)]
-        return result
-
-
-class Rastrigin(BaseTestProblem):
-    r"""Generalized Rastrigin's Function
-
-    d-dimensional function (usually evaluated on `[-5.12, 5.12]^d`):
-
-        f(x) = \sum_{i=1}^{d} (x_i^2 - 10 \cos(2\pi x) + 10)
-
-    """
-
-    def __init__(self, dim=2, noise_std=0, random_state=None):
-        self.dim = dim
-        params = {'x%d' % i: (-5.12, 5.12, 1) for i in range(1, 1 + self.dim)}
-        config_space = ConfigurationSpace()
-        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-        super().__init__(config_space, noise_std,
-                         optimal_value=0,
-                         random_state=random_state)
-
-    def _evaluate(self, X):
-        result = dict()
-        result['objs'] = [np.sum(X ** 2 - 10 * np.cos(2 * np.pi * X) + 10, axis=-1)]
-        return result
-
-
 FUNCTIONS = [
-    Ackley(dim=12),
+    Ackley(dim=10),
 ]
 
 # Run 5 times for each dataset, and get average value
@@ -97,7 +45,8 @@ BATCH_SIZE = 5
 # We need to re-initialize the advisor every time we start a new run.
 # So these are functions that provides advisors.
 ADVISORS = [
-    (lambda sp, r: LineBOAdvisor(config_space=sp, random_state=r, direction_strategy='coordinate'), 'LineBO(coordinate)'),
+    (lambda sp, r: LineBOAdvisor(config_space=sp, random_state=r, direction_strategy='coordinate'),
+     'LineBO(coordinate)'),
     # (lambda sp, r: BlendSearchAdvisor(
     #     globalsearch=(Advisor, tuple(), dict(surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy')),
     #     config_space=sp, random_state=r), 'BlendSearch'),
@@ -108,6 +57,7 @@ ADVISORS = [
     # (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
     #                        random_state=r), 'BO(GP+RandomScipy)'),
     # (lambda sp, r: TuRBOAdvisor(config_space=sp, random_state=r), 'TuRBO'),
+    # (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, h=10), 'SafeOpt'),
 
 ]
 

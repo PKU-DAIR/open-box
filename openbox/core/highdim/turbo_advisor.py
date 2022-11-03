@@ -1,21 +1,15 @@
 import random
-import typing
 from typing import Optional, Callable, List, Type, Union
 
 import numpy as np
-from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperparameter, CategoricalHyperparameter, \
-    OrdinalHyperparameter
+from ConfigSpace import ConfigurationSpace, Configuration
 from skopt.sampler import Sobol
 
-from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
-from openbox.acquisition_function import AbstractAcquisitionFunction
-from openbox.core.base import build_acq_func, build_surrogate, Observation, build_optimizer
-from openbox.core.ea.base_ea_advisor import Individual
-from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
-from openbox.surrogate.base.base_model import AbstractModel
+from openbox.core.base import build_surrogate, Observation
+from openbox.surrogate.base.base_gp import BaseGP
+from openbox.surrogate.base.gp_kernels import Sum, Product
 from openbox.utils.config_space import convert_configurations_to_array
 from openbox.utils.history_container import HistoryContainer
-from openbox.utils.multi_objective import NondominatedPartitioning, get_chebyshev_scalarization
 from openbox.utils.util_funcs import check_random_state
 
 
@@ -28,7 +22,7 @@ class TuRBOAdvisor:
                  batch_size=10,
                  random_state=None,
 
-                 surrogate: str = 'gp_rbf',
+                 surrogate: str = 'gp',
 
                  rand_count=5,
                  success_limit=3,
@@ -54,7 +48,7 @@ class TuRBOAdvisor:
         self.rng = check_random_state(random_state)
         self.task_id = task_id
 
-        self.objective_surrogate: AbstractModel = build_surrogate(surrogate, config_space, self.rng or random, None)
+        self.objective_surrogate: BaseGP = build_surrogate(surrogate, config_space, self.rng or random, None)
 
         self.history_container = HistoryContainer(task_id, num_constraints, self.config_space)
 
@@ -70,8 +64,6 @@ class TuRBOAdvisor:
         self.region_size_max = size_max
         self.region_size = size_initial
 
-        # TODO gp-rbf always have length_scale = 1. For other gp models, how can we find its length_scale?
-        self.length_scale = 1
         self.candidate_count = candidate_count
         self.candidate_select_count = candidate_select_count
 
@@ -82,6 +74,19 @@ class TuRBOAdvisor:
         self.inner_loop = False
 
         self.latin_hypercube_sample()
+
+        found = []
+
+        def find(kernel):
+            if isinstance(kernel, Sum) or isinstance(kernel, Product):
+                find(kernel.k1)
+                find(kernel.k2)
+            if hasattr(kernel, "length_scale"):
+                found.append(kernel.length_scale)
+
+        find(self.objective_surrogate.kernel)
+        assert len(found) == 1
+        return sum(found)
 
     def latin_hypercube_sample(self, count=None):
         """
@@ -122,7 +127,7 @@ class TuRBOAdvisor:
         Y = self.history_container.get_transformed_perfs(transform=None)
         self.objective_surrogate.train(X, Y[:, 0] if Y.ndim == 2 else Y)
 
-        w = self.length_scale
+        w = self.get_gp_lengthscale()
 
         x_center = self.incumbent_config.get_array()
 
