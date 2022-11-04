@@ -1,25 +1,15 @@
 # License: MIT
-import os
-import time
 
-import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
-from openbox import Advisor, sp, Observation, get_config_space, get_objective_function
-
-from openbox.benchmark.objective_functions.synthetic import Bukin
-from openbox.benchmark.objective_functions.synthetic import Ackley
+from openbox import Observation, get_config_space, get_objective_function
 
 import openml
 
 # Define Objective Function
-from openbox.core.generic_advisor import Advisor
-from openbox.core.online.utils.cfo import CFO
-from openbox.core.online.utils.flow2 import FLOW2
-from openbox.core.online.utils.blendsearch import BlendSearchAdvisor
+from openbox.core.online.blendsearch import BlendSearchAdvisor
 from openbox.optimizer.generic_smbo import SMBO
-from openbox.utils.config_space import convert_configurations_to_array
 
 try:
     from tqdm import trange

@@ -3,10 +3,10 @@ from typing import List, Optional
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox import Observation
-from openbox.core.online.utils.base_online_advisor import OnlineAdvisor
+from openbox.core.online.base_online_advisor import OnlineAdvisor
 
 
-class BOOnlineAdvisor(OnlineAdvisor):
+class CFO(OnlineAdvisor):
 
     def __init__(self,
                  config_space: ConfigurationSpace,
@@ -46,8 +46,47 @@ class BOOnlineAdvisor(OnlineAdvisor):
 
     def get_suggestion(self):
 
-        pass
+        if all(x is not None for x in self.res):
+            r0 = self.res[0]
+            if self.res[1] < self.res[0]:
+                self.x = self.conf[1]
+                self.res = [self.res[1], None, None]
+            elif self.res[2] < self.res[0]:
+                self.x = self.conf[2]
+                self.res = [self.res[2], None, None]
+            else:
+                self.n += 1
+                self.res = [self.res[0], None, None]
 
+            self.k += 1
+
+            if r0 < self.lr_best:
+                self.lr_best = r0
+                self.kd = self.k
+
+            if self.n == 2 ** (self.dim - 1):
+                self.n = 0
+                self.delta = self.delta * (1 / (self.k / self.kd) ** 0.5)
+                if self.delta <= self.delta_lower:
+                    self.k = 0
+                    self.lr_best = 1e100
+                    self.x = self.next(self.x0, self.noise_scale, True)[0]
+                    self.r += 1
+                    self.delta = self.r + self.delta_init
+
+            self.refresh = True
+
+        if self.refresh:
+            x1, x2 = self.next(self.x, self.delta)
+            self.conf = [self.x, x1, x2]
+            self.refresh = False
+
+        # print(self.conf)
+
+        for i in range(3):
+            if self.res[i] is None:
+                self.config = self.conf[i]
+                return self.conf[i]
 
     def update_observation(self, observation: Observation):
         self.history_container.update_observation(observation)

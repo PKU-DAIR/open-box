@@ -1,19 +1,17 @@
 import abc
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
 from openbox.core.generic_advisor import Advisor
-from openbox.core.online.utils.cfo import CFO
-from openbox.core.online.utils.flow2 import FLOW2
-from openbox.core.online.utils.random import RandomSearch
-from openbox.core.online.utils.base_online_advisor import OnlineAdvisor, almost_equal
+from openbox.core.online.cfo import CFO
+from openbox.core.online.base_online_advisor import almost_equal
 from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
-from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
-from openbox.utils.constants import MAXINT, SUCCESS
+from openbox.utils.history_container import HistoryContainer
+from openbox.utils.constants import MAXINT
 from openbox.core.base import Observation
 
 

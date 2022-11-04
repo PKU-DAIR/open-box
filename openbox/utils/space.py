@@ -25,7 +25,7 @@ class Int(CS.UniformIntegerHyperparameter, Variable):
         Example
         -------
 
-        >>> import openbox.utils.space as sp
+        >>> import openbox.online.space as sp
         >>> cs = sp.Space(seed=1)
         >>> uniform_integer = sp.Int(name='uni_int', lower=10, upper=100, log=False)
         >>> cs.add_variable(uniform_integer)
@@ -69,7 +69,7 @@ class Real(CS.UniformFloatHyperparameter, Variable):
         Example
         -------
 
-        >>> import openbox.utils.space as sp
+        >>> import openbox.online.space as sp
         >>> cs = sp.Space(seed=1)
         >>> uniform_float = sp.Real('uni_float', lower=10, upper=100, log = False)
         >>> cs.add_variable(uniform_float)
@@ -122,7 +122,7 @@ class Categorical(CS.CategoricalHyperparameter, Variable):
         Example
         -------
 
-        >>> import openbox.utils.space as sp
+        >>> import openbox.online.space as sp
         >>> cs = sp.Space(seed=1)
         >>> categorical = sp.Categorical('cat_hp', choices=['red', 'green', 'blue'])
         >>> cs.add_variable(categorical)
@@ -166,7 +166,7 @@ class Ordinal(CS.OrdinalHyperparameter, Variable):
         Example
         -------
 
-        >>> import openbox.utils.space as sp
+        >>> import openbox.online.space as sp
         >>> cs = sp.Space(seed=1)
         >>> ordinal = sp.Ordinal('ordinal_hp', sequence=['10', '20', '30'])
         >>> cs.add_variable(ordinal)
