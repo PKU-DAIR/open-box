@@ -6,15 +6,11 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperparameter, CategoricalHyperparameter, \
     OrdinalHyperparameter
 
-from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.acquisition_function import AbstractAcquisitionFunction
 from openbox.core.base import build_acq_func, build_surrogate, Observation, build_optimizer
-from openbox.core.ea.base_ea_advisor import Individual
-from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
 from openbox.utils.history_container import HistoryContainer
-from openbox.utils.multi_objective import NondominatedPartitioning, get_chebyshev_scalarization
 from openbox.utils.util_funcs import check_random_state
 
 
@@ -68,17 +64,16 @@ class LineBOAdvisor:
                  task_id='default_task_id',
                  random_state=None,
 
-                 surrogate: str = 'gp_rbf',
-                 constraint_surrogate: str = 'gp_rbf',
+                 surrogate: str = 'gp',
+                 constraint_surrogate: str = 'gp',
 
                  acq: str = 'ei',
-                 acq_optimizer: str = 'local_random',
+                 acq_optimizer: str = 'random_scipy',
 
                  direction_strategy: str = 'coordinate',
 
                  subbo_evals=10,
                  subbo_samples=5000,
-                 gradient_evals=1
                  ):
         self.last_gp_data = None
         self.num_objs = num_objs
@@ -106,11 +101,10 @@ class LineBOAdvisor:
         self.line_space = ConfigurationSpace()
         self.line_space.add_hyperparameters([UniformFloatHyperparameter('x', 0, 1)])
 
-        assert direction_strategy in ['random', 'coordinate', 'gradient', 'mixed']
+        assert direction_strategy in ['random', 'coordinate', 'gradient']
         self.direction_strategy = direction_strategy
         self.subbo_evals = subbo_evals
         self.subbo_samples = subbo_samples
-        self.gradient_evals = gradient_evals
 
         self.current_subspace: Optional[Union[np.ndarray, np.ndarray]] = None
         self.global_acq = build_acq_func(self.acq_type, self.objective_surrogate, self.constraint_surrogates,
@@ -136,8 +130,8 @@ class LineBOAdvisor:
 
         direction_strategy = self.direction_strategy
 
-        if direction_strategy == 'mixed':
-            direction_strategy = 'gradient' if self.cnt > 500 else 'coordinate'
+        # if direction_strategy == 'mixed':
+        #     direction_strategy = 'gradient' if self.cnt > 500 else 'coordinate'
 
         if direction_strategy == 'random':
             d = self.rng.randn(self.dim)
@@ -148,7 +142,7 @@ class LineBOAdvisor:
             direction[(self.cnt // self.subbo_evals) % self.dim] = 1
         elif direction_strategy == 'gradient':
             # print("x", self.cnt)
-            if self.cnt == 0 or self.rng.randn(0, 2) == 1:
+            if self.cnt == 0:
                 d = self.rng.randn(self.dim)
                 d = d / np.linalg.norm(d)
                 direction = d
@@ -173,10 +167,6 @@ class LineBOAdvisor:
                         res[i] = (r[i + 1] - r[0]) / eps
 
                     return res
-
-                for i in range(self.gradient_evals - 1):
-                    grad = eval_grad(x)
-                    x += grad * 0.01  # NOT USED. Maybe not reasonable.
 
                 grad = eval_grad(x)
                 ngrad = np.linalg.norm(grad)
@@ -247,7 +237,7 @@ class LineBOAdvisor:
         X = convert_configurations_to_array(self.history_container.configurations)
         Y = self.history_container.get_transformed_perfs(transform=None)
         cY = self.history_container.get_transformed_constraint_perfs(transform='bilog')
-        
+
         self.last_gp_data = (X, Y)
 
         self.objective_surrogate.train(X, Y[:, 0] if Y.ndim == 2 else Y)

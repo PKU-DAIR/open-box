@@ -1,9 +1,7 @@
-from typing import List
-
-from ConfigSpace import ConfigurationSpace, Configuration
+from ConfigSpace import ConfigurationSpace
 
 from openbox import Observation
-from openbox.core.online.utils.base_online_advisor import OnlineAdvisor
+from openbox.core.online.base_online_advisor import OnlineAdvisor
 
 
 class RandomSearch(OnlineAdvisor):

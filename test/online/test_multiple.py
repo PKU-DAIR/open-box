@@ -10,25 +10,16 @@ from test.test_utils import load_data
 from sklearn.metrics import balanced_accuracy_score
 
 import matplotlib
-import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-from ConfigSpace import Constant, Configuration
+from ConfigSpace import Configuration
 from sklearn.model_selection import train_test_split
 
-from openbox import Advisor, sp, Observation, get_config_space, get_objective_function
-
-from openbox.benchmark.objective_functions.synthetic import Bukin
-from openbox.benchmark.objective_functions.synthetic import Ackley
+from openbox import Observation, get_config_space
 
 # Define Objective Function
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.generic_advisor import Advisor
-from openbox.core.online.utils.cfo import CFO
-from openbox.core.online.utils.flow2 import FLOW2
-from openbox.core.online.utils.blendsearch import BlendSearchAdvisor
-from openbox.optimizer.generic_smbo import SMBO
-from openbox.utils.config_space import convert_configurations_to_array
+from openbox.core.online.blendsearch import BlendSearchAdvisor
 
 try:
     from tqdm import trange

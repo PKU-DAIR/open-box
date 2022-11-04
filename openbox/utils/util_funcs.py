@@ -89,7 +89,7 @@ def get_result(result):
 
 
 def check_random_state(seed):
-    """ from [sklearn.utils.check_random_state]
+    """ from [sklearn.online.check_random_state]
     Turn seed into a np.random.RandomState instance
 
     Parameters

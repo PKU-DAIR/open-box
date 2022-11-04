@@ -39,7 +39,7 @@ FUNCTIONS = [
 REPEATS = 1
 
 # The number of function evaluations allowed.
-MAX_RUNS = 300
+MAX_RUNS = 50
 BATCH_SIZE = 5
 
 # We need to re-initialize the advisor every time we start a new run.

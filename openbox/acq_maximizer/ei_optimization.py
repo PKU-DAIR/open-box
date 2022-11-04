@@ -66,7 +66,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: ~openbox.online.history_container.HistoryContainer
             runhistory object
         stats: ~openbox.stats.stats.Stats
             current stats object
@@ -96,7 +96,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: ~openbox.online.history_container.HistoryContainer
             runhistory object
         stats: ~openbox.stats.stats.Stats
             current stats object
@@ -253,7 +253,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: ~openbox.online.history_container.HistoryContainer
             runhistory object
         stats: ~openbox.stats.stats.Stats
             current stats object
@@ -394,7 +394,7 @@ class RandomSearch(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: ~openbox.online.history_container.HistoryContainer
             runhistory object
         num_points: int
             number of points to be sampled
@@ -497,7 +497,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: ~openbox.online.history_container.HistoryContainer
             runhistory object
         num_points: int
             number of points to be sampled
@@ -985,7 +985,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: ~openbox.online.history_container.HistoryContainer
             runhistory object
         num_points: int
             number of points to be sampled
@@ -1085,7 +1085,7 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: ~openbox.online.history_container.HistoryContainer
             runhistory object
         num_points: int
             number of points to be sampled
@@ -1162,7 +1162,7 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: ~openbox.online.history_container.HistoryContainer
             runhistory object
         num_points: int
             number of points to be sampled
