@@ -422,13 +422,24 @@ class SMBO(BOBase):
         history = self.get_history()
         history_dict = history.get_importance(method='shap', return_allvalue=True)
         importance_dict = history_dict['importance_dict']
+        con_importance_dict = history_dict['con_importance_dict']
         importance = {
             'X': list(history_dict['X']),
             'x': list(importance_dict.keys()),
             'data': dict(),
-            'obj_shap_value': history_dict['obj_shape_value']
+            'con_data': dict(),
+            'obj_shap_value': history_dict['obj_shap_value'],
+            'con_shap_value': history_dict['con_shap_value'],
+            # 'con_importance_dict':history_dict['con_importance_dict']
         }
         
+
+        for key, value in con_importance_dict.items():
+            for i in range(len(value)):
+                y_name = 'opt-value-' + str(i + 1)
+                if y_name not in importance['con_data']:
+                    importance['con_data'][y_name] = list()
+                importance['con_data'][y_name].append(value[i])
 
         for key, value in importance_dict.items():
             for i in range(len(value)):

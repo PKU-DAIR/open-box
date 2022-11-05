@@ -104,7 +104,11 @@
                                 <br>
                                 <div class="col-md-6  col-lg-12" id="para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
                                 <br>
+                                <div class="col-md-6  col-lg-12" id="con_para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
+                                <br>
                                 <div class="col-md-6  col-lg-12" id="single_para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
+                                <br>
+                                <div class="col-md-6  col-lg-12" id="con_single_para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
                             </div>
                             <!--  END PARA TAB  -->
 
@@ -379,6 +383,51 @@
         }
         para_option && para_chart.setOption(para_option);
 
+        let series_data = [];
+        for(var key in data["importance_data"]["con_data"]) {
+            series_data.push(
+            {
+                  name: key,
+                  type: 'bar',
+                  data: data["importance_data"]["con_data"][key],
+                  markPoint: {
+                    data: [
+                      { type: 'max', name: 'Max' },
+                      { type: 'min', name: 'Min' }
+                    ]
+                  },
+                  markLine: {
+                    data: [{ type: 'average', name: 'Avg' }]
+                  }
+                }
+            )
+        }
+        
+
+        var con_para_chart = echarts.init($('#con_para_importance')[0]);
+        var con_para_option = {
+            title: {
+                text: 'Parameter Importance of Constraints',
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: legend_list,
+                top: '30'
+            },
+            grid:{
+                top: '60'
+            },
+            xAxis: {
+                data: data["importance_data"]["x"]
+            },
+            yAxis: {},
+            series: series_data
+        }
+        con_para_option && con_para_chart.setOption(con_para_option);
+
+
         // initialize the Single Parameter Importance Chart
         let X = data["importance_data"]["X"];
         let para_num = data["importance_data"]["x"].length;
@@ -422,6 +471,52 @@
             series: slist,
         };
         spara_option && spara_chart.setOption(spara_option);
+
+
+        // initialize the Constraints Single Parameter Importance Chart
+        let con_shap_value = data["importance_data"]["con_shap_value"];
+        let slist2 = [];
+        console.log("para_num:%d", para_num);
+        console.log("X.length:%d", X.length);
+        for(var j=0; j<para_num; j++){
+            let val2shap = [];
+            for(var i=0; i < X.length; i++){
+                let pair = [X[i][j], con_shap_value[0][i][j]];
+                val2shap.push(pair);
+            }
+            slist2.push({name:data["importance_data"]["x"][j], type:'scatter', data: val2shap});
+        }
+        var con_spara_chart = echarts.init($('#con_single_para_importance')[0]);
+        var con_spara_option = {
+            title: {
+                text: 'Single Parameter Importance of Constraints',
+                subtext: 'This chart shows how the model depends on the given feature.\n -- X-axis is the value of the feature.\n -- Y-axis is the SHAP value for that feature.\n -- Shap value represents how much knowing that feature\'s value changes the output.\n',
+            },
+            grid:{
+                top:'120',
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                selectedMode: 'single',
+                top:'90'
+            },
+            xAxis: {
+                name: 'para value\n',
+                nameLocation:'center',
+            },
+            yAxis: {
+                name: 'shap value\n',
+                nameLocation:'center',
+                axisTick: {
+                    show: false
+                }
+            },
+            series: slist2,
+        };
+        con_spara_option && con_spara_chart.setOption(con_spara_option);
+
 
 
         // process the data

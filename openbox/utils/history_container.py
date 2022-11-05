@@ -302,12 +302,14 @@ class HistoryContainer(object):
         if len(Y.shape) == 1:
             Y = np.reshape(Y, (len(Y), 1))
         num_objs = Y.shape[1]
+        num_contraints = self.num_constraints
         if config_space is None:
             config_space = self.config_space
         if config_space is None:
             raise ValueError('Please provide config_space to show parameter importance!')
         keys = [hp.name for hp in config_space.get_hyperparameters()]
         importance_dict = {key: [] for key in keys}
+        con_importance_dict = {key: [] for key in keys}
 
         if method == 'shap':
             import shap
@@ -320,7 +322,25 @@ class HistoryContainer(object):
                           "hyperparameters, we recommend setting the method to fanova.")
 
             X = _get_X(self.configurations, config_space)
+            constraint_num = np.array(self.constraint_perfs)
             obj_shape_value = []
+            con_shape_value = []
+
+            for col_idx in range(num_contraints):
+                # Fit a LightGBMRegressor with observations
+                lgbr = LGBMRegressor()
+                lgbr.fit(X, constraint_num[:, col_idx])
+                explainer = shap.TreeExplainer(lgbr)
+                shap_values = explainer.shap_values(X)
+                if type(shap_values) == type(X):
+                    con_shape_value.append(shap_values.tolist())
+                else:
+                    con_shape_value.append(shap_values)
+                con_feature_importance = np.mean(np.abs(shap_values), axis=0)
+
+                keys = [hp.name for hp in config_space.get_hyperparameters()]
+                for i, hp_name in enumerate(keys):
+                    con_importance_dict[hp_name].append(con_feature_importance[i])
 
             for col_idx in range(num_objs):
                 # Fit a LightGBMRegressor with observations
@@ -339,7 +359,10 @@ class HistoryContainer(object):
                     importance_dict[hp_name].append(feature_importance[i])
             
             if return_allvalue:
-                return dict({'X': X.tolist(), 'obj_shape_value':obj_shape_value, 'importance_dict':importance_dict})
+                return dict({'X': X.tolist(),
+                    'obj_shap_value':obj_shape_value, 'importance_dict':importance_dict,
+                    'con_shap_value':con_shape_value, 'con_importance_dict':con_importance_dict
+                })
 
         elif method == 'fanova':
             try:
