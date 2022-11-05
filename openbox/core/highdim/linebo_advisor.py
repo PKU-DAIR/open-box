@@ -67,7 +67,7 @@ class LineBOAdvisor:
                  surrogate: str = 'gp',
                  constraint_surrogate: str = 'gp',
 
-                 acq: str = 'ei',
+                 acq: str = None,
                  acq_optimizer: str = 'random_scipy',
 
                  direction_strategy: str = 'coordinate',

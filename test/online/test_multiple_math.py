@@ -1,6 +1,8 @@
 # License: MIT
 import os
 
+from openbox.core.highdim.safeopt_advisor import SafeOptAdvisor
+
 NUM_THREADS = "1"
 os.environ["OMP_NUM_THREADS"] = NUM_THREADS  # export OMP_NUM_THREADS=1
 os.environ["OPENBLAS_NUM_THREADS"] = NUM_THREADS  # export OPENBLAS_NUM_THREADS=1
@@ -32,14 +34,14 @@ except ModuleNotFoundError:
     trange = range
 
 FUNCTIONS = [
-    Ackley(dim=10),
+    Ackley(dim=12),
 ]
 
 # Run 5 times for each dataset, and get average value
-REPEATS = 1
+REPEATS = 5
 
 # The number of function evaluations allowed.
-MAX_RUNS = 50
+MAX_RUNS = 300
 BATCH_SIZE = 5
 
 # We need to re-initialize the advisor every time we start a new run.
@@ -47,6 +49,7 @@ BATCH_SIZE = 5
 ADVISORS = [
     (lambda sp, r: LineBOAdvisor(config_space=sp, random_state=r, direction_strategy='coordinate'),
      'LineBO(coordinate)'),
+    (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, h=14), 'SafeOpt'),
     # (lambda sp, r: BlendSearchAdvisor(
     #     globalsearch=(Advisor, tuple(), dict(surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy')),
     #     config_space=sp, random_state=r), 'BlendSearch'),
@@ -57,7 +60,7 @@ ADVISORS = [
     # (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
     #                        random_state=r), 'BO(GP+RandomScipy)'),
     # (lambda sp, r: TuRBOAdvisor(config_space=sp, random_state=r), 'TuRBO'),
-    # (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, h=10), 'SafeOpt'),
+    #
 
 ]
 
@@ -150,7 +153,7 @@ if __name__ == "__main__":
                 plt.scatter(np.array([i['x1'] for i in advisor.get_history().configurations]),
                             np.array([i['x2'] for i in advisor.get_history().configurations]),
                             c=np.array([(i.get_array()[2], 0, 1 - i.get_array()[2]) for i in
-                                        advisor.get_history().configurations]))
+                                        advisor.get_history().configurations]) if dim >= 3 else 'b')
 
                 for x0, x1 in advisor.history_lines:
                     c0 = Configuration(space, vector=x0)
