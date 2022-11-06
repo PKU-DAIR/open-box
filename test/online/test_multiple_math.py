@@ -34,7 +34,7 @@ except ModuleNotFoundError:
     trange = range
 
 FUNCTIONS = [
-    Ackley(dim=12),
+    Ackley(dim=3),
 ]
 
 # Run 5 times for each dataset, and get average value
@@ -47,9 +47,10 @@ BATCH_SIZE = 5
 # We need to re-initialize the advisor every time we start a new run.
 # So these are functions that provides advisors.
 ADVISORS = [
-    (lambda sp, r: LineBOAdvisor(config_space=sp, random_state=r, direction_strategy='coordinate'),
-     'LineBO(coordinate)'),
-    (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, h=14), 'SafeOpt'),
+    (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, h=5), 'SafeOpt+LineBO'),
+    (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, sub_advisor=(Advisor, tuple(),
+            dict(surrogate_type='gp', acq_type='eic', acq_optimizer_type='random_scipy')
+    ), h=5), 'SafeOpt+BO'),
     # (lambda sp, r: BlendSearchAdvisor(
     #     globalsearch=(Advisor, tuple(), dict(surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy')),
     #     config_space=sp, random_state=r), 'BlendSearch'),
@@ -57,8 +58,8 @@ ADVISORS = [
     #                                 acq_optimizer_type='random_scipy', batch_size=BATCH_SIZE, random_state=r),
     #  'BatchBO'),
     # (lambda sp, r: Advisor(config_space=sp, random_state=r), 'BO(Default)'),
-    # (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
-    #                        random_state=r), 'BO(GP+RandomScipy)'),
+    (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
+                           random_state=r), 'BO(GP+RandomScipy)'),
     # (lambda sp, r: TuRBOAdvisor(config_space=sp, random_state=r), 'TuRBO'),
     #
 
@@ -72,6 +73,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Range')
     parser.add_argument('-f', dest='f', type=int, default=-1)
     parser.add_argument('-t', dest='t', type=int, default=-1)
+    parser.add_argument('-af', dest='af', type=int, default=-1)
+    parser.add_argument('-at', dest='at', type=int, default=-1)
     args = parser.parse_args()
 
     if args.f == -1 and args.t == -1:
@@ -83,6 +86,16 @@ if __name__ == "__main__":
     else:
         f = args.f
         t = args.t
+
+    if args.af == -1 and args.at == -1:
+        af = 0
+        at = len(ADVISORS)
+    elif args.at == -1:
+        af = args.af
+        at = af + 1
+    else:
+        af = args.af
+        at = args.at
 
     for function in FUNCTIONS[f: t]:
 
@@ -102,7 +115,7 @@ if __name__ == "__main__":
 
         random_states = list(range(REPEATS))
 
-        for advisor_getter, name in ADVISORS:
+        for advisor_getter, name in ADVISORS[af:at]:
 
             print("Testing Method " + name)
 
@@ -147,7 +160,7 @@ if __name__ == "__main__":
                 time_costs.append(time.time() - start_time)
                 histories.append(advisor.get_history())
 
-            if True and ("LineBO" in name):
+            if True and (name[:6] == "LineBO"):
                 print("Plotting history evaluations:")
                 plt.cla()
                 plt.scatter(np.array([i['x1'] for i in advisor.get_history().configurations]),
@@ -215,7 +228,7 @@ if __name__ == "__main__":
         for k, v in all_results.items():
             mean = np.array(v['mean'])
             std = np.array(v['std'])
-            plt.plot(mean, label=k)
+            plt.plot(mean, scaley='log', label=k)
             plt.fill_between(np.arange(len(mean)), mean - std, mean + std, alpha=0.2)
 
         plt.title(function_name)
