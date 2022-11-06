@@ -74,6 +74,12 @@
                                 <br>
                                 <div class="row">
 
+                                    <div class="col-md-6  col-lg-12" id="cons_line" style="height: 400px; zoom:1.25"></div>
+
+                                </div>
+                                <br>
+                                <div class="row">
+
                                     <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;zoom:1.25">
                                     </div>
 
@@ -94,6 +100,12 @@
 
                                     <div class="col-md-6  col-lg-12" id="grade_scatter" style="height: 500px; width: 650px; zoom:1.25">
                                     </div>
+
+                                </div>
+                                <br>
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="cons_pre_label_scatter" style="height: 500px; width: 650px; zoom:1.25"></div>
 
                                 </div>
                             </div>
@@ -119,6 +131,7 @@
                                         <tr>
                                             <th> Index </th>
                                             <th> Result </th>
+                                            <th> Constraint </th>
                                             <th> Configuration </th>
                                             <th> Status </th>
                                             <th> Cost </th>
@@ -324,8 +337,90 @@
             ]
         };
 
+        // initialize Constraint Line Chart
+        if(data['num_constraints'] > 0) {
+            var cons_line_chart = echarts.init($('#cons_line')[0]);
+            var cons_line_option = {
+                    grid: {
+                        left: '100px',
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            animation: false
+                        }
+                    },
+                    dataZoom: [
+                        {
+                            type: 'slider',
+                            xAxisIndex: 0,
+                            start: 0,
+                            end: 100
+                        },
+                        {
+                            type: 'inside',
+                            xAxisIndex: 0,
+                            start: 0,
+                            end: 100
+                        },
+                    ],
+                    xAxis: {
+                        type: 'value',
+                        name: 'Number of iterations n',
+                        boundaryGap: false,
+                        nameLocation: 'center',
+                        nameRotate: '0',
+                        nameTextStyle: {
+                            padding: [20, 0, 0, 0],
+                            fontSize: 16
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle: {
+                                color: ['black'],
+                                width: 1,
+                                type: 'solid'
+                            }
+                        },
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: ' Constraint value after n iterations',
+                        nameLocation: 'center',
+                        nameRotate: '90',
+                        nameTextStyle: {
+                            padding: [0, 0, 50, 50],
+                            fontSize: 16
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle: {
+                                color: ['black'],
+                                width: 1,
+                                type: 'solid'
+                            }
+                        },
+                    },
+                    series: [
+                        {
+                            name: 'optimal obj 1',
+                            type: 'scatter',
+                            color: '#50a3ba',
+                            data: data['cons_line_data'],
+                        },
+
+                    ]
+                }
+            cons_line_option && cons_line_chart.setOption(cons_line_option);
+        }
+
+
+
         if(data['pre_label_data'] != null) {
             verify_surrogate_model();
+        }
+        if(data['cons_pre_label_data'] != null) {
+            verify_cons_surrogate_model();
         }
 
         // initialize the Parameter Importance Chart
@@ -557,12 +652,14 @@
             rh_config = data['rh_config'];
             let table_list = data['table_list'];
             let rows = [];
+            let cons = '';
             let config_str = '';
-            let trial_info = '';
+
             for (let r in table_list) {
-                config_str = table_list[r][2] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_config"+ onclick="show_config(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
-                trial_info = table_list[r][4] == null ? 'Null' : table_list[r][4]
-                rows.push([table_list[r][0], table_list[r][1], config_str, table_list[r][3], trial_info, table_list[r][4]])
+                config_str = table_list[r][3] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_config"+ onclick="show_config(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+
+                cons = table_list[r][2] == null ? 'Null' : table_list[r][2]
+                rows.push([table_list[r][0], table_list[r][1], cons, config_str, table_list[r][4], table_list[r][5]])
             }
             console.log(rows)
             history_table.clear().draw();
@@ -571,31 +668,31 @@
         }
 
         function verify_surrogate_model() {
-            var markLineOpt1 = {
-            animation: false,
-            label: {
-                formatter: 'y = x',
-                align: 'right'
-            },
-            lineStyle: {
-                type: 'solid'
-            },
-            tooltip: {
-                formatter: 'y = x'
-            },
-            data: [
-                [
-                    {
-                        coord: [data['pre_label_data']['min'], data['pre_label_data']['min']],
-                        symbol: 'none'
-                    },
-                    {
-                        coord: [data['pre_label_data']['max'], data['pre_label_data']['max']],
-                        symbol: 'none'
-                    }
+            var sur_markLineOpt1 = {
+                animation: false,
+                label: {
+                    formatter: 'y = x',
+                    align: 'right'
+                },
+                lineStyle: {
+                    type: 'solid'
+                },
+                tooltip: {
+                    formatter: 'y = x'
+                },
+                data: [
+                    [
+                        {
+                            coord: [data['pre_label_data']['min'], data['pre_label_data']['min']],
+                            symbol: 'none'
+                        },
+                        {
+                            coord: [data['pre_label_data']['max'], data['pre_label_data']['max']],
+                            symbol: 'none'
+                        }
+                    ]
                 ]
-            ]
-        };
+            };
             // initialize Predict-Label Scatter Chart
             var pre_label_chart = echarts.init($('#pre_label_scatter')[0]);
             var pre_label_option = {
@@ -610,7 +707,7 @@
                 },
                 xAxis: {
                     type: 'value',
-                    name: 'predicted objective value',
+                    name: 'Predicted objective value',
                     boundaryGap: false,
                     nameLocation: 'center',
                     nameRotate: '0',
@@ -631,7 +728,7 @@
                 },
                 yAxis: {
                     type: 'value',
-                    name: 'ground truth',
+                    name: 'Ground truth',
                     nameLocation: 'center',
                     nameRotate: '90',
                     nameTextStyle: {
@@ -655,14 +752,14 @@
                         type: 'scatter',
                         color: '#50a3ba',
                         data: data['pre_label_data']['data'],
-                        markLine: markLineOpt1
+                        markLine: sur_markLineOpt1
                     },
 
                 ]
             }
             pre_label_option && pre_label_chart.setOption(pre_label_option);
 
-            var markLineOpt2 = {
+            var sur_markLineOpt2 = {
                 animation: false,
                 label: {
                     formatter: 'y = x',
@@ -701,7 +798,7 @@
                 },
                 xAxis: {
                     type: 'value',
-                    name: 'predicted objective value rank',
+                    name: 'Predicted objective value rank',
                     boundaryGap: false,
                     nameLocation: 'center',
                     nameRotate: '0',
@@ -720,7 +817,7 @@
                 },
                 yAxis: {
                     type: 'value',
-                    name: 'ground truth',
+                    name: 'Ground truth',
                     nameLocation: 'center',
                     nameRotate: '90',
                     nameTextStyle: {
@@ -742,12 +839,107 @@
                         type: 'scatter',
                         color: '#4fbfa8',
                         data: data['grade_data']['data'],
-                        markLine: markLineOpt2
+                        markLine: sur_markLineOpt2
                     },
 
                 ]
             }
             grade_option && grade_chart.setOption(grade_option);
+        }
+
+        function verify_cons_surrogate_model() {
+            var cons_sur_markLineOpt1 = {
+                animation: false,
+                label: {
+                    formatter: 'y = x',
+                    align: 'right'
+                },
+                lineStyle: {
+                    type: 'solid'
+                },
+                tooltip: {
+                    formatter: 'y = x'
+                },
+                data: [
+                    [
+                        {
+                            coord: [data['cons_pre_label_data']['min'], data['cons_pre_label_data']['min']],
+                            symbol: 'none'
+                        },
+                        {
+                            coord: [data['cons_pre_label_data']['max'], data['cons_pre_label_data']['max']],
+                            symbol: 'none'
+                        }
+                    ]
+                ]
+            };
+            // initialize Predict-Label Scatter Chart
+            var cons_pre_label_chart = echarts.init($('#cons_pre_label_scatter')[0]);
+            var cons_pre_label_option = {
+                grid: {
+                    left: '150px',
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                xAxis: {
+                    type: 'value',
+                    name: 'Predicted constraint value',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: ['black'],
+                            width: 1,
+                            type: 'solid'
+                        }
+                    },
+                    min: data['cons_pre_label_data']['min'],
+                    max: data['cons_pre_label_data']['max']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Ground truth',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: ['black'],
+                            width: 1,
+                            type: 'solid'
+                        }
+                    },
+                    min: data['cons_pre_label_data']['min'],
+                    max: data['cons_pre_label_data']['max']
+                },
+                series: [
+                    {
+                        name: 'optimal obj 1',
+                        type: 'scatter',
+                        color: '#50a3ba',
+                        data: data['cons_pre_label_data']['data'],
+                        markLine: cons_sur_markLineOpt1
+                    },
+
+                ]
+            }
+            cons_pre_label_option && cons_pre_label_chart.setOption(cons_pre_label_option);
+
+
         }
 
         var lineStyle = {
