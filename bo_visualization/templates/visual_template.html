@@ -72,12 +72,13 @@
                                     <div class="col-md-6  col-lg-12" id="line" style="height: 400px; zoom:1.25"></div>
 
                                 </div>
-                                <br>
-                                <div class="row">
-
-                                    <div class="col-md-6  col-lg-12" id="cons_line" style="height: 400px; zoom:1.25"></div>
-
-                                </div>
+                                <script>
+                                    if (info.data["importance_data"]["con_shap_value"].length > 0){
+                                        document.write(
+                                            "<br><div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"cons_line\" style=\"height: 400px; zoom:1.25\"></div></div>"
+                                        );
+                                    }
+                                </script>
                                 <br>
                                 <div class="row">
 
@@ -103,12 +104,13 @@
                                     </div>
 
                                 </div>
-                                <br>
-                                <div class="row">
-
-                                    <div class="col-md-6  col-lg-12" id="cons_pre_label_scatter" style="height: 500px; width: 650px; zoom:1.25"></div>
-
-                                </div>
+                                <script>
+                                    if (info.data["importance_data"]["con_shap_value"].length > 0){
+                                        document.write(
+                                            "<br><div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"cons_pre_label_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
+                                        );
+                                    }
+                                </script>
                             </div>
                             <!--  END SURROGATE TAB  -->
 
@@ -184,7 +186,7 @@
     <!--modal end -->
 
 
-    <script type="text/javascript" src='json_path'></script>
+    <!-- <script type="text/javascript" src='json_path'></script> -->
     <script src="../static/vendor/jquery/jquery.min.js"></script>
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="../static/vendor/jquery.cookie/jquery.cookie.js"></script>
