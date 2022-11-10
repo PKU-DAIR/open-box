@@ -342,7 +342,7 @@ class SMBO(BOBase):
             iteration_id=self.iteration_id,
             config=res.config.get_dictionary(),
             objs=res.objs,
-            constaints=res.constraints,
+            constaints=list(res.constraints) if self.num_constraints > 0 else None,
             trial_state=res.trial_state,
             cost=res.elapsed_time,
         )
@@ -370,16 +370,16 @@ class SMBO(BOBase):
         # all the config list
         rh_config = {}
         # Parallel Data
-        option = {'data': [], 'schema': [], 'visualMap': {}}
+        option = {'data': [list() for i in range(self.num_objs)], 'schema': [], 'visualMap': {}}
         # all the performance
-        perf_list = []
+        perf_list = [list() for i in range(self.num_objs)]
         # all the constraints
-        cons_list = []
+        cons_list = [list() for i in range(self.num_constraints)]
         for rh in json_data:
-            result = round(rh['objs'][0], 4)
-            constraint = None
+            results = [round(tmp, 4) for tmp in rh['objs']]
+            constraints = None
             if rh['constaints']:
-                constraint = round(rh['constaints'][0], 4)
+                constraints = [round(tmp, 4) for tmp in rh['constaints']]
 
             config_str = str(rh['config'])
             if len(config_str) > 35:
@@ -388,23 +388,32 @@ class SMBO(BOBase):
                 config_str = config_str[1:-1]
 
             table_list.append(
-                [rh['iteration_id'], result, constraint, config_str, rh['trial_state'], rh['cost']])
+                [rh['iteration_id'], results, constraints, config_str, rh['trial_state'], round(rh['cost'], 3)])
 
             rh_config[str(rh['iteration_id'])] = rh['config']
 
             config_values = []
             for parameter in rh['config'].keys():
                 config_values.append(rh['config'][parameter])
-            config_values.append(result)
-            option['data'].append(config_values)
 
-            perf_list.append(result)
-            cons_list.append(constraint)
+            for i in range(self.num_objs):
+                option['data'][i].append(config_values + [results[i]])
+
+            for i in range(self.num_objs):
+                perf_list[i].append(results[i])
+
+            for i in range(self.num_constraints):
+                cons_list[i].append(constraints[i])
 
         if len(json_data) > 0:
             option['schema'] = list(json_data[0]['config'].keys()) + ['perf']
-            option['visualMap']['min'] = np.percentile(perf_list, 0)
-            option['visualMap']['max'] = np.percentile(perf_list, 90)
+            mi = float('inf')
+            ma = -float('inf')
+            for i in range(self.num_objs):
+                mi = min(mi, np.percentile(perf_list[i], 0))
+                ma = max(ma, np.percentile(perf_list[i], 90))
+            option['visualMap']['min'] = mi
+            option['visualMap']['max'] = ma
             option['visualMap']['dimension'] = len(option['schema']) - 1
         else:
             option['visualMap']['min'] = 0
@@ -412,20 +421,20 @@ class SMBO(BOBase):
             option['visualMap']['dimension'] = 0
 
         # Line Data
-        line_data = {'min': [], 'over': [], 'scat': []}
+        line_data = [{'min': [], 'over': [], 'scat': []} for i in range(self.num_objs)]
         import sys
 
-        min_value = sys.maxsize
-
-        for idx, perf in enumerate(perf_list):
-            if perf <= min_value:
-                min_value = perf
-                line_data['min'].append([idx, perf])
-                line_data['scat'].append([idx, perf])
-            else:
-                line_data['over'].append([idx, perf])
-        line_data['min'].append([len(option['data']), min_value])
-        line_data['scat'].append([len(option['data']), min_value])
+        for i in range(self.num_objs):
+            min_value = sys.maxsize
+            for idx, perf in enumerate(perf_list[i]):
+                if perf <= min_value:
+                    min_value = perf
+                    line_data[i]['min'].append([idx, perf])
+                    line_data[i]['scat'].append([idx, perf])
+                else:
+                    line_data[i]['over'].append([idx, perf])
+            line_data[i]['min'].append([len(option['data'][i]), min_value])
+            line_data[i]['scat'].append([len(option['data'][i]), min_value])
 
         # Importance data
         history = self.get_history()
@@ -444,7 +453,7 @@ class SMBO(BOBase):
 
         for key, value in con_importance_dict.items():
             for i in range(len(value)):
-                y_name = 'opt-value-' + str(i + 1)
+                y_name = 'con-value-' + str(i + 1)
                 if y_name not in importance['con_data']:
                     importance['con_data'][y_name] = list()
                 importance['con_data'][y_name].append(value[i])
@@ -458,7 +467,8 @@ class SMBO(BOBase):
 
         draw_data = {
             'num_objs': self.num_objs, 'num_constraints': self.num_constraints,
-            'line_data': line_data, 'cons_line_data': [[idx, con] for idx, con in enumerate(cons_list)],
+            'line_data': line_data,
+            'cons_line_data': [[[idx, con] for idx, con in enumerate(c_l)] for c_l in cons_list],
             'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config,
             'importance_data': importance,
             'task_inf': {
@@ -483,86 +493,117 @@ class SMBO(BOBase):
         his = self.config_advisor.history_container
         # only get successful observations
         confs = [his.configurations[i] for i in range(len(his.configurations)) if i not in his.failed_index]
-        perfs = his.successful_perfs
+        if self.num_objs == 1:
+            perfs = [his.successful_perfs]
+        else:
+            perfs = [[per[i] for per in his.successful_perfs] for i in range(self.num_objs)]
 
-        N = len(perfs)
+        N = len(perfs[0])
         if len(confs) != N or N == 0:
             print("No equal!")
             return None, None
 
         from openbox.utils.config_space.util import convert_configurations_to_array
         X_all = convert_configurations_to_array(confs)
-        Y_all = np.array(perfs, dtype=np.float64)
+        Y_all = [np.array(perfs[i], dtype=np.float64) for i in range(self.num_objs)]
+        if self.num_objs == 1:
+            models = [copy.deepcopy(self.config_advisor.surrogate_model)]
+        else:
+            models = copy.deepcopy(self.config_advisor.surrogate_model)
 
         # leave one out validation
-        pre_perfs = []
-        for i in range(N):
-            X = np.concatenate((X_all[:i, :], X_all[i + 1:, :]), axis=0)
-            Y = np.concatenate((Y_all[:i], Y_all[i + 1:]))
-            # 如果是多目标，那么这就会是一个模型列表
-            tmp_model = copy.deepcopy(self.config_advisor.surrogate_model)
-            tmp_model.train(X, Y)
+        pre_perfs = [list() for i in range(self.num_objs)]
 
-            test_X = X_all[i:i + 1, :]
-            pre_mean, pre_var = tmp_model.predict(test_X)
-            # 这里多目标可能要改
-            pre_perfs.append(pre_mean[0][0])
+        for i in range(self.num_objs):
+            for j in range(N):
+                X = np.concatenate((X_all[:j, :], X_all[j + 1:, :]), axis=0)
+                Y = np.concatenate((Y_all[i][:j], Y_all[i][j + 1:]))
+                # 如果是多目标，那么这就会是一个模型列表
+                tmp_model = copy.deepcopy(models[i])
+                tmp_model.train(X, Y)
 
-        ranks = [0 for i in range(N)]
-        pre_ranks = [0 for i in range(N)]
-        tmp = np.argsort(perfs).astype(int)
-        pre_tmp = np.argsort(pre_perfs).astype(int)
+                test_X = X_all[j:j + 1, :]
+                pre_mean, pre_var = tmp_model.predict(test_X)
+                # 这里多目标可能要改
+                pre_perfs[i].append(pre_mean[0][0])
 
-        for i in range(N):
-            ranks[tmp[i]] = i + 1
-            pre_ranks[pre_tmp[i]] = i + 1
+        ranks = [[0] * N for i in range(self.num_objs)]
+        pre_ranks = [[0] * N for i in range(self.num_objs)]
+        for i in range(self.num_objs):
+            tmp = np.argsort(perfs[i]).astype(int)
+            pre_tmp = np.argsort(pre_perfs[i]).astype(int)
 
+            for j in range(N):
+                ranks[i][tmp[j]] = j + 1
+                pre_ranks[i][pre_tmp[j]] = j + 1
+
+        min1 = float('inf')
+        min2 = float('inf')
+        max1 = -float('inf')
+        max2 = -float('inf')
+        for i in range(self.num_objs):
+            min1 = min(min1, round(min(min(min(pre_perfs[i]), min(perfs[i])), 0), 3))
+            min2 = min(min2, round(min(min(min(pre_ranks[i]), min(ranks[i])), 0), 3))
+            max1 = max(max1, round(max(min(pre_perfs[i]), max(perfs[i])), 3))
+            max2 = max(max2, round(max(min(pre_ranks[i]), max(ranks[i])), 3))
         return {
-                   'data': [[pre_perfs[i], perfs[i]] for i in range(len(perfs))],
-                    'min': round(min(min(min(pre_perfs), min(perfs)), 0), 3),
-                    'max': round(max(min(pre_perfs), max(perfs)), 3)
-               }, {
-                   'data': [[pre_ranks[i], ranks[i]] for i in range(len(ranks))],
-                    'min': round(min(min(min(pre_ranks), min(ranks)), 0), 3),
-                    'max': round(max(min(pre_ranks), max(ranks)), 3)
+                   'data': [[[pre_perfs[i][j], perfs[i][j]] for j in range(len(perfs[i]))] for i in
+                            range(self.num_objs)],
+                   'min': min1,
+                   'max': max1
+               }, \
+               {
+                   'data': [[[pre_ranks[i][j], ranks[i][j]] for j in range(len(ranks[i]))] for i in
+                            range(self.num_objs)],
+                   'min': min2,
+                   'max': max2
                }
 
     def cons_verify_surrogate(self):
         his = self.config_advisor.history_container
         confs = his.configurations
         # 每个实例的cons都是一个列表
-        cons_perfs = [tmp[0] for tmp in his.constraint_perfs]
+        cons_perfs = [[tmp[i] for tmp in his.constraint_perfs] for i in range(self.num_constraints)]
         print(cons_perfs)
 
-        N = len(cons_perfs)
+        N = len(cons_perfs[0])
         if len(confs) != N or N == 0:
             print("No equal!")
             return None, None
 
         from openbox.utils.config_space.util import convert_configurations_to_array
         X_all = convert_configurations_to_array(confs)
-        Y_all = np.array(cons_perfs, dtype=np.float64)
+        Y_all = [np.array(cons_perfs[i], dtype=np.float64) for i in range(self.num_constraints)]
+        models = copy.deepcopy(self.config_advisor.constraint_models)
 
         # leave one out validation
-        pre_perfs = []
-        for i in range(N):
-            X = np.concatenate((X_all[:i, :], X_all[i + 1:, :]), axis=0)
-            Y = np.concatenate((Y_all[:i], Y_all[i + 1:]))
-            # 如果是多目标，那么这就会是一个模型列表
-            tmp_model = copy.deepcopy(self.config_advisor.constraint_models)[0]
-            tmp_model.train(X, Y)
+        pre_perfs = [list() for i in range(self.num_constraints)]
 
-            test_X = X_all[i:i + 1, :]
-            pre_mean, pre_var = tmp_model.predict(test_X)
-            # 这里多目标可能要改
-            pre_perfs.append(pre_mean[0][0])
+        for i in range(self.num_constraints):
+            for j in range(N):
+                X = np.concatenate((X_all[:j, :], X_all[j + 1:, :]), axis=0)
+                Y = np.concatenate((Y_all[i][:j], Y_all[i][j + 1:]))
+                # 如果是多目标，那么这就会是一个模型列表
+                tmp_model = copy.deepcopy(models[i])
+                tmp_model.train(X, Y)
+
+                test_X = X_all[j:j + 1, :]
+                pre_mean, pre_var = tmp_model.predict(test_X)
+                # 这里多目标可能要改
+                pre_perfs[i].append(pre_mean[0][0])
 
         print(pre_perfs)
+        min1 = float('inf')
+        max1 = -float('inf')
+        for i in range(self.num_objs):
+            min1 = min(min1, round(min(min(min(pre_perfs[i]), min(cons_perfs[i])), 0), 3))
+            max1 = max(max1, round(max(min(pre_perfs[i]), max(cons_perfs[i])), 3))
+
         return {
-                   'data': [[pre_perfs[i], cons_perfs[i]] for i in range(len(cons_perfs))],
-                    'min': round(min(min(min(pre_perfs), min(cons_perfs)), 0), 3),
-                    'max': round(max(min(pre_perfs), max(cons_perfs)), 3)
-               }
+            'data': [[[pre_perfs[i][j], cons_perfs[i][j]] for j in range(len(cons_perfs[i]))] for i in range(self.num_constraints)],
+            'min': min1,
+            'max': max1
+        }
 
     def visualize(self):
         draw_data = self.load_json()

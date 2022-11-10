@@ -163,18 +163,60 @@
     </div>
 
     <!-- pipeline detail modal -->
-    <div class="modal fade bs-example-modal-lg" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
+    <div class="modal fade bs-example-modal-lg" id="myModal_1" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
         aria-hidden="true">
         <!--modal start -->
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title" id="myModalLabel">Run History List</h4>
+                    <h4 class="modal-title" id="myModalLabel_1">Config List</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
                         <span>&times;</span>
                     </button>
                 </div>
                 <div class="modal-body" id='rh_config_div'>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade bs-example-modal-lg" id="myModal_2" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
+        aria-hidden="true">
+        <!--modal start -->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel_2">Object Values</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id='rh_result_div'>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade bs-example-modal-lg" id="myModal_3" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
+        aria-hidden="true">
+        <!--modal start -->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel_3">Constraint Values</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id='rh_constraint_div'>
 
                 </div>
                 <div class="modal-footer">
@@ -196,6 +238,7 @@
     <script>
 
         var data = info.data
+        console.log(data)
 
         // add data to the task information table
         var oTable = document.getElementById('task-inf-tab')
@@ -225,7 +268,21 @@
         function show_config(rh_id) {
             $('#rh_config_div').html('');
             $('#rh_config_div').append("<pre>" + JSON.stringify(rh_config[rh_id], null, 2) + "</pre>")
-            $('#myModal').modal('show');
+            $('#myModal_1').modal('show');
+        }
+
+        var rh_result = [];
+        function show_result(rh_id) {
+            $('#rh_result_div').html('');
+            $('#rh_result_div').append("<pre>" + JSON.stringify(rh_result[rh_id], null, 2) + "</pre>")
+            $('#myModal_2').modal('show');
+        }
+
+        var rh_constraint = [];
+        function show_constraint(rh_id) {
+            $('#rh_constraint_div').html('');
+            $('#rh_constraint_div').append("<pre>" + JSON.stringify(rh_constraint[rh_id], null, 2) + "</pre>")
+            $('#myModal_3').modal('show');
         }
 
         // initialize Parallel Chart
@@ -238,23 +295,19 @@
             parallel: {
                 top: 100
             },
+            legend: {
+                left: 10,
+                top: 50,
+                'selected': {}
+            },
             visualMap: {
                 show: true,
-                seriesIndex: 0,
                 inRange: {
                     color: ['#d94e5d', '#eac736', '#50a3ba'],
                 }
             },
 
             series: [
-                {
-                    type: 'parallel',
-                    lineStyle: lineStyle,
-                    inactiveOpacity: 0.1,
-                    activeOpacity: 1,
-                    data: ''
-                },
-
             ]
         };
 
@@ -287,7 +340,8 @@
             ],
             legend: {
                 left: 10,
-                top: 50
+                top: 50,
+                'selected': {}
             },
             grid:{
                 top: 90
@@ -330,99 +384,120 @@
                 }
             },
             series: [
-                {
-                    name: 'Line',
-                    type: 'line',
-                    smooth: false,
-                    color: '#4fbfa8',
-                    symbol: 'none',
-                }, {
-                    name: 'Scatter',
-                    type: 'scatter',
-                    color: 'grey',
-                },
-                {
-                    name: 'Scatter',
-                    type: 'scatter',
-                    color: '#4fbfa8',
-                },
             ]
         };
 
         // initialize Constraint Line Chart
         if(data['num_constraints'] > 0) {
             var cons_line_chart = echarts.init($('#cons_line')[0]);
+            var cons_line_markLineOpt1 = {
+                animation: false,
+                label: {
+                    formatter: 'y = 0',
+                },
+                lineStyle: {
+                    type: 'solid',
+                    width: 3
+                },
+                tooltip: {
+                    formatter: 'y = 0'
+                },
+                data: [
+                    [
+                        {
+                            coord: [0, 0],
+                            symbol: 'none'
+                        },
+                        {
+                            coord: [data['cons_line_data'][0].length+1, 0],
+                            symbol: 'none'
+                        }
+                    ]
+                ]
+            };
             var cons_line_option = {
-                    grid: {
-                        left: '100px',
+                grid: {
+                    left: '100px',
+                },
+                legend: {
+                    left: 10,
+                    top: 10,
+                    'selected': {}
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                dataZoom: [
+                    {
+                        type: 'slider',
+                        xAxisIndex: 0,
+                        start: 0,
+                        end: 100
                     },
-                    tooltip: {
-                        trigger: 'axis',
-                        axisPointer: {
-                            animation: false
+                    {
+                        type: 'inside',
+                        xAxisIndex: 0,
+                        start: 0,
+                        end: 100
+                    },
+                ],
+                xAxis: {
+                    type: 'value',
+                    name: 'Number of iterations n',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: ['black'],
+                            width: 1,
+                            type: 'solid'
                         }
                     },
-                    dataZoom: [
-                        {
-                            type: 'slider',
-                            xAxisIndex: 0,
-                            start: 0,
-                            end: 100
-                        },
-                        {
-                            type: 'inside',
-                            xAxisIndex: 0,
-                            start: 0,
-                            end: 100
-                        },
-                    ],
-                    xAxis: {
-                        type: 'value',
-                        name: 'Number of iterations n',
-                        boundaryGap: false,
-                        nameLocation: 'center',
-                        nameRotate: '0',
-                        nameTextStyle: {
-                            padding: [20, 0, 0, 0],
-                            fontSize: 16
-                        },
-                        splitLine: {
-                            show: true,
-                            lineStyle: {
-                                color: ['black'],
-                                width: 1,
-                                type: 'solid'
-                            }
-                        },
+                },
+                yAxis: {
+                    type: 'value',
+                    name: ' Constraint value after n iterations',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
                     },
-                    yAxis: {
-                        type: 'value',
-                        name: ' Constraint value after n iterations',
-                        nameLocation: 'center',
-                        nameRotate: '90',
-                        nameTextStyle: {
-                            padding: [0, 0, 50, 50],
-                            fontSize: 16
-                        },
-                        splitLine: {
-                            show: true,
-                            lineStyle: {
-                                color: ['black'],
-                                width: 1,
-                                type: 'solid'
-                            }
-                        },
+                    splitLine: {
+                        show: true,
+                        lineStyle: {
+                            color: ['black'],
+                            width: 1,
+                            type: 'solid'
+                        }
                     },
-                    series: [
-                        {
-                            name: 'optimal obj 1',
-                            type: 'scatter',
-                            color: '#50a3ba',
-                            data: data['cons_line_data'],
-                        },
+                },
+                series: [
 
-                    ]
+                ]
+            }
+            for (var i = 0; i < data['num_constraints']; i++) {
+                cons_line_option['series'].push(
+                {
+                    name: 'cons ' + (i+1),
+                    type: 'scatter',
+                    data: data['cons_line_data'][i],
+                    markLine: cons_line_markLineOpt1
+                })
+                if(i != 0) {
+                    cons_line_option['legend']['selected']['cons ' + (i+1)] = false;
                 }
+            }
+
             cons_line_option && cons_line_chart.setOption(cons_line_option);
         }
 
@@ -510,7 +585,7 @@
                     }
                 )
             }
-            
+
 
             var con_para_chart = echarts.init($('#con_para_importance')[0]);
             var con_para_option = {
@@ -653,15 +728,53 @@
 
             parallel_coordinates_option['parallelAxis'] = parallel_parallelAxis;
             console.log(parallel_coordinates_option)
-            parallel_coordinates_option['series'][0]['data'] = parallel_option['data'];
+            for (var i = 0; i < data['num_objs']; i++) {
+                parallel_coordinates_option['series'].push(
+                {
+                    name: 'obj ' + (i+1),
+                    type: 'parallel',
+                    lineStyle: lineStyle,
+                    inactiveOpacity: 0.1,
+                    activeOpacity: 1,
+                    data: parallel_option['data'][i]
+                })
+                if(i != 0) {
+                    parallel_coordinates_option['legend']['selected']['obj ' + (i+1)] = false;
+                }
+            }
+
+
             parallel_coordinates_option['visualMap']['min'] = parallel_option['visualMap']['min'];
             parallel_coordinates_option['visualMap']['max'] = parallel_option['visualMap']['max'];
             parallel_coordinates_option['visualMap']['dimension'] = parallel_option['visualMap']['dimension'];
             parallel_coordinates_option && parallel_coordinates_chart.setOption(parallel_coordinates_option);
 
-            line_option['series'][0]['data'] = data['line_data']['min'];
-            line_option['series'][1]['data'] = data['line_data']['over'];
-            line_option['series'][2]['data'] = data['line_data']['scat'];
+            for (var i = 0; i < data['num_objs']; i++) {
+                line_option['series'].push({
+                    name: 'obj ' + (i+1),
+                    type: 'line',
+                    smooth: false,
+                    color: '#4fbfa8',
+                    symbol: 'none',
+                    data: data['line_data'][i]['min']
+                })
+                line_option['series'].push({
+                    name: 'obj ' + (i+1),
+                    type: 'scatter',
+                    color: 'grey',
+                    data: data['line_data'][i]['over']
+                })
+                line_option['series'].push({
+                    name: 'obj ' + (i+1),
+                    type: 'scatter',
+                    color: '#4fbfa8',
+                    data: data['line_data'][i]['scat']
+                })
+                if(i != 0) {
+                    line_option['legend']['selected']['obj ' + (i+1)] = false;
+                }
+            }
+
             line_option && line_chart.setOption(line_option);
 
             rh_config = data['rh_config'];
@@ -672,9 +785,25 @@
 
             for (let r in table_list) {
                 config_str = table_list[r][3] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_config"+ onclick="show_config(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+                console.log(rh_config[table_list[r][0]])
+                var result_str = table_list[r][1]
+                if(table_list[r][1].length > 1) {
+                    var _result = {}
+                    for(var i = 0; i < table_list[r][1].length; i++) _result['obj '+(i+1)] = table_list[r][1][i];
+                    rh_result.push(_result)
+                    result_str = table_list[r][1][0] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_result"+ onclick="show_result(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+                }
 
                 cons = table_list[r][2] == null ? 'Null' : table_list[r][2]
-                rows.push([table_list[r][0], table_list[r][1], cons, config_str, table_list[r][4], table_list[r][5]])
+                var cons_str = cons
+                if(cons_str != 'Null' && table_list[r][2].length > 1) {
+                    var _constraint = {}
+                    for(var i = 0; i < table_list[r][2].length; i++) _constraint['cons '+(i+1)] = table_list[r][2][i];
+                    rh_constraint.push(_constraint)
+                    cons_str = table_list[r][2][0] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_constraint"+ onclick="show_constraint(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+                }
+
+                rows.push([table_list[r][0], result_str, cons_str, config_str, table_list[r][4], table_list[r][5]])
             }
             console.log(rows)
             history_table.clear().draw();
@@ -713,6 +842,11 @@
             var pre_label_option = {
                 grid: {
                     left: '150px',
+                },
+                legend: {
+                    left: 10,
+                    top: 10,
+                    'selected': {}
                 },
                 tooltip: {
                     trigger: 'axis',
@@ -762,16 +896,24 @@
                     max: data['pre_label_data']['max']
                 },
                 series: [
-                    {
-                        name: 'optimal obj 1',
-                        type: 'scatter',
-                        color: '#50a3ba',
-                        data: data['pre_label_data']['data'],
-                        markLine: sur_markLineOpt1
-                    },
 
                 ]
             }
+
+            for (var i = 0; i < data['num_objs']; i++) {
+                pre_label_option['series'].push(
+                {
+                    name: 'obj ' + (i+1),
+                    type: 'scatter',
+                    color: '#50a3ba',
+                    data: data['pre_label_data']['data'][i],
+                    markLine: sur_markLineOpt1
+                })
+                if(i != 0) {
+                    pre_label_option['legend']['selected']['obj ' + (i+1)] = false;
+                }
+            }
+
             pre_label_option && pre_label_chart.setOption(pre_label_option);
 
             var sur_markLineOpt2 = {
@@ -804,6 +946,11 @@
             var grade_option = {
                 grid: {
                     left: '150px',
+                },
+                legend: {
+                    left: 10,
+                    top: 10,
+                    'selected': {}
                 },
                 tooltip: {
                     trigger: 'axis',
@@ -849,15 +996,22 @@
                     }
                 },
                 series: [
-                    {
-                        name: 'optimal obj 1',
-                        type: 'scatter',
-                        color: '#4fbfa8',
-                        data: data['grade_data']['data'],
-                        markLine: sur_markLineOpt2
-                    },
 
                 ]
+            }
+
+            for (var i = 0; i < data['num_objs']; i++) {
+                grade_option['series'].push(
+                {
+                    name: 'obj ' + (i+1),
+                    type: 'scatter',
+                    color: '#4fbfa8',
+                    data: data['grade_data']['data'][i],
+                    markLine: sur_markLineOpt2
+                })
+                if(i != 0) {
+                    grade_option['legend']['selected']['obj ' + (i+1)] = false;
+                }
             }
             grade_option && grade_chart.setOption(grade_option);
         }
@@ -893,6 +1047,11 @@
             var cons_pre_label_option = {
                 grid: {
                     left: '150px',
+                },
+                legend: {
+                    left: 10,
+                    top: 10,
+                    'selected': {}
                 },
                 tooltip: {
                     trigger: 'axis',
@@ -942,15 +1101,21 @@
                     max: data['cons_pre_label_data']['max']
                 },
                 series: [
-                    {
-                        name: 'optimal obj 1',
-                        type: 'scatter',
-                        color: '#50a3ba',
-                        data: data['cons_pre_label_data']['data'],
-                        markLine: cons_sur_markLineOpt1
-                    },
 
                 ]
+            }
+            for (var i = 0; i < data['num_objs']; i++) {
+                cons_pre_label_option['series'].push(
+                {
+                    name: 'cons ' + (i+1),
+                    type: 'scatter',
+                    color: '#50a3ba',
+                    data: data['cons_pre_label_data']['data'][i],
+                    markLine: cons_sur_markLineOpt1
+                })
+                if(i != 0) {
+                    cons_pre_label_option['legend']['selected']['cons ' + (i+1)] = false;
+                }
             }
             cons_pre_label_option && cons_pre_label_chart.setOption(cons_pre_label_option);
 
