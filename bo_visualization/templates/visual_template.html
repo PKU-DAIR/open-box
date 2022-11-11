@@ -107,7 +107,7 @@
                                 <script>
                                     if (info.data["importance_data"]["con_shap_value"].length > 0){
                                         document.write(
-                                            "<br><div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"cons_pre_label_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
+                                            "<br><div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"cons_pre_label_scatter\" style=\"height: 400px; zoom:1.25\"></div></div>"
                                         );
                                     }
                                 </script>
@@ -125,9 +125,35 @@
                                         );
                                     }
                                 </script>
+                                <script>
+                                    var len = info.data["importance_data"]["obj_shap_value"].length;
+                                        document.write(
+                                            "<div class=\"col-lg-2\"><select class=\"form-control\" onchange=\"selectObjs(this)\">"
+                                        );
+                                        for(var i = 0; i < len; i++){
+                                            document.write("<option value=\"obj");
+                                            document.write(i);
+                                            document.write("\">objective ");
+                                            document.write(i);
+                                            document.write("</option>");
+                                        }
+                                        document.write("</select></div>");
+                                </script>
                                 <div class="col-md-6  col-lg-12" id="single_para_importance" style="height: 500px; width: 650px; zoom:1.25"></div>
                                 <script>
                                     if (info.data["importance_data"]["con_shap_value"].length > 0){
+                                        var len = info.data["importance_data"]["con_shap_value"].length;
+                                        document.write(
+                                            "<div class=\"col-lg-2\"><select class=\"form-control\" onchange=\"selectCons(this)\">"
+                                        );
+                                        for(var i = 0; i < len; i++){
+                                            document.write("<option value=\"con");
+                                            document.write(i);
+                                            document.write("\">constraint ");
+                                            document.write(i);
+                                            document.write("</option>");
+                                        }
+                                        document.write("</select></div>");
                                         document.write(
                                             "<br><div class=\"col-md-6  col-lg-12\" id=\"con_single_para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
                                         );
@@ -616,15 +642,23 @@
         let X = data["importance_data"]["X"];
         let para_num = data["importance_data"]["x"].length;
         let obj_shap_value = data["importance_data"]["obj_shap_value"];
-        let slist = [];
-        for(var j=0; j<para_num; j++){
-            let val2shap = [];
-            for(var i=0; i < X.length; i++){
-                let pair = [X[i][j], obj_shap_value[0][i][j]];
-                val2shap.push(pair);
+        let obj_num = data["importance_data"]["obj_shap_value"].length;
+        var multi_slist = {};
+        for (var n=0; n<obj_num; n++){
+            let slist = [];
+            for(var j=0; j<para_num; j++){
+                let val2shap = [];
+                for(var i=0; i < X.length; i++){
+                    let pair = [X[i][j], obj_shap_value[n][i][j]];
+                    val2shap.push(pair);
+                }
+                slist.push({name:data["importance_data"]["x"][j], type:'scatter', data: val2shap});
             }
-            slist.push({name:data["importance_data"]["x"][j], type:'scatter', data: val2shap});
+            let name = "obj" + n.toString();
+            console.log(name);
+            multi_slist[name] = slist;
         }
+        
         var spara_chart = echarts.init($('#single_para_importance')[0]);
         var spara_option = {
             title: {
@@ -652,25 +686,41 @@
                     show: false
                 }
             },
-            series: slist,
+            series: multi_slist['obj0'],
         };
         spara_option && spara_chart.setOption(spara_option);
+        function selectObjs(obj){  
+            // console.log(multi_series[obj.value]);
+            // alert(obj.value);
+            console.log(multi_slist[obj.value]);
+            //获取被选中的option标签选项 
+            spara_option.series = multi_slist[obj.value];
+            console.log(multi_slist[obj.value]);
+            spara_option && spara_chart.setOption(spara_option);
+        }
+
 
 
         if (data["importance_data"]["con_shap_value"].length > 0){
             // initialize the Constraints Single Parameter Importance Chart
             let con_shap_value = data["importance_data"]["con_shap_value"];
-            let slist2 = [];
-            console.log("para_num:%d", para_num);
-            console.log("X.length:%d", X.length);
-            for(var j=0; j<para_num; j++){
-                let val2shap = [];
-                for(var i=0; i < X.length; i++){
-                    let pair = [X[i][j], con_shap_value[0][i][j]];
-                    val2shap.push(pair);
+            let cons_num = data["importance_data"]["con_shap_value"].length;
+            var multi_series = {};
+            for (var n=0; n<cons_num; n++){
+                let slist2 = [];
+                for(var j=0; j<para_num; j++){
+                    let val2shap = [];
+                    for(var i=0; i < X.length; i++){
+                        let pair = [X[i][j], con_shap_value[n][i][j]];
+                        val2shap.push(pair);
+                    }
+                    slist2.push({name:data["importance_data"]["x"][j], type:'scatter', data: val2shap});
                 }
-                slist2.push({name:data["importance_data"]["x"][j], type:'scatter', data: val2shap});
+                let name = "con" + n.toString();
+                console.log(name);
+                multi_series[name] = slist2;
             }
+            console.log(multi_series);
             var con_spara_chart = echarts.init($('#con_single_para_importance')[0]);
             var con_spara_option = {
                 title: {
@@ -698,10 +748,20 @@
                         show: false
                     }
                 },
-                series: slist2,
+                series: multi_series["con0"],
             };
             con_spara_option && con_spara_chart.setOption(con_spara_option);
         }
+        function selectCons(obj){  
+            // console.log(multi_series[obj.value]);
+            // alert(obj.value);
+            console.log(multi_series[obj.value]);
+            //获取被选中的option标签选项 
+            con_spara_option.series = multi_series[obj.value];
+            console.log(multi_series[obj.value]);
+            con_spara_option && con_spara_chart.setOption(con_spara_option);
+        }
+
 
 
         // process the data
