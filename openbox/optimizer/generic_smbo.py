@@ -438,6 +438,13 @@ class SMBO(BOBase):
 
         # Importance data
         history = self.get_history()
+
+        pareto = dict({})
+        if self.num_objs > 1:
+            pareto["ref_point"] = history.ref_point
+            pareto["hv"] = history.hv_data
+            pareto["pareto_point"] = list(history.pareto.values())
+
         history_dict = history.get_importance(method='shap', return_allvalue=True)
         importance_dict = history_dict['importance_dict']
         con_importance_dict = history_dict['con_importance_dict']
@@ -471,6 +478,7 @@ class SMBO(BOBase):
             'cons_line_data': [[[idx, con] for idx, con in enumerate(c_l)] for c_l in cons_list],
             'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config,
             'importance_data': importance,
+            'pareto_data': pareto,
             'task_inf': {
                 'table_field': ['task_id', 'Advisor Type', 'Surrogate Type', 'max_runs',
                                 'Time Limit Per Trial'],
