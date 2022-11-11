@@ -889,3 +889,21 @@ class Gaussian(BaseTestProblem):
         result = dict()
         result['objs'] = [1 - np.exp(-4 * np.sum(X ** 2, axis=-1))]
         return result
+
+
+class SafetyConstrained(BaseTestProblem):
+
+    def __init__(self, original: BaseTestProblem, h: float):
+        self.h = h
+        self.original = original
+        super().__init__(original.config_space, original.noise_std,
+                         optimal_value=0,
+                         random_state=original.rng)
+
+    def _evaluate(self, X):
+        result = self.original(X, convert=False)
+        if 'constraints' in result:
+            result['constraints'] = np.concatenate([np.array(result['objs']) - self.h, result['constraints']], axis=-1)
+        else:
+            result['constraints'] = np.array(result['objs']) - self.h
+        return result

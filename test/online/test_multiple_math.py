@@ -1,7 +1,6 @@
 # License: MIT
 import os
 
-from openbox.core.highdim.safeopt_advisor import SafeOptAdvisor
 
 NUM_THREADS = "1"
 os.environ["OMP_NUM_THREADS"] = NUM_THREADS  # export OMP_NUM_THREADS=1
@@ -22,6 +21,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from ConfigSpace import Constant, Configuration, UniformFloatHyperparameter, ConfigurationSpace
 
+from openbox.core.highdim.safeopt_advisor import SafeOptAdvisor
 # from openbox.core.highdim.safeopt_advisor import SafeOptAdvisor
 # from openbox.core.highdim.turbo_advisor import TuRBOAdvisor
 from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Keane, Gaussian
@@ -47,7 +47,7 @@ BATCH_SIZE = 5
 # We need to re-initialize the advisor every time we start a new run.
 # So these are functions that provides advisors.
 ADVISORS = [
-    (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, h=5), 'SafeOpt+LineBO'),
+    # (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, h=5), 'SafeOpt+LineBO'),
     (lambda sp, r: SafeOptAdvisor(config_space=sp, random_state=r, sub_advisor=(Advisor, tuple(),
             dict(surrogate_type='gp', acq_type='eic', acq_optimizer_type='random_scipy')
     ), h=5), 'SafeOpt+BO'),
@@ -58,8 +58,8 @@ ADVISORS = [
     #                                 acq_optimizer_type='random_scipy', batch_size=BATCH_SIZE, random_state=r),
     #  'BatchBO'),
     # (lambda sp, r: Advisor(config_space=sp, random_state=r), 'BO(Default)'),
-    (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
-                           random_state=r), 'BO(GP+RandomScipy)'),
+    # (lambda sp, r: Advisor(config_space=sp, surrogate_type='gp', acq_type='ei', acq_optimizer_type='random_scipy',
+    #                       random_state=r), 'BO(GP+RandomScipy)'),
     # (lambda sp, r: TuRBOAdvisor(config_space=sp, random_state=r), 'TuRBO'),
     #
 
