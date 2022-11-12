@@ -442,7 +442,7 @@ class SMBO(BOBase):
         pareto = dict({})
         if self.num_objs > 1:
             pareto["ref_point"] = history.ref_point
-            pareto["hv"] = history.hv_data
+            pareto["hv"] = [[idx, round(v, 3)] for idx, v in enumerate(history.hv_data)]
             pareto["pareto_point"] = list(history.pareto.values())
             pareto["all_points"] = history.perfs
 
@@ -521,21 +521,23 @@ class SMBO(BOBase):
         else:
             models = copy.deepcopy(self.config_advisor.surrogate_model)
 
-        # leave one out validation
+        # 10-fold validation
         pre_perfs = [list() for i in range(self.num_objs)]
+        interval = math.ceil(N / 10)
 
         for i in range(self.num_objs):
-            for j in range(N):
-                X = np.concatenate((X_all[:j, :], X_all[j + 1:, :]), axis=0)
-                Y = np.concatenate((Y_all[i][:j], Y_all[i][j + 1:]))
+            for j in range(0, 10):
+                X = np.concatenate((X_all[:j*interval, :], X_all[(j+1)*interval:, :]), axis=0)
+                Y = np.concatenate((Y_all[i][:j*interval], Y_all[i][(j+1)*interval:]))
                 # 如果是多目标，那么这就会是一个模型列表
                 tmp_model = copy.deepcopy(models[i])
                 tmp_model.train(X, Y)
 
-                test_X = X_all[j:j + 1, :]
+                test_X = X_all[j*interval:(j+1)*interval, :]
                 pre_mean, pre_var = tmp_model.predict(test_X)
                 # 这里多目标可能要改
-                pre_perfs[i].append(pre_mean[0][0])
+                for tmp in pre_mean:
+                    pre_perfs[i].append(tmp[0])
 
         ranks = [[0] * N for i in range(self.num_objs)]
         pre_ranks = [[0] * N for i in range(self.num_objs)]
@@ -548,25 +550,21 @@ class SMBO(BOBase):
                 pre_ranks[i][pre_tmp[j]] = j + 1
 
         min1 = float('inf')
-        min2 = float('inf')
         max1 = -float('inf')
-        max2 = -float('inf')
         for i in range(self.num_objs):
-            min1 = min(min1, round(min(min(min(pre_perfs[i]), min(perfs[i])), 0), 3))
-            min2 = min(min2, round(min(min(min(pre_ranks[i]), min(ranks[i])), 0), 3))
-            max1 = max(max1, round(max(min(pre_perfs[i]), max(perfs[i])), 3))
-            max2 = max(max2, round(max(min(pre_ranks[i]), max(ranks[i])), 3))
+            min1 = min(min1, round(min(min(pre_perfs[i]), min(perfs[i])), 3))
+            max1 = max(max1, round(max(max(pre_perfs[i]), max(perfs[i])), 3))
+        min1 = min(min1, 0)
+
         return {
-                   'data': [[[pre_perfs[i][j], perfs[i][j]] for j in range(len(perfs[i]))] for i in
-                            range(self.num_objs)],
+                   'data': [list(zip(pre_perfs[i], perfs[i])) for i in range(self.num_objs)],
                    'min': min1,
-                   'max': max1
+                   'max': max1 * 1.1
                }, \
                {
-                   'data': [[[pre_ranks[i][j], ranks[i][j]] for j in range(len(ranks[i]))] for i in
-                            range(self.num_objs)],
-                   'min': min2,
-                   'max': max2
+                   'data': [list(zip(pre_ranks[i], ranks[i])) for i in range(self.num_objs)],
+                   'min': 0,
+                   'max': self.max_iterations
                }
 
     def cons_verify_surrogate(self):
@@ -588,31 +586,34 @@ class SMBO(BOBase):
 
         # leave one out validation
         pre_perfs = [list() for i in range(self.num_constraints)]
+        interval = math.ceil(N / 10)
 
         for i in range(self.num_constraints):
-            for j in range(N):
-                X = np.concatenate((X_all[:j, :], X_all[j + 1:, :]), axis=0)
-                Y = np.concatenate((Y_all[i][:j], Y_all[i][j + 1:]))
+            for j in range(0, 10):
+                X = np.concatenate((X_all[:j*interval, :], X_all[(j+1)*interval:, :]), axis=0)
+                Y = np.concatenate((Y_all[i][:j*interval], Y_all[i][(j+1)*interval:]))
                 # 如果是多目标，那么这就会是一个模型列表
                 tmp_model = copy.deepcopy(models[i])
                 tmp_model.train(X, Y)
 
-                test_X = X_all[j:j + 1, :]
+                test_X = X_all[j*interval:(j+1)*interval, :]
                 pre_mean, pre_var = tmp_model.predict(test_X)
                 # 这里多目标可能要改
-                pre_perfs[i].append(pre_mean[0][0])
+                for tmp in pre_mean:
+                    pre_perfs[i].append(tmp[0])
 
         print(pre_perfs)
         min1 = float('inf')
         max1 = -float('inf')
         for i in range(self.num_objs):
-            min1 = min(min1, round(min(min(min(pre_perfs[i]), min(cons_perfs[i])), 0), 3))
-            max1 = max(max1, round(max(min(pre_perfs[i]), max(cons_perfs[i])), 3))
+            min1 = min(min1, round(min(min(pre_perfs[i]), min(cons_perfs[i])), 3))
+            max1 = max(max1, round(max(max(pre_perfs[i]), max(cons_perfs[i])), 3))
 
+        min1 = min(min1, 0)
         return {
-            'data': [[[pre_perfs[i][j], cons_perfs[i][j]] for j in range(len(cons_perfs[i]))] for i in range(self.num_constraints)],
+            'data': [list(zip(pre_perfs[i], cons_perfs[i])) for i in range(self.num_constraints)],
             'min': min1,
-            'max': max1
+            'max': max1 * 1.1
         }
 
     def visualize(self):

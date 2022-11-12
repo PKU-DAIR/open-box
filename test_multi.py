@@ -10,7 +10,7 @@ opt = Optimizer(
     prob.config_space,
     num_objs=prob.num_objs,
     num_constraints=prob.num_constraints,
-    max_runs=20,
+    max_runs=100,
     surrogate_type='gp',
     acq_type='ehvic',
     acq_optimizer_type='random_scipy',
@@ -18,7 +18,7 @@ opt = Optimizer(
     init_strategy='random',
     ref_point=prob.ref_point,
     time_limit_per_trial=10,
-    task_id='moc',
+    task_id='moc_10',
     random_state=1,
 )
 opt.run()
