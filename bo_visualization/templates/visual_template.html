@@ -49,6 +49,13 @@
                             <li class="nav-item">
                                 <b class="nav-link active" data-toggle="tab" role="tab" href="#obj">Objective Function</b>
                             </li>
+                            <script>
+                                if (info.data["importance_data"]["obj_shap_value"].length > 1){
+                                    document.write(
+                                        "<li class=\"nav-item\"><b class=\"nav-link\" data-toggle=\"tab\" role=\"tab\" href=\"#pareto\">Pareto</b></li>"
+                                    );
+                                }
+                            </script>
                             <li class="nav-item">
                                 <b class="nav-link" data-toggle="tab" role="tab" href="#surrogate">Surrogate Model</b>
                             </li>
@@ -89,6 +96,18 @@
 
                             </div>
                             <!--  END OBJECTIVE TAB  -->
+
+                            <!--  BEGIN PARETO TAB  -->
+                            <div class="tab-pane fade" id="pareto" role="tabpanel">
+                                <script>
+                                    if (info.data["importance_data"]["obj_shap_value"].length == 2 || info.data["importance_data"]["obj_shap_value"].length == 3){
+                                        document.write(
+                                            "<div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"pareto_front\" style=\"height: 500px; width: 800px; zoom:1.25\"></div></div>"
+                                        );
+                                    }
+                                </script>
+                            </div>
+                            <!--  END PARETO TAB  -->
 
                             <!--  BEGIN SURROGATE TAB  -->
                             <div class="tab-pane fade" id="surrogate" role="tabpanel">
@@ -259,7 +278,9 @@
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="../static/vendor/jquery.cookie/jquery.cookie.js"></script>
     <script src="../static/vendor/datatables/js/datatables.js"></script>
-    <script src="../static/js/echarts.min.js"></script>
+    <!-- <script src="../static/js/echarts.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script>
     <script src="../static/js/common.js"></script>
     <script>
 
@@ -525,6 +546,121 @@
             }
 
             cons_line_option && cons_line_chart.setOption(cons_line_option);
+        }
+
+
+        if (data["importance_data"]["obj_shap_value"].length == 2){
+            var pareto_chart = echarts.init($('#pareto_front')[0]);
+            var pareto_option;
+            var pareto_list = data["pareto_data"]["pareto_point"];
+        
+            pareto_list .sort(function(a,b){
+                return b[0]-a[0];//	降序，升序则反之
+            });
+
+            pareto_option = {
+                title: {
+                    text: 'Pareto Front',
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    name: 'obj1\n',
+                    nameLocation:'center',
+                },
+                yAxis: {
+                    name: 'obj2\n',
+                    nameLocation:'center',
+                },
+                series: [
+                    {
+                        data: pareto_list,
+                        type: 'line',
+                        smooth: true,
+                    },
+                    {
+                        data: data["pareto_data"]["all_points"],
+                        type: 'scatter',
+                    },
+                ]
+            };
+            pareto_option && pareto_chart.setOption(pareto_option);
+        }
+        else if(data["importance_data"]["obj_shap_value"].length == 3){
+            var pareto_chart = echarts.init($('#pareto_front')[0]);
+            var pareto_option;
+            var pareto_list = data["pareto_data"]["pareto_point"];
+            pareto_option = {
+                title: {
+                    text: 'Pareto Front',
+                },
+                tooltip: {
+                    formatter: function (params) {
+                        return '[' + params.value[0].toFixed(2) + ' , ' + params.value[1].toFixed(2) + ' , ' + params.value[2].toFixed(2) + ']';
+                    }
+                },
+                xAxis3D: {
+                    type: 'value',
+                    min: 'dataMin',
+                    name: 'obj1\n',
+                    nameLocation: 'center',
+                    axisLabel:{
+                    formatter:function(value,index){
+                        return value.toFixed(2)   
+                    }
+                    }  
+                },
+                yAxis3D: {
+                    type: 'value',
+                    min: 'dataMin',
+                    name: 'obj2\n',
+                    nameLocation: 'center',
+                    axisLabel:{
+                    formatter:function(value,index){
+                        return value.toFixed(2)   
+                    }
+                    }
+                },
+                zAxis3D: {
+                    type: 'value',
+                    min: 'dataMin',
+                    name: 'obj3\n',
+                    nameLocation: 'center',
+                    axisLabel:{
+                    formatter:function(value,index){
+                        return value.toFixed(2)   
+                    }
+                    }
+                },
+                grid3D: {
+                    boxHeight: 80
+                },
+                series: [
+                    {
+                        type: 'surface',
+                        wireframe: {
+                            show: false
+                        },
+                        data:pareto_list
+                    },
+                    {
+                        type: 'scatter3D',
+                        itemStyle:{
+                            color: 'red'
+                        },
+                        data:pareto_list,
+                    },
+                    {
+                        type: 'scatter3D',
+                        itemStyle:{
+                            color: 'grey'
+                        },
+                        data:data["pareto_data"]["all_points"],
+                    },
+                ]
+            };
+            pareto_option && pareto_chart.setOption(pareto_option);
         }
 
 

@@ -436,15 +436,17 @@ class SMBO(BOBase):
             line_data[i]['min'].append([len(option['data'][i]), min_value])
             line_data[i]['scat'].append([len(option['data'][i]), min_value])
 
-        # Importance data
         history = self.get_history()
 
+        # Pareto data
         pareto = dict({})
         if self.num_objs > 1:
             pareto["ref_point"] = history.ref_point
             pareto["hv"] = history.hv_data
             pareto["pareto_point"] = list(history.pareto.values())
+            pareto["all_points"] = history.perfs
 
+        # Importance data
         history_dict = history.get_importance(method='shap', return_allvalue=True)
         importance_dict = history_dict['importance_dict']
         con_importance_dict = history_dict['con_importance_dict']
