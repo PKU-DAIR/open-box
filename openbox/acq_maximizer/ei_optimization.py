@@ -8,10 +8,10 @@
 import abc
 import logging
 import time
+import warnings
 from typing import Iterable, List, Union, Tuple, Optional
-
 import random
-import scipy
+import scipy.optimize
 import numpy as np
 
 from openbox.acquisition_function.acquisition import AbstractAcquisitionFunction
@@ -360,6 +360,8 @@ class LocalSearch(AcquisitionFunctionMaximizer):
             if (not changed_inc) or \
                     (self.max_steps is not None and
                      local_search_steps == self.max_steps):
+                if len(time_n) == 0:
+                    time_n.append(0.0)
                 self.logger.debug("Local search took %d steps and looked at %d "
                                   "configurations. Computing the acquisition "
                                   "value for one configuration took %f seconds"
@@ -599,6 +601,11 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
         def negative_acquisition(x):
             # shape of x = (d,)
             x = np.clip(x, 0.0, 1.0)    # fix numerical problem in L-BFGS-B
+            try:
+                # self.config_space._check_forbidden(x)
+                Configuration(self.config_space, vector=x).is_valid_configuration()
+            except ValueError:
+                return np.inf
             return -self.acquisition_function(x, convert=False)[0]  # shape=(1,)
 
         if initial_config is None:
@@ -606,17 +613,19 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
         init_point = initial_config.get_array()
 
         acq_configs = []
-        result = scipy.optimize.minimize(fun=negative_acquisition,
-                                         x0=init_point,
-                                         bounds=self.bounds,
-                                         **self.scipy_config)
-        # if result.success:
-        #     acq_configs.append((result.fun, Configuration(self.config_space, vector=result.x)))
+        with warnings.catch_warnings():
+            # ignore warnings of np.inf
+            warnings.filterwarnings("ignore", message="invalid value encountered in subtract", category=RuntimeWarning)
+            result = scipy.optimize.minimize(fun=negative_acquisition,
+                                             x0=init_point,
+                                             bounds=self.bounds,
+                                             **self.scipy_config)
         if not result.success:
             self.logger.debug('Scipy optimizer failed. Info:\n%s' % (result,))
         try:
             x = np.clip(result.x, 0.0, 1.0)  # fix numerical problem in L-BFGS-B
             config = Configuration(self.config_space, vector=x)
+            config.is_valid_configuration()
             acq = self.acquisition_function(x, convert=False)
             acq_configs.append((acq, config))
         except Exception:

@@ -2,10 +2,12 @@
 
 # More readable wrapped classes based on ConfigSpace.
 # The comments are modified based on https://github.com/automl/ConfigSpace/blob/master/ConfigSpace/hyperparameters.pyx
-from typing import List, Dict, Tuple, Union, Optional
+from typing import List, Dict, Tuple, Union, Optional, Callable
+import numpy as np
 import ConfigSpace as CS
 from ConfigSpace import EqualsCondition, InCondition, ForbiddenAndConjunction, ForbiddenEqualsClause, ForbiddenInClause
 from ConfigSpace import ConfigurationSpace, Configuration
+from ConfigSpace.exceptions import ForbiddenValueError
 
 
 # Hyperparameters
@@ -200,6 +202,7 @@ class Space(CS.ConfigurationSpace):
             name: Union[str, None] = None,
             seed: Union[int, None] = None,
             meta: Optional[Dict] = None,
+            **kwargs,
     ) -> None:
         """
         A collection-like object containing a set of variable definitions and conditions.
@@ -220,10 +223,118 @@ class Space(CS.ConfigurationSpace):
             Field for holding meta data provided by the user.
             Not used by the configuration space.
         """
-        super().__init__(name=name, seed=seed, meta=meta)
+        super().__init__(name=name, seed=seed, meta=meta, **kwargs)
 
     def add_variables(self, variables: List[Variable]):
         self.add_hyperparameters(variables)
 
     def add_variable(self, variable: Variable):
         self.add_hyperparameter(variable)
+
+
+class ConditionedSpace(Space):
+    """
+    A configuration space that supports complex conditions between hyperparameters/variables,
+        e.g., x1 <= x2 and x1 * x2 < 100.
+
+    User can define a sample_condition function to restrict the generation of configurations.
+
+    The following functions are guaranteed to return valid configurations:
+        - self.sample_configuration()
+        - get_one_exchange_neighbourhood()  # may return empty list
+
+    Example
+    -------
+
+    >>> def sample_condition(config):
+    >>>     # require x1 <= x2 and x1 * x2 < 100
+    >>>     if config['x1'] > config['x2']:
+    >>>         return False
+    >>>     if config['x1'] * config['x2'] >= 100:
+    >>>         return False
+    >>>     return True
+    >>>
+    >>> cs = ConditionedSpace()
+    >>> cs.add_variables([...])
+    >>> cs.set_sample_condition(sample_condition)  # set the sample condition after all variables are added
+    >>> configs = cs.sample_configuration(1000)
+
+    """
+    sample_condition: Callable[[Configuration], bool] = None
+
+    def set_sample_condition(self, sample_condition: Callable[[Configuration], bool]):
+        """
+        The sample_condition function takes a configuration as input and returns a boolean value.
+            - If the return value is True, the configuration is valid and will be sampled.
+            - If the return value is False, the configuration is invalid and will be rejected.
+        This function should be called after all hyperparameters/variables are added to the conditioned space.
+        """
+        self.sample_condition = sample_condition
+        self._check_default_configuration()
+
+    def _check_forbidden(self, vector: np.ndarray) -> None:
+        """
+        This function is called in Configuration.is_valid_configuration().
+            - When Configuration.__init__() is called with values (dict), is_valid_configuration() is called.
+            - When Configuration.__init__() is called with vectors (np.ndarray), there will be no validation check.
+        This function is also called in get_one_exchange_neighbourhood().
+        """
+        # check original forbidden clauses first
+        super()._check_forbidden(vector)
+
+        if self.sample_condition is not None:
+            # Populating a configuration from an array does not check if it is a legal configuration.
+            # _check_forbidden() is not called. Otherwise, this would be stuck in an infinite loop.
+            config = Configuration(self, vector=vector)
+            if not self.sample_condition(config):
+                raise ForbiddenValueError('User-defined sample condition is not satisfied.')
+
+    def sample_configuration(self, size: int = 1) -> Union['Configuration', List['Configuration']]:
+        """
+        In ConfigurationSpace.sample_configuration, configurations are built with vectors (np.ndarray),
+            so there will be no validation check and _check_forbidden() will not be called.
+            We need to check the sample condition manually.
+
+        Returns a single configuration if size = 1 else a list of Configurations
+        """
+        if self.sample_condition is None:
+            return super().sample_configuration(size=size)
+
+        if not isinstance(size, int):
+            raise TypeError('Argument size must be of type int, but is %s'
+                            % type(size))
+        elif size < 1:
+            return []
+
+        error_iteration = 0
+        accepted_configurations = []  # type: List['Configuration']
+        while len(accepted_configurations) < size:
+            missing = size - len(accepted_configurations)
+
+            if missing != size:
+                missing = int(1.1 * missing)
+            missing += 2
+
+            configurations = super().sample_configuration(size=missing)  # missing > 1, return a list
+            configurations = [c for c in configurations if self.sample_condition(c)]
+            if len(configurations) > 0:
+                accepted_configurations.extend(configurations)
+            else:
+                error_iteration += 1
+                if error_iteration > 1000:
+                    raise ForbiddenValueError("Cannot sample valid configuration for %s" % self)
+
+        if size <= 1:
+            return accepted_configurations[0]
+        else:
+            return accepted_configurations[:size]
+
+    def add_hyperparameter(self, *args, **kwargs):
+        if self.sample_condition is not None:
+            raise ValueError('Please add hyperparameter/variable before setting sample condition.')
+        return super().add_hyperparameter(*args, **kwargs)
+
+    def add_hyperparameters(self, *args, **kwargs):
+        if self.sample_condition is not None:
+            raise ValueError('Please add hyperparameters/variables before setting sample condition.')
+        return super().add_hyperparameters(*args, **kwargs)
