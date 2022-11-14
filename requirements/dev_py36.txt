@@ -14,5 +14,5 @@ numpy>=1.7.1,<1.19.6
 scipy>=0.18.1,<1.5.5
 platypus-opt==1.0.4
 scikit-optimize>=0.8
-ConfigSpace>=0.4.20,<0.5
+ConfigSpace==0.4.19  # ConfigSpace 0.4.20 does not support Python 3.6
 scikit-learn>=0.21.3
