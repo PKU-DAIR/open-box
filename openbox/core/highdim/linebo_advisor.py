@@ -1,12 +1,9 @@
-import random
 import typing
-from typing import Optional, Callable, List, Type, Union
 
 import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperparameter, CategoricalHyperparameter, \
     OrdinalHyperparameter
 
-from openbox.acquisition_function import AbstractAcquisitionFunction
 from openbox.core.base import build_acq_func, build_surrogate, Observation, build_optimizer
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
@@ -94,8 +91,8 @@ class LineBOAdvisor:
 
         constraint_surrogate = constraint_surrogate or surrogate
 
-        self.objective_surrogate: AbstractModel = build_surrogate(surrogate, config_space, self.rng, None)
-        self.constraint_surrogates: List[AbstractModel] = [build_surrogate(constraint_surrogate, config_space,
+        self.objective_surrogate = build_surrogate(surrogate, config_space, self.rng, None)
+        self.constraint_surrogates = [build_surrogate(constraint_surrogate, config_space,
                                                                            self.rng, None) for x in
                                                            range(self.num_constraints)]
 

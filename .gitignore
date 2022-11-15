@@ -43,4 +43,3 @@ conf/*
 
 openbox/artifact/db.sqlite3
 nohup.out
-/test/online/tmp/
