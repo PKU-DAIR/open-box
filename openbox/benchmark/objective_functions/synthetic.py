@@ -821,3 +821,89 @@ class CONSTR(BaseTestProblem):
         result['constraints'] = np.stack([c1, c2], axis=-1)
 
         return result
+
+
+class Schwefel(BaseTestProblem):
+    r"""Generalized Schwefel's Problem 2.26.
+
+    d-dimensional function (usually evaluated on `[-500, 500]^d`):
+
+        f(x) = \sum_{i=1}^{d} -x_i sin(\sqrt{\abs{x_i}})
+
+    """
+
+    def __init__(self, dim=2, noise_std=0, random_state=None):
+        self.dim = dim
+        params = {'x%d' % i: (-500.0, 500.0, 100.0) for i in range(1, 1 + self.dim)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
+        super().__init__(config_space, noise_std,
+                         optimal_value=-12596.5,
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        result['objs'] = [np.sum(-X * np.sin(np.sqrt(np.abs(X))), axis=-1)]
+        return result
+
+
+class Rastrigin(BaseTestProblem):
+    r"""Generalized Rastrigin's Function
+
+    d-dimensional function (usually evaluated on `[-5.12, 5.12]^d`):
+
+        f(x) = \sum_{i=1}^{d} (x_i^2 - 10 \cos(2\pi x) + 10)
+
+    """
+
+    def __init__(self, dim=2, noise_std=0, random_state=None):
+        self.dim = dim
+        params = {'x%d' % i: (-5.12, 5.12, 1) for i in range(1, 1 + self.dim)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
+        super().__init__(config_space, noise_std,
+                         optimal_value=0,
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        result['objs'] = [np.sum(X ** 2 - 10 * np.cos(2 * np.pi * X) + 10, axis=-1)]
+        return result
+
+
+class Gaussian(BaseTestProblem):
+    r"""
+        f(x) = -exp (-4 * (|x| ** 2))
+    """
+
+    def __init__(self, dim=2, noise_std=0, random_state=None):
+        self.dim = dim
+        params = {'x%d' % i: (-0.1, 0.2, 0.1) for i in range(1, 1 + self.dim)}
+        config_space = ConfigurationSpace()
+        config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
+        super().__init__(config_space, noise_std,
+                         optimal_value=0,
+                         random_state=random_state)
+
+    def _evaluate(self, X):
+        result = dict()
+        result['objs'] = [1 - np.exp(-4 * np.sum(X ** 2, axis=-1))]
+        return result
+
+
+class SafetyConstrained(BaseTestProblem):
+
+    def __init__(self, original: BaseTestProblem, h: float):
+        self.h = h
+        self.original = original
+        super().__init__(original.config_space, original.noise_std,
+                         optimal_value=0,
+                         random_state=original.rng)
+
+    def _evaluate(self, X):
+        result = self.original(X, convert=False)
+        if 'constraints' in result:
+            result['constraints'] = np.concatenate([np.array(result['objs']) - self.h, result['constraints']], axis=-1)
+        else:
+            result['constraints'] = np.array(result['objs']) - self.h
+        return result
