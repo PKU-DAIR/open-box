@@ -1,25 +1,14 @@
 import math
 import random
-import time
-import typing
-from copy import deepcopy
-from typing import Optional, Callable, List, Type, Union, Any, Tuple, Dict
+from typing import Callable, List, Union, Tuple
 
 import numpy as np
-from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperparameter, CategoricalHyperparameter, \
-    OrdinalHyperparameter
+from ConfigSpace import ConfigurationSpace, Configuration
 
-from openbox import Advisor
-from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
-from openbox.acquisition_function import AbstractAcquisitionFunction
-from openbox.core.base import build_acq_func, build_surrogate, Observation, build_optimizer
-from openbox.core.ea.base_ea_advisor import Individual
-from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
-from openbox.core.highdim.linebo_advisor import LineBOAdvisor
+from openbox.core.base import build_surrogate, Observation
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
-from openbox.utils.multi_objective import NondominatedPartitioning, get_chebyshev_scalarization
 from openbox.utils.util_funcs import check_random_state
 
 
@@ -299,7 +288,7 @@ class SafeOptAdvisor:
         # Useful because we want to evaluate the seed set.
         # get_suggestion() fills this if it's empty.
         # update_observation() removes configs that is evaluated.
-        self.to_eval: List[Configuration] = [Configuration(config_space, vector=arrays[i]) for i in
+        self.to_eval = [Configuration(config_space, vector=arrays[i]) for i in
                                              range(arrays.shape[0])]
 
         self.current_turn = 0
