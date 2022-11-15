@@ -1,19 +1,17 @@
 import abc
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
 from openbox.core.generic_advisor import Advisor
-from openbox.core.online.utils.cfo import CFO
-from openbox.core.online.utils.flow2 import FLOW2
-from openbox.core.online.utils.random import RandomSearch
-from openbox.core.online.utils.base_online_advisor import OnlineAdvisor, almost_equal
+from openbox.core.online.cfo import CFO
+from openbox.core.online.base_online_advisor import almost_equal
 from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
-from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
-from openbox.utils.constants import MAXINT, SUCCESS
+from openbox.utils.history_container import HistoryContainer
+from openbox.utils.constants import MAXINT
 from openbox.core.base import Observation
 
 
@@ -34,6 +32,7 @@ class BlendSearchAdvisor(abc.ABC):
                  localsearch=CFO,
                  num_constraints=0,
                  batch_size=1,
+                 pure=False,
                  output_dir='logs',
                  task_id='default_task_id',
                  random_state=None):
@@ -46,6 +45,7 @@ class BlendSearchAdvisor(abc.ABC):
         # Objectives Settings
         self.u = 1.5
         self.v = 1.0
+        self.pure = pure
         self.dead_line = dead_line
         self.GlobalSearch = globalsearch
         self.LocalSearch = localsearch
@@ -73,10 +73,25 @@ class BlendSearchAdvisor(abc.ABC):
         self.max_locals = 20
         self.max_cnt = int(self.max_locals * 0.7)
 
+    def __str__(self):
+        return f"BlendSearch({self.GlobalSearch.__name__}, {self.LocalSearch.__name__})"
+
+    def make_searcher(self, searcher, args=(), kwargs=None):
+        if kwargs is None:
+            kwargs = dict()
+        if isinstance(searcher, tuple):
+            func = searcher[0]
+            args = args if len(searcher) <= 1 else args + searcher[1]
+            kwargs = kwargs if len(searcher) <= 2 else dict(list(kwargs.items()) + list(searcher[2].items()))
+
+            return func(self.config_space, *args, **kwargs)
+        else:
+            return searcher(self.config_space, *args, **kwargs)
+
     def get_suggestion(self):
         next_config = None
         if self.globals is None:
-            self.globals = SearchPiece(self.GlobalSearch(self.config_space), -MAXINT, None)
+            self.globals = SearchPiece(self.make_searcher(self.GlobalSearch), -MAXINT, None)
             self.cur = self.globals
             next_config = self.globals.search_method.get_suggestion()
             self.globals.config = next_config
@@ -132,6 +147,8 @@ class BlendSearchAdvisor(abc.ABC):
         return self.history_container
 
     def select_piece(self):
+        if self.pure:
+            return self.globals
         if self.cur_cnt == self.max_cnt:
             self.cur_cnt = 0
             return self.globals
@@ -157,7 +174,7 @@ class BlendSearchAdvisor(abc.ABC):
         return cnt >= tot // 2
 
     def create_piece(self, config: Configuration):
-        self.locals.append(SearchPiece(self.LocalSearch(self.config_space, config),
+        self.locals.append(SearchPiece(self.make_searcher(self.LocalSearch, (config, )),
                                        -MAXINT, None))
 
     def del_piece(self, s: SearchPiece):
@@ -196,7 +213,7 @@ class BlendSearchAdvisor(abc.ABC):
         for i, key in enumerate(self.config_space.keys()):
             hp_type = self.config_space.get_hyperparameter(key)
             if isinstance(hp_type, CategoricalHyperparameter) or isinstance(hp_type, OrdinalHyperparameter):
-                arr[i] = self.rng.randint(0, hp_type.get_size() - 1)
+                arr[i] = self.rng.randint(0, hp_type.get_size())
             elif isinstance(hp_type, NumericalHyperparameter):
                 arr[i] = min(arr[i] + d[i], 1.0)
 
