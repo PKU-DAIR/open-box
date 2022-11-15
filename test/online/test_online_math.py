@@ -1,17 +1,14 @@
 # License: MIT
 
-import numpy as np
 import matplotlib.pyplot as plt
-from openbox import Advisor, sp, Observation
+from openbox import Observation
 
 from openbox.benchmark.objective_functions.synthetic import Bukin
-from openbox.benchmark.objective_functions.synthetic import Ackley
 
 # Define Objective Function
-from openbox.core.online.utils.cfo import CFO
-from openbox.core.online.utils.flow2 import FLOW2
-from openbox.core.online.utils.blendsearch import BlendSearchAdvisor
-from openbox.utils.config_space import convert_configurations_to_array
+from openbox.core.online.cfo import CFO
+from openbox.core.online.flow2 import FLOW2
+from openbox.core.online.blendsearch import BlendSearchAdvisor
 
 try:
     from tqdm import trange
