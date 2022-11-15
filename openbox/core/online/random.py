@@ -1,9 +1,7 @@
-from typing import List
-
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox import Observation
-from openbox.core.online.utils.base_online_advisor import OnlineAdvisor
+from openbox.core.online.base_online_advisor import OnlineAdvisor
 
 
 class RandomSearch(OnlineAdvisor):
@@ -13,6 +11,7 @@ class RandomSearch(OnlineAdvisor):
 
     def __init__(self,
                  config_space: ConfigurationSpace,
+                 x0: Configuration=None,
                  batch_size=1,
                  output_dir='logs',
                  task_id='default_task_id',
