@@ -398,16 +398,28 @@
                 subtext: 'This shows min objective value after n iterations.'
             },
             tooltip: {
-                trigger: 'axis',
+                trigger: 'item',
                 axisPointer: {
                     animation: false
+                },
+                formatter: function(paras) {
+                    console.log(paras);
+                    var res = paras.seriesName + "</br>";
+                    res = res + "obj value: " + paras.value[1] + '</br>';
+                    if(data['num_constraints'] > 0 && paras.value[0] < data['cons_list_rev'].length) {
+                        res = res + "cons value: " + data['cons_list_rev'][paras.value[0]];
+                    }
+
+                    console.log(res)
+                    return res;
                 }
             },
             dataZoom: mydataZoom,
             legend: {
                 left: 10,
                 top: 50,
-                'selected': {}
+                'selected': {},
+                selectedMode: 'single'
             },
             grid:{
                 top: 90
@@ -451,6 +463,7 @@
             },
             series: [
             ]
+
         };
 
         // initialize the pareto hv line
@@ -557,7 +570,7 @@
                             symbol: 'none'
                         },
                         {
-                            coord: [data['cons_line_data'][0].length+1, 0],
+                            coord: [data['cons_line_data'][0].length, 0],
                             symbol: 'none'
                         }
                     ]
@@ -641,9 +654,9 @@
             var pareto_chart = echarts.init($('#pareto_front')[0]);
             var pareto_option;
             var pareto_list = data["pareto_data"]["pareto_point"];
-        
+
             pareto_list .sort(function(a,b){
-                return b[0]-a[0];//	降序，升序则反之
+                return b[0]-a[0];
             });
 
             pareto_option = {
@@ -696,9 +709,9 @@
                     nameLocation: 'center',
                     axisLabel:{
                     formatter:function(value,index){
-                        return value.toFixed(2)   
+                        return value.toFixed(2)
                     }
-                    }  
+                    }
                 },
                 yAxis3D: {
                     type: 'value',
@@ -707,7 +720,7 @@
                     nameLocation: 'center',
                     axisLabel:{
                     formatter:function(value,index){
-                        return value.toFixed(2)   
+                        return value.toFixed(2)
                     }
                     }
                 },
@@ -718,7 +731,7 @@
                     nameLocation: 'center',
                     axisLabel:{
                     formatter:function(value,index){
-                        return value.toFixed(2)   
+                        return value.toFixed(2)
                     }
                     }
                 },
@@ -883,7 +896,7 @@
             console.log(name);
             multi_slist[name] = slist;
         }
-        
+
         var spara_chart = echarts.init($('#single_para_importance')[0]);
         var spara_option = {
             title: {
@@ -914,11 +927,10 @@
             series: multi_slist['obj0'],
         };
         spara_option && spara_chart.setOption(spara_option);
-        function selectObjs(obj){  
+        function selectObjs(obj){
             // console.log(multi_series[obj.value]);
             // alert(obj.value);
             console.log(multi_slist[obj.value]);
-            //获取被选中的option标签选项 
             spara_option.series = multi_slist[obj.value];
             console.log(multi_slist[obj.value]);
             spara_option && spara_chart.setOption(spara_option);
@@ -977,11 +989,10 @@
             };
             con_spara_option && con_spara_chart.setOption(con_spara_option);
         }
-        function selectCons(obj){  
+        function selectCons(obj){
             // console.log(multi_series[obj.value]);
             // alert(obj.value);
             console.log(multi_series[obj.value]);
-            //获取被选中的option标签选项 
             con_spara_option.series = multi_series[obj.value];
             console.log(multi_series[obj.value]);
             con_spara_option && con_spara_chart.setOption(con_spara_option);
@@ -1039,21 +1050,22 @@
                     name: 'obj ' + (i+1),
                     type: 'line',
                     smooth: false,
-                    color: '#4fbfa8',
-                    symbol: 'none',
-                    data: data['line_data'][i]['min']
+                    symbol: 'circle',
+                    symbolSize: '10',
+                    data: data['line_data'][i]['ok']
                 })
                 line_option['series'].push({
                     name: 'obj ' + (i+1),
                     type: 'scatter',
                     color: 'grey',
-                    data: data['line_data'][i]['over']
+                    data: data['line_data'][i]['other']
                 })
                 line_option['series'].push({
                     name: 'obj ' + (i+1),
                     type: 'scatter',
-                    color: '#4fbfa8',
-                    data: data['line_data'][i]['scat']
+                    color: 'grey',
+                    symbol: 'triangle',
+                    data: data['line_data'][i]['no']
                 })
                 if(i != 0) {
                     line_option['legend']['selected']['obj ' + (i+1)] = false;
@@ -1131,7 +1143,8 @@
                 legend: {
                     left: 10,
                     top: 10,
-                    'selected': {}
+                    'selected': {},
+                    selectedMode: 'single'
                 },
                 tooltip: {
                     trigger: 'axis',
@@ -1236,7 +1249,8 @@
                 legend: {
                     left: 10,
                     top: 10,
-                    'selected': {}
+                    'selected': {},
+                    selectedMode: 'single'
                 },
                 tooltip: {
                     trigger: 'axis',
@@ -1338,7 +1352,8 @@
                 legend: {
                     left: 10,
                     top: 10,
-                    'selected': {}
+                    'selected': {},
+                    selectedMode: 'single'
                 },
                 tooltip: {
                     trigger: 'axis',

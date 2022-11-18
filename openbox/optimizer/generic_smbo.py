@@ -373,13 +373,16 @@ class SMBO(BOBase):
         option = {'data': [list() for i in range(self.num_objs)], 'schema': [], 'visualMap': {}}
         # all the performance
         perf_list = [list() for i in range(self.num_objs)]
-        # all the constraints
+        # all the constraints, A[i][j]: 第i个约束中第j个配置对应的值
         cons_list = [list() for i in range(self.num_constraints)]
+        # A[i][j]: 第i个个配置对应的第j个约束值
+        cons_list_rev = list()
         for rh in json_data:
             results = [round(tmp, 4) for tmp in rh['objs']]
             constraints = None
             if rh['constaints']:
                 constraints = [round(tmp, 4) for tmp in rh['constaints']]
+                cons_list_rev.append(constraints)
 
             config_str = str(rh['config'])
             if len(config_str) > 35:
@@ -421,20 +424,22 @@ class SMBO(BOBase):
             option['visualMap']['dimension'] = 0
 
         # Line Data
-        line_data = [{'min': [], 'over': [], 'scat': []} for i in range(self.num_objs)]
+        # ok: 符合约束，并且在最下沿；no：不符合约束；other：符合约束，不再最下沿
+        line_data = [{'ok': [], 'no': [], 'other': []} for i in range(self.num_objs)]
         import sys
 
         for i in range(self.num_objs):
             min_value = sys.maxsize
             for idx, perf in enumerate(perf_list[i]):
+                if self.num_constraints > 0 and np.any([cons_list_rev[idx][k] > 0 for k in range(self.num_constraints)]):
+                    line_data[i]['no'].append([idx, perf])
+                    continue
                 if perf <= min_value:
                     min_value = perf
-                    line_data[i]['min'].append([idx, perf])
-                    line_data[i]['scat'].append([idx, perf])
+                    line_data[i]['ok'].append([idx, perf])
                 else:
-                    line_data[i]['over'].append([idx, perf])
-            line_data[i]['min'].append([len(option['data'][i]), min_value])
-            line_data[i]['scat'].append([len(option['data'][i]), min_value])
+                    line_data[i]['other'].append([idx, perf])
+            line_data[i]['ok'].append([len(option['data'][i]), min_value])
 
         history = self.get_history()
 
@@ -478,6 +483,7 @@ class SMBO(BOBase):
             'num_objs': self.num_objs, 'num_constraints': self.num_constraints,
             'line_data': line_data,
             'cons_line_data': [[[idx, con] for idx, con in enumerate(c_l)] for c_l in cons_list],
+            'cons_list_rev': cons_list_rev,
             'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config,
             'importance_data': importance,
             'pareto_data': pareto,
@@ -559,7 +565,7 @@ class SMBO(BOBase):
         return {
                    'data': [list(zip(pre_perfs[i], perfs[i])) for i in range(self.num_objs)],
                    'min': min1,
-                   'max': max1 * 1.1
+                   'max': round(max1 * 1.1, 3)
                }, \
                {
                    'data': [list(zip(pre_ranks[i], ranks[i])) for i in range(self.num_objs)],
@@ -613,7 +619,7 @@ class SMBO(BOBase):
         return {
             'data': [list(zip(pre_perfs[i], cons_perfs[i])) for i in range(self.num_constraints)],
             'min': min1,
-            'max': max1 * 1.1
+            'max': round(max1 * 1.1, 3)
         }
 
     def visualize(self):

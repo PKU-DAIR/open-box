@@ -18,7 +18,7 @@ opt = Optimizer(
     init_strategy='random',
     ref_point=prob.ref_point,
     time_limit_per_trial=10,
-    task_id='moc_10',
+    task_id='moc_06',
     random_state=1,
 )
 opt.run()
