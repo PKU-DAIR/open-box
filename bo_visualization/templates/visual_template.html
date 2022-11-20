@@ -435,12 +435,12 @@
                     fontSize: 16
                 },
                 splitLine: {
-                    show: true,
-                    lineStyle: {
-                        color: ['black'],
-                        width: 1,
-                        type: 'solid'
-                    }
+                    show: false,
+                    // lineStyle: {
+                    //     color: ['black'],
+                    //     width: 1,
+                    //     type: 'solid'
+                    // }
                 }
             },
             yAxis: {
@@ -454,11 +454,11 @@
                 },
                 splitLine: {
                     show: true,
-                    lineStyle: {
-                        color: ['black'],
-                        width: 1,
-                        type: 'solid'
-                    }
+                    // lineStyle: {
+                    //     color: ['black'],
+                    //     width: 1,
+                    //     type: 'solid'
+                    // }
                 }
             },
             series: [
@@ -500,12 +500,12 @@
                         fontSize: 16
                     },
                     splitLine: {
-                        show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     }
                 },
                 yAxis: {
@@ -520,11 +520,11 @@
                     },
                     splitLine: {
                         show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     }
                 },
                 series: [
@@ -603,12 +603,12 @@
                         fontSize: 16
                     },
                     splitLine: {
-                        show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     },
                 },
                 yAxis: {
@@ -622,11 +622,11 @@
                     },
                     splitLine: {
                         show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     },
                 },
                 series: [
@@ -655,6 +655,23 @@
             var pareto_option;
             var pareto_list = data["pareto_data"]["pareto_point"];
 
+            var no_point = [];
+            var yes_point = [];
+
+            for(var j=0; j<data["pareto_data"]["all_points"].length; j++){
+                var flag = 1;
+                for (var i = 0; i < data['num_constraints']; i++) {
+                    if (data['cons_line_data'][i][j][1] > 0){
+                        flag = 0;
+                        break;
+                    }
+                }
+                if (flag == 1)
+                    yes_point.push(data["pareto_data"]["all_points"][j]);
+                else   
+                    no_point.push(data["pareto_data"]["all_points"][j]);
+            }
+
             pareto_list .sort(function(a,b){
                 return b[0]-a[0];
             });
@@ -670,6 +687,9 @@
                 xAxis: {
                     name: 'obj1\n',
                     nameLocation:'center',
+                    splitLine: {
+                        show: false,
+                    },
                 },
                 yAxis: {
                     name: 'obj2\n',
@@ -682,8 +702,14 @@
                         smooth: true,
                     },
                     {
-                        data: data["pareto_data"]["all_points"],
+                        data: yes_point,
                         type: 'scatter',
+                        symbol: 'circle'
+                    },
+                    {
+                        data: no_point,
+                        type: 'scatter',
+                        symbol: 'triangle'
                     },
                 ]
             };
