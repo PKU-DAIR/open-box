@@ -6,8 +6,8 @@ from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparam
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
 from openbox.core.generic_advisor import Advisor
-from openbox.core.online.cfo import CFO
-from openbox.core.online.base_online_advisor import almost_equal
+from openbox.experimental.online.cfo import CFO
+from openbox.experimental.online.base_online_advisor import almost_equal
 from openbox.utils.util_funcs import check_random_state
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer

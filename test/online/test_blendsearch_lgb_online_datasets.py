@@ -7,7 +7,7 @@ from openbox import Observation, get_config_space, get_objective_function
 
 import openml
 
-from openbox.core.online.blendsearch import BlendSearchAdvisor
+from openbox.experimental.online.blendsearch import BlendSearchAdvisor
 from openbox.optimizer.generic_smbo import SMBO
 
 try:

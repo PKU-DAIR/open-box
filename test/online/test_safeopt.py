@@ -20,9 +20,7 @@ import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 
-from openbox.core.advanced.safeopt_advisor import SafeOptAdvisor, DefaultBeta, nd_range
-# from openbox.core.highdim.safeopt_advisor import SafeOptAdvisor
-# from openbox.core.highdim.turbo_advisor import TuRBOAdvisor
+from openbox.experimental.advanced.safeopt_advisor import SafeOptAdvisor, DefaultBeta, nd_range
 from openbox.benchmark.objective_functions.synthetic import Ackley, Rosenbrock, Gaussian, SafetyConstrained, Branin, Bukin
 from openbox import Advisor, Observation
 

@@ -1,7 +1,7 @@
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox import Observation
-from openbox.core.online.base_online_advisor import OnlineAdvisor
+from openbox.experimental.online.base_online_advisor import OnlineAdvisor
 
 
 class RandomSearch(OnlineAdvisor):

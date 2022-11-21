@@ -24,7 +24,7 @@ from ConfigSpace import Configuration
 # from openbox.core.highdim.turbo_advisor import TuRBOAdvisor
 from openbox.benchmark.objective_functions.synthetic import Ackley
 from openbox import Observation
-from openbox.core.highdim.linebo_advisor import LineBOAdvisor
+from openbox.experimental.highdim.linebo_advisor import LineBOAdvisor
 
 try:
     from tqdm import trange

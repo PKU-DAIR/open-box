@@ -19,7 +19,7 @@ from openbox import Observation, get_config_space
 # Define Objective Function
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.generic_advisor import Advisor
-from openbox.core.online.blendsearch import BlendSearchAdvisor
+from openbox.experimental.online.blendsearch import BlendSearchAdvisor
 
 try:
     from tqdm import trange

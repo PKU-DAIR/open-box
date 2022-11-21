@@ -6,9 +6,9 @@ from openbox import Observation
 from openbox.benchmark.objective_functions.synthetic import Bukin
 
 # Define Objective Function
-from openbox.core.online.cfo import CFO
-from openbox.core.online.flow2 import FLOW2
-from openbox.core.online.blendsearch import BlendSearchAdvisor
+from openbox.experimental.online.cfo import CFO
+from openbox.experimental.online.flow2 import FLOW2
+from openbox.experimental.online.blendsearch import BlendSearchAdvisor
 
 try:
     from tqdm import trange
