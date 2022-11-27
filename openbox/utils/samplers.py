@@ -86,6 +86,7 @@ class Sampler(object):
             Design matrix X in the specified domain. (return_config is False)
         """
         X = self._generate()
+        X = np.asarray(X)
         X = self.lower_bounds + (self.upper_bounds - self.lower_bounds) * X
 
         if return_config:
@@ -134,14 +135,15 @@ class SobolSampler(Sampler):
 
     def _generate(self):
         try:
-            skip = self.rng.randint(int(1e6))
             from torch.quasirandom import SobolEngine
+            skip = self.rng.randint(int(1e6))
             sobol = SobolEngine(dimension=len(self.search_dims), scramble=True, seed=skip)
             X = sobol.draw(n=self.size).numpy()
         except ImportError:
             skip = 2 ** (self.rng.randint(1, 4) + int(np.log2(self.size)))
             sobol = Sobol(skip=skip)
             X = sobol.generate(self.search_dims, self.size)
+            X = np.asarray(X)  # returns a list in scikit-optimize==0.9.0
         return X
 
 
@@ -185,6 +187,7 @@ class LatinHypercubeSampler(Sampler):
     def _generate(self):
         lhs = Lhs(criterion=self.criterion, iterations=self.iterations)
         X = lhs.generate(self.search_dims, self.size, random_state=self.rng)
+        X = np.asarray(X)  # returns a list in scikit-optimize==0.9.0
         return X
 
 
