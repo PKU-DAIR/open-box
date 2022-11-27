@@ -141,7 +141,7 @@ class SobolSampler(Sampler):
             X = sobol.draw(n=self.size).numpy()
         except ImportError:
             skip = 2 ** (self.rng.randint(1, 4) + int(np.log2(self.size)))
-            sobol = Sobol(skip=skip)
+            sobol = Sobol(skip=skip)  # requires scikit-optimize>=0.9.0
             X = sobol.generate(self.search_dims, self.size)
             X = np.asarray(X)  # returns a list in scikit-optimize==0.9.0
         return X
