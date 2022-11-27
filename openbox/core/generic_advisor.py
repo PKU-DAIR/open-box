@@ -272,27 +272,37 @@ class Advisor(object, metaclass=abc.ABCMeta):
         num_random_config = self.init_num - 1
         if init_strategy == 'random':
             initial_configs = self.sample_random_configs(self.init_num)
-            return initial_configs
         elif init_strategy == 'default':
             initial_configs = [default_config] + self.sample_random_configs(num_random_config)
-            return initial_configs
         elif init_strategy == 'random_explore_first':
             candidate_configs = self.sample_random_configs(100)
-            return self.max_min_distance(default_config, candidate_configs, num_random_config)
+            initial_configs = self.max_min_distance(default_config, candidate_configs, num_random_config)
         elif init_strategy == 'sobol':
             sobol = SobolSampler(self.config_space, num_random_config, random_state=self.rng)
             initial_configs = [default_config] + sobol.generate(return_config=True)
-            return initial_configs
         elif init_strategy == 'latin_hypercube':
             lhs = LatinHypercubeSampler(self.config_space, num_random_config, criterion='maximin')
             initial_configs = [default_config] + lhs.generate(return_config=True)
-            return initial_configs
         elif init_strategy == 'halton':
             halton = HaltonSampler(self.config_space, num_random_config, random_state=self.rng)
             initial_configs = [default_config] + halton.generate(return_config=True)
-            return initial_configs
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
+
+        valid_configs = []
+        for config in initial_configs:
+            try:
+                config.is_valid_configuration()
+            except ValueError:
+                continue
+            valid_configs.append(config)
+        if len(valid_configs) != len(initial_configs):
+            self.logger.warning('Only %d/%d valid configurations are generated for initial design strategy: %s. '
+                                'Add more random configurations.'
+                                % (len(valid_configs), len(initial_configs), init_strategy))
+            num_random_config = self.init_num - len(valid_configs)
+            valid_configs += self.sample_random_configs(num_random_config, excluded_configs=valid_configs)
+        return valid_configs
 
     def max_min_distance(self, default_config, src_configs, num):
         min_dis = list()
