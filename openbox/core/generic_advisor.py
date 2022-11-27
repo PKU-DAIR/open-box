@@ -9,7 +9,7 @@ from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer, \
     MultiStartHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
-from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler
+from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.core.base import build_acq_func, build_optimizer, build_surrogate
@@ -287,6 +287,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
             lhs = LatinHypercubeSampler(self.config_space, num_random_config, criterion='maximin')
             initial_configs = [default_config] + lhs.generate(return_config=True)
             return initial_configs
+        elif init_strategy == 'halton':
+            halton = HaltonSampler(self.config_space, num_random_config, random_state=self.rng)
+            initial_configs = [default_config] + halton.generate(return_config=True)
+            return initial_configs
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
@@ -329,14 +333,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
         num_config_successful = len(history_container.successful_perfs)
 
         if num_config_evaluated < self.init_num:
-            return self.initial_configurations[num_config_evaluated]
-
+            res = self.initial_configurations[num_config_evaluated]
+            return [res] if return_list else res
         if self.optimization_strategy == 'random':
-            return self.sample_random_configs(1, history_container)[0]
+            res = self.sample_random_configs(1, history_container)[0]
+            return [res] if return_list else res
 
         if (not return_list) and self.rng.random() < self.rand_prob:
             self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
-            return self.sample_random_configs(1, history_container)[0]
+            res = self.sample_random_configs(1, history_container)[0]
+            return [res] if return_list else res
 
         X = convert_configurations_to_array(history_container.configurations)
         Y = history_container.get_transformed_perfs(transform=None)
@@ -345,7 +351,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.optimization_strategy == 'bo':
             if num_config_successful < max(self.init_num, 1):
                 self.logger.warning('No enough successful initial trials! Sample random configuration.')
-                return self.sample_random_configs(1, history_container)[0]
+                res = self.sample_random_configs(1, history_container)[0]
+                return [res] if return_list else res
 
             # train surrogate model
             if self.num_objs == 1:

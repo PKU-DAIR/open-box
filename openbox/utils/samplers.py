@@ -86,6 +86,7 @@ class Sampler(object):
             Design matrix X in the specified domain. (return_config is False)
         """
         X = self._generate()
+        X = np.asarray(X)
         X = self.lower_bounds + (self.upper_bounds - self.lower_bounds) * X
 
         if return_config:
@@ -133,14 +134,16 @@ class SobolSampler(Sampler):
         super().__init__(config_space, size, lower_bounds, upper_bounds, random_state)
 
     def _generate(self):
-        skip = self.rng.randint(int(1e6))
         try:
             from torch.quasirandom import SobolEngine
+            skip = self.rng.randint(int(1e6))
             sobol = SobolEngine(dimension=len(self.search_dims), scramble=True, seed=skip)
             X = sobol.draw(n=self.size).numpy()
         except ImportError:
-            sobol = Sobol(min_skip=skip, max_skip=skip)
+            skip = 2 ** (self.rng.randint(1, 4) + int(np.log2(self.size)))
+            sobol = Sobol(skip=skip)
             X = sobol.generate(self.search_dims, self.size)
+            X = np.asarray(X)  # returns a list in scikit-optimize==0.9.0
         return X
 
 
@@ -184,4 +187,40 @@ class LatinHypercubeSampler(Sampler):
     def _generate(self):
         lhs = Lhs(criterion=self.criterion, iterations=self.iterations)
         X = lhs.generate(self.search_dims, self.size, random_state=self.rng)
+        X = np.asarray(X)  # returns a list in scikit-optimize==0.9.0
+        return X
+
+
+class HaltonSampler(Sampler):
+    """
+    Halton sequence sampler.
+    """
+
+    def __init__(self, config_space: ConfigurationSpace,
+                 size, lower_bounds=None, upper_bounds=None,
+                 random_state=None):
+        """
+        Parameters
+        ----------
+        config_space : ConfigurationSpace
+            ConfigurationSpace to do sampling.
+
+        size : int N
+            Number of samples.
+
+        lower_bounds : lower bounds in [0, 1] for continuous dimensions (optional)
+
+        upper_bounds : upper bounds in [0, 1] for continuous dimensions (optional)
+
+        seed : int (optional)
+            Seed number for sobol sequence.
+        """
+        super().__init__(config_space, size, lower_bounds, upper_bounds, random_state)
+
+    def _generate(self):
+        skip = self.rng.randint(0, 3 * self.size)
+        from scipy.stats import qmc
+        sampler = qmc.Halton(d=len(self.search_dims), scramble=False)
+        _ = sampler.fast_forward(skip)
+        X = sampler.random(n=self.size)
         return X
