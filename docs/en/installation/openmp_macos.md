@@ -1,4 +1,4 @@
-## Enable OpenMP on macOS For Building scikit-learn
+# Enable OpenMP on macOS For Building scikit-learn
 
 The default C compiler on macOS, Apple clang (confusingly aliased as `/usr/bin/gcc`), does not directly support OpenMP. 
 

@@ -1,4 +1,4 @@
-## 在 macOS 上开启 OpenMP （为了编译scikit-learn）
+# 在 macOS 上开启 OpenMP （为了编译scikit-learn）
 
 macOS 上的默认编译器 Apple clang (也称 `/usr/bin/gcc`) 不支持OpenMP，因此你在编译 scikit-learn 时可能遇到问题。
 
