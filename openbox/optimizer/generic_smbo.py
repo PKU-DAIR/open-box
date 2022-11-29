@@ -220,18 +220,12 @@ class SMBO(BOBase):
             self.iterate(budget_left=self.budget_left)
             runtime = time.time() - start_time
             self.budget_left -= runtime
-
-        # self.visualize()
         return self.get_history()
 
     def iterate(self, budget_left=None):
         self.iteration_id += 1
         # get configuration suggestion from advisor
         config = self.config_advisor.get_suggestion()
-
-        # config_array = np.array([list(config.get_dictionary().values())])
-        # predic_objs, var = self.config_advisor.surrogate_model.predict(config_array)
-        # print(predic_objs, var)
 
         trial_state = SUCCESS
         _budget_left = int(1e10) if budget_left is None else budget_left
@@ -300,6 +294,3 @@ class SMBO(BOBase):
         #     if obj < self.FAILED_PERF[idx]:
         #         self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, constraints, objs
-
-
-
