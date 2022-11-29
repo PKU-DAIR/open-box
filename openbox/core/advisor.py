@@ -85,7 +85,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         elif init_strategy == 'random_explore_first':
             num_random_config = self.init_num - 1
             candidate_configs = self.sample_random_configs(100)
-            return self.max_min_distance(default_config, candidate_configs, num_random_config)
+            return self.max_min_distance(default_config,candidate_configs,num_random_config)
         else:
             raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
 
