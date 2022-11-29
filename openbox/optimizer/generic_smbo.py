@@ -17,6 +17,7 @@ from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import get_result
 from openbox.core.base import Observation
+from openbox.utils.visualization.html.html_visualization import save_visualization_data, generate_html
 
 """
     The objective function returns a dictionary that has --- config, constraints, objs ---.
@@ -119,50 +120,17 @@ class SMBO(BOBase):
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  task_id='default_task_id',
+                 visualization=False,
                  random_state=None,
                  advisor_kwargs: dict = None,
-                 json_path=None,
-                 vis_path_tmp=None,
-                 vis_path=None,
                  **kwargs):
 
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
-        if json_path is None:
-            json_path = os.path.join(os.path.abspath("."), 'bo_history')
-            # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
-        self.json_path = json_path
-        if not os.path.exists(self.json_path):
-            os.makedirs(self.json_path)
-        self.json_file_name = 'bo_history_%s.json' % task_id
-        if os.path.exists(os.path.join(json_path, self.json_file_name)):
-            raise ValueError('There is already a same task_id in your json_path. Please change task_id or json_path.')
-
-        if vis_path_tmp is None:
-            vis_path_tmp = os.path.join(os.path.abspath("."), 'bo_visualization_tmp')
-            # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
-        self.vis_path_tmp = vis_path_tmp
-        if not os.path.exists(self.vis_path_tmp):
-            os.makedirs(self.vis_path_tmp)
-        self.vis_file_name_tmp = 'bo_visualization_tmp_%s.html' % task_id
-        if os.path.exists(os.path.join(vis_path_tmp, self.vis_file_name_tmp)):
-            raise ValueError(
-                'There is already a same task_id in your vis_path_tmp. Please change task_id or vis_path_tmp.')
-
-        if vis_path is None:
-            vis_path = os.path.join(os.path.abspath("."), 'bo_visualization')
-            # raise ValueError('Json_path is not SPECIFIED. Please input json_path first, or we can not save your data.')
-        self.vis_path = vis_path
-        if not os.path.exists(self.vis_path):
-            os.makedirs(self.vis_path)
-        self.vis_file_name = 'bo_visualization_%s.html' % task_id
-        if os.path.exists(os.path.join(vis_path, self.vis_file_name)):
-            raise ValueError('There is already a same task_id in your vis_path. Please change task_id or vis_path.')
-
-        # generate visualization html file from template
-        self.generate_html()
-        pass
+        self.timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+        if visualization:
+            generate_html(logging_dir, task_id, self.timestamp)
 
         self.num_objs = num_objs
         self.num_constraints = num_constraints
@@ -311,7 +279,10 @@ class SMBO(BOBase):
                 pass
             else:
                 self.config_advisor.update_observation(observation)
-                self.save_json(observation)
+
+                if self.iteration_id % 5 == 0 or self.iteration_id >= self.max_iterations:
+                    save_visualization_data(self.config_advisor.history_container, self.output_dir, self.timestamp, self.advisor_type, self.surrogate_type, self.max_iterations, self.time_limit_per_trial,
+                                            self.iteration_id >= self.max_iterations, self.config_advisor.surrogate_model, self.config_advisor.constraint_models)
         else:
             self.logger.info('This configuration has been evaluated! Skip it: %s' % config)
             history = self.get_history()
@@ -335,347 +306,5 @@ class SMBO(BOBase):
         #         self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
         return config, trial_state, constraints, objs
 
-    def save_json(self, res: Observation):
 
-        data_item = dict(
-            task_id=self.task_id,
-            iteration_id=self.iteration_id,
-            config=res.config.get_dictionary(),
-            objs=res.objs,
-            constaints=list(res.constraints) if self.num_constraints > 0 else None,
-            trial_state=res.trial_state,
-            cost=res.elapsed_time,
-        )
-        self.data.append(data_item)
 
-        if self.iteration_id % 5 == 0 or self.iteration_id >= self.max_iterations:
-            with open(os.path.join(self.json_path, self.json_file_name), 'w') as fp:
-                json.dump({'data': self.data}, fp, indent=2)
-            print('Iteration %d, Save history to %s' % (self.iteration_id, self.json_file_name))
-
-            with open(os.path.join(self.json_path, 'visual_' + self.json_file_name), 'w') as fp:
-                fp.write('var info=')
-                json.dump({'data': self.process_data()}, fp, indent=2)
-                fp.write(';')
-            print('Iteration %d, Save history to visual_%s' % (self.iteration_id, self.json_file_name))
-
-    def process_data(self):
-        # with open(os.path.join(self.json_path, self.json_file_name), 'r') as fp:
-        #     json_data = json.load(fp)
-
-        json_data = self.data
-
-        # Config Table data
-        table_list = []
-        # all the config list
-        rh_config = {}
-        # Parallel Data
-        option = {'data': [list() for i in range(self.num_objs)], 'schema': [], 'visualMap': {}}
-        # all the performance
-        perf_list = [list() for i in range(self.num_objs)]
-        # all the constraints, A[i][j]: 第i个约束中第j个配置对应的值
-        cons_list = [list() for i in range(self.num_constraints)]
-        # A[i][j]: 第i个个配置对应的第j个约束值
-        cons_list_rev = list()
-        for rh in json_data:
-            results = [round(tmp, 4) for tmp in rh['objs']]
-            constraints = None
-            if rh['constaints']:
-                constraints = [round(tmp, 4) for tmp in rh['constaints']]
-                cons_list_rev.append(constraints)
-
-            config_str = str(rh['config'])
-            if len(config_str) > 35:
-                config_str = config_str[1:35]
-            else:
-                config_str = config_str[1:-1]
-
-            table_list.append(
-                [rh['iteration_id'], results, constraints, config_str, rh['trial_state'], round(rh['cost'], 3)])
-
-            rh_config[str(rh['iteration_id'])] = rh['config']
-
-            config_values = []
-            for parameter in rh['config'].keys():
-                config_values.append(rh['config'][parameter])
-
-            for i in range(self.num_objs):
-                option['data'][i].append(config_values + [results[i]])
-
-            for i in range(self.num_objs):
-                perf_list[i].append(results[i])
-
-            for i in range(self.num_constraints):
-                cons_list[i].append(constraints[i])
-
-        if len(json_data) > 0:
-            option['schema'] = list(json_data[0]['config'].keys()) + ['perf']
-            mi = float('inf')
-            ma = -float('inf')
-            for i in range(self.num_objs):
-                mi = min(mi, np.percentile(perf_list[i], 0))
-                ma = max(ma, np.percentile(perf_list[i], 90))
-            option['visualMap']['min'] = mi
-            option['visualMap']['max'] = ma
-            option['visualMap']['dimension'] = len(option['schema']) - 1
-        else:
-            option['visualMap']['min'] = 0
-            option['visualMap']['max'] = 100
-            option['visualMap']['dimension'] = 0
-
-        # Line Data
-        # ok: 符合约束，并且在最下沿；no：不符合约束；other：符合约束，不再最下沿
-        line_data = [{'ok': [], 'no': [], 'other': []} for i in range(self.num_objs)]
-        import sys
-
-        for i in range(self.num_objs):
-            min_value = sys.maxsize
-            for idx, perf in enumerate(perf_list[i]):
-                if self.num_constraints > 0 and np.any([cons_list_rev[idx][k] > 0 for k in range(self.num_constraints)]):
-                    line_data[i]['no'].append([idx, perf])
-                    continue
-                if perf <= min_value:
-                    min_value = perf
-                    line_data[i]['ok'].append([idx, perf])
-                else:
-                    line_data[i]['other'].append([idx, perf])
-            line_data[i]['ok'].append([len(option['data'][i]), min_value])
-
-        history = self.get_history()
-
-        # Pareto data
-        pareto = dict({})
-        if self.num_objs > 1:
-            pareto["ref_point"] = history.ref_point
-            pareto["hv"] = [[idx, round(v, 3)] for idx, v in enumerate(history.hv_data)]
-            pareto["pareto_point"] = list(history.pareto.values())
-            pareto["all_points"] = history.perfs
-
-        # Importance data
-        history_dict = history.get_importance(method='shap', return_allvalue=True)
-        importance_dict = history_dict['importance_dict']
-        con_importance_dict = history_dict['con_importance_dict']
-        importance = {
-            'X': list(history_dict['X']),
-            'x': list(importance_dict.keys()),
-            'data': dict(),
-            'con_data': dict(),
-            'obj_shap_value': history_dict['obj_shap_value'],
-            'con_shap_value': history_dict['con_shap_value'],
-            # 'con_importance_dict':history_dict['con_importance_dict']
-        }
-
-        for key, value in con_importance_dict.items():
-            for i in range(len(value)):
-                y_name = 'con-value-' + str(i + 1)
-                if y_name not in importance['con_data']:
-                    importance['con_data'][y_name] = list()
-                importance['con_data'][y_name].append(value[i])
-
-        for key, value in importance_dict.items():
-            for i in range(len(value)):
-                y_name = 'opt-value-' + str(i + 1)
-                if y_name not in importance['data']:
-                    importance['data'][y_name] = list()
-                importance['data'][y_name].append(value[i])
-
-        draw_data = {
-            'num_objs': self.num_objs, 'num_constraints': self.num_constraints,
-            'line_data': line_data,
-            'cons_line_data': [[[idx, con] for idx, con in enumerate(c_l)] for c_l in cons_list],
-            'cons_list_rev': cons_list_rev,
-            'parallel_data': option, 'table_list': table_list, 'rh_config': rh_config,
-            'importance_data': importance,
-            'pareto_data': pareto,
-            'task_inf': {
-                'table_field': ['task_id', 'Advisor Type', 'Surrogate Type', 'max_runs',
-                                'Time Limit Per Trial'],
-                'table_data': [self.task_id, self.advisor_type, self.surrogate_type, self.max_iterations,
-                               self.time_limit_per_trial]
-            },
-            'pre_label_data': None,
-            'grade_data': None,
-            'cons_pre_label_data': None
-        }
-
-        if self.iteration_id >= self.max_iterations:
-            draw_data['pre_label_data'], draw_data['grade_data'] = self.verify_surrogate()
-            if self.num_constraints > 0:
-                draw_data['cons_pre_label_data'] = self.cons_verify_surrogate()
-
-        return draw_data
-
-    def verify_surrogate(self):
-        his = self.config_advisor.history_container
-        # only get successful observations
-        confs = [his.configurations[i] for i in range(len(his.configurations)) if i not in his.failed_index]
-        if self.num_objs == 1:
-            perfs = [his.successful_perfs]
-        else:
-            perfs = [[per[i] for per in his.successful_perfs] for i in range(self.num_objs)]
-
-        N = len(perfs[0])
-        if len(confs) != N or N == 0:
-            print("No equal!")
-            return None, None
-
-        from openbox.utils.config_space.util import convert_configurations_to_array
-        X_all = convert_configurations_to_array(confs)
-        Y_all = [np.array(perfs[i], dtype=np.float64) for i in range(self.num_objs)]
-        if self.num_objs == 1:
-            models = [copy.deepcopy(self.config_advisor.surrogate_model)]
-        else:
-            models = copy.deepcopy(self.config_advisor.surrogate_model)
-
-        # 10-fold validation
-        pre_perfs = [list() for i in range(self.num_objs)]
-        interval = math.ceil(N / 10)
-
-        for i in range(self.num_objs):
-            for j in range(0, 10):
-                X = np.concatenate((X_all[:j*interval, :], X_all[(j+1)*interval:, :]), axis=0)
-                Y = np.concatenate((Y_all[i][:j*interval], Y_all[i][(j+1)*interval:]))
-                # 如果是多目标，那么这就会是一个模型列表
-                tmp_model = copy.deepcopy(models[i])
-                tmp_model.train(X, Y)
-
-                test_X = X_all[j*interval:(j+1)*interval, :]
-                pre_mean, pre_var = tmp_model.predict(test_X)
-                # 这里多目标可能要改
-                for tmp in pre_mean:
-                    pre_perfs[i].append(tmp[0])
-
-        ranks = [[0] * N for i in range(self.num_objs)]
-        pre_ranks = [[0] * N for i in range(self.num_objs)]
-        for i in range(self.num_objs):
-            tmp = np.argsort(perfs[i]).astype(int)
-            pre_tmp = np.argsort(pre_perfs[i]).astype(int)
-
-            for j in range(N):
-                ranks[i][tmp[j]] = j + 1
-                pre_ranks[i][pre_tmp[j]] = j + 1
-
-        min1 = float('inf')
-        max1 = -float('inf')
-        for i in range(self.num_objs):
-            min1 = min(min1, round(min(min(pre_perfs[i]), min(perfs[i])), 3))
-            max1 = max(max1, round(max(max(pre_perfs[i]), max(perfs[i])), 3))
-        min1 = min(min1, 0)
-
-        return {
-                   'data': [list(zip(pre_perfs[i], perfs[i])) for i in range(self.num_objs)],
-                   'min': min1,
-                   'max': round(max1 * 1.1, 3)
-               }, \
-               {
-                   'data': [list(zip(pre_ranks[i], ranks[i])) for i in range(self.num_objs)],
-                   'min': 0,
-                   'max': self.max_iterations
-               }
-
-    def cons_verify_surrogate(self):
-        his = self.config_advisor.history_container
-        confs = his.configurations
-        # 每个实例的cons都是一个列表
-        cons_perfs = [[tmp[i] for tmp in his.constraint_perfs] for i in range(self.num_constraints)]
-        print(cons_perfs)
-
-        N = len(cons_perfs[0])
-        if len(confs) != N or N == 0:
-            print("No equal!")
-            return None, None
-
-        from openbox.utils.config_space.util import convert_configurations_to_array
-        X_all = convert_configurations_to_array(confs)
-        Y_all = [np.array(cons_perfs[i], dtype=np.float64) for i in range(self.num_constraints)]
-        models = copy.deepcopy(self.config_advisor.constraint_models)
-
-        # leave one out validation
-        pre_perfs = [list() for i in range(self.num_constraints)]
-        interval = math.ceil(N / 10)
-
-        for i in range(self.num_constraints):
-            for j in range(0, 10):
-                X = np.concatenate((X_all[:j*interval, :], X_all[(j+1)*interval:, :]), axis=0)
-                Y = np.concatenate((Y_all[i][:j*interval], Y_all[i][(j+1)*interval:]))
-                # 如果是多目标，那么这就会是一个模型列表
-                tmp_model = copy.deepcopy(models[i])
-                tmp_model.train(X, Y)
-
-                test_X = X_all[j*interval:(j+1)*interval, :]
-                pre_mean, pre_var = tmp_model.predict(test_X)
-                # 这里多目标可能要改
-                for tmp in pre_mean:
-                    pre_perfs[i].append(tmp[0])
-
-        print(pre_perfs)
-        min1 = float('inf')
-        max1 = -float('inf')
-        for i in range(self.num_objs):
-            min1 = min(min1, round(min(min(pre_perfs[i]), min(cons_perfs[i])), 3))
-            max1 = max(max1, round(max(max(pre_perfs[i]), max(cons_perfs[i])), 3))
-
-        min1 = min(min1, 0)
-        return {
-            'data': [list(zip(pre_perfs[i], cons_perfs[i])) for i in range(self.num_constraints)],
-            'min': min1,
-            'max': round(max1 * 1.1, 3)
-        }
-
-    def visualize(self):
-        draw_data = self.load_json()
-
-        # print(draw_data)
-        from openbox.utils.visualization.visualization_for_openbox import vis_openbox
-        vis_openbox(draw_data, os.path.join(self.vis_path_tmp, self.vis_file_name_tmp))
-
-    def generate_html(self):
-        static_path = os.path.join(os.path.abspath("."), 'bo_visualization/static')
-        template_path = os.path.join(os.path.abspath("."), 'bo_visualization/templates/visual_template.html')
-        html_path = os.path.join(self.vis_path, self.vis_file_name)
-
-        with open(template_path, 'r', encoding='utf-8') as f:
-            html_text = f.read()
-
-        link1_path = os.path.join(static_path, 'vendor/bootstrap/css/bootstrap.min.css')
-        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/vendor/bootstrap/css/bootstrap.min.css\">",
-                           "<link rel=\"stylesheet\" href=" + repr(link1_path) + ">", html_text)
-
-        link2_path = os.path.join(static_path, 'css/style.default.css')
-        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/style.default.css\" id=\"theme-stylesheet\">",
-                           "<link rel=\"stylesheet\" href=" + repr(link2_path) + " id=\"theme-stylesheet\">", html_text)
-
-        link3_path = os.path.join(static_path, 'css/custom.css')
-        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/custom.css\">",
-                           "<link rel=\"stylesheet\" href=" + repr(link3_path) + ">", html_text)
-
-        visual_json_path = os.path.join(self.json_path, 'visual_' + self.json_file_name)
-        html_text = re.sub("<script type=\"text/javascript\" src='json_path'></script>",
-                           "<script type=\"text/javascript\" src=" + repr(visual_json_path) + "></script>", html_text)
-
-        script1_path = os.path.join(static_path, 'vendor/jquery/jquery.min.js')
-        html_text = re.sub("<script src=\"../static/vendor/jquery/jquery.min.js\"></script>",
-                           "<script src=" + repr(script1_path) + "></script>", html_text)
-
-        script2_path = os.path.join(static_path, 'vendor/bootstrap/js/bootstrap.bundle.min.js')
-        html_text = re.sub("<script src=\"../static/vendor/bootstrap/js/bootstrap.bundle.min.js\"></script>",
-                           "<script src=" + repr(script2_path) + "></script>", html_text)
-
-        script3_path = os.path.join(static_path, 'vendor/jquery.cookie/jquery.cookie.js')
-        html_text = re.sub("<script src=\"../static/vendor/jquery.cookie/jquery.cookie.js\"></script>",
-                           "<script src=" + repr(script3_path) + "></script>", html_text)
-
-        script4_path = os.path.join(static_path, 'vendor/datatables/js/datatables.js')
-        html_text = re.sub("<script src=\"../static/vendor/datatables/js/datatables.js\"></script>",
-                           "<script src=" + repr(script4_path) + "></script>", html_text)
-
-        script5_path = os.path.join(static_path, 'js/echarts.min.js')
-        html_text = re.sub("<script src=\"../static/js/echarts.min.js\"></script>",
-                           "<script src=" + repr(script5_path) + "></script>", html_text)
-
-        script6_path = os.path.join(static_path, 'js/common.js')
-        html_text = re.sub("<script src=\"../static/js/common.js\"></script>",
-                           "<script src=" + repr(script6_path) + "></script>", html_text)
-
-        with open(html_path, "w+") as f:
-            f.write(html_text)
