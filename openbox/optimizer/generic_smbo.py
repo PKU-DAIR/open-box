@@ -96,7 +96,6 @@ class SMBO(BOBase):
     random_state : int
         Random seed for RNG.
     """
-
     def __init__(self, objective_function: callable, config_space,
                  num_constraints=0,
                  num_objs=1,
@@ -129,7 +128,6 @@ class SMBO(BOBase):
 
         self.num_objs = num_objs
         self.num_constraints = num_constraints
-        self.data = []
         self.FAILED_PERF = [MAXINT] * num_objs
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
