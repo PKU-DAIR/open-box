@@ -1,15 +1,10 @@
 # License: MIT
 
 import sys
-import re
 import time
-import os
-import json
-import copy
 import traceback
 import math
 from typing import List
-import numpy as np
 from collections import OrderedDict
 from tqdm import tqdm
 from openbox.optimizer.base import BOBase

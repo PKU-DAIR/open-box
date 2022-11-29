@@ -21,10 +21,6 @@ dist
 # Log files.
 logs/
 
-# Temp files.
-bo_history/
-bo_visualization_tmp/
-
 # TensorboardX files.
 runs/
 

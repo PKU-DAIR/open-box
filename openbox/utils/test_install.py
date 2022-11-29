@@ -15,7 +15,7 @@ def branin(config):
 
 
 def run_test():
-    print('===== My Test Start =====')
+    print('===== Test Start =====')
     # Define Search Space
     space = sp.Space()
     x1 = sp.Real("x1", -5, 10, default_value=0)
