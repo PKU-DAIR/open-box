@@ -12,7 +12,6 @@ from openbox.utils.config_space import Configuration, ConfigurationSpace
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.multi_objective import Hypervolume, get_pareto_front
 from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values
-from openbox.visualization import plot_convergence
 from openbox.core.base import Observation
 from openbox.utils.transform import get_transform_function
 
@@ -256,6 +255,7 @@ class HistoryContainer(object):
         ax : `Axes`
             The matplotlib axes.
         """
+        from openbox.visualization import plot_convergence
         losses = list(self.perfs)
 
         n_calls = len(losses)

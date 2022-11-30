@@ -1,6 +1,5 @@
 import abc
 from typing import Union
-from openbox.visualization.html_visualizer import HTMLVisualizer
 
 
 def build_visualizer(option: Union[str, bool], optimizer, **kwargs):
@@ -26,6 +25,7 @@ def build_visualizer(option: Union[str, bool], optimizer, **kwargs):
         visualizer = NullVisualizer()
     elif option in ['basic', 'advanced']:
         advisor = optimizer.config_advisor
+        from openbox.visualization.html_visualizer import HTMLVisualizer
         visualizer = HTMLVisualizer(
             logging_dir=optimizer.output_dir,
             history_container=optimizer.get_history(),
