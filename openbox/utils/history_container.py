@@ -12,7 +12,7 @@ from openbox.utils.config_space import Configuration, ConfigurationSpace
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.multi_objective import Hypervolume, get_pareto_front
 from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values
-from openbox.utils.visualization.plot_convergence import plot_convergence
+from openbox.visualization import plot_convergence
 from openbox.core.base import Observation
 from openbox.utils.transform import get_transform_function
 

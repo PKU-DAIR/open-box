@@ -12,7 +12,7 @@ from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import get_result
 from openbox.core.base import Observation
-from openbox.utils.visualization.html.html_visualization import save_visualization_data, generate_html
+from openbox.visualization import build_visualizer
 
 """
     The objective function returns a dictionary that has --- config, constraints, objs ---.
@@ -93,6 +93,8 @@ class SMBO(BOBase):
         Directory to save log files.
     task_id : str
         Task identifier.
+    visualization : ['none', 'basic', 'advanced']
+        HTML visualization option
     random_state : int
         Random seed for RNG.
     """
@@ -114,17 +116,13 @@ class SMBO(BOBase):
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  task_id='default_task_id',
-                 visualization=False,
+                 visualization='none',
                  random_state=None,
                  advisor_kwargs: dict = None,
                  **kwargs):
 
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
-
-        self.timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-        if visualization:
-            generate_html(logging_dir, task_id, self.timestamp)
 
         self.num_objs = num_objs
         self.num_constraints = num_constraints
@@ -209,6 +207,9 @@ class SMBO(BOBase):
         else:
             raise ValueError('Invalid advisor type!')
 
+        self.visualizer = build_visualizer(visualization, self)
+        self.visualizer.setup()
+
     def run(self):
         for _ in tqdm(range(self.iteration_id, self.max_iterations)):
             if self.budget_left < 0:
@@ -221,7 +222,6 @@ class SMBO(BOBase):
         return self.get_history()
 
     def iterate(self, budget_left=None):
-        self.iteration_id += 1
         # get configuration suggestion from advisor
         config = self.config_advisor.get_suggestion()
 
@@ -270,6 +270,7 @@ class SMBO(BOBase):
                 if self.iteration_id % 5 == 0 or self.iteration_id >= self.max_iterations:
                     save_visualization_data(self.config_advisor.history_container, self.output_dir, self.timestamp, self.advisor_type, self.surrogate_type, self.max_iterations, self.time_limit_per_trial,
                                             self.iteration_id >= self.max_iterations, self.config_advisor.surrogate_model, self.config_advisor.constraint_models)
+
         else:
             self.logger.info('This configuration has been evaluated! Skip it: %s' % config)
             history = self.get_history()
@@ -280,6 +281,8 @@ class SMBO(BOBase):
             if self.num_objs == 1:
                 objs = (objs,)
 
+        self.iteration_id += 1
+        self.visualizer.update()
         # Logging.
         if self.num_constraints > 0:
             self.logger.info('Iteration %d, objective value: %s. constraints: %s.'

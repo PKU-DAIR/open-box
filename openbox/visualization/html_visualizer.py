@@ -1,15 +1,88 @@
 import os
 import re
+import time
 import json
 import math
 import copy
+from typing import List, Union
 import numpy as np
+from openbox.utils.history_container import HistoryContainer
+from openbox.visualization.base_visualizer import BaseVisualizer
+from openbox.surrogate.base.base_model import AbstractModel
+
+
+class HTMLVisualizer(BaseVisualizer):
+    _default_advanced_analysis_options = dict(
+        importance_update_interval=5,
+    )
+
+    def __init__(
+            self,
+            logging_dir: str,
+            history_container: HistoryContainer,
+            advanced_analysis: bool = False,
+            advanced_analysis_options: dict = None,
+            advisor_type: str = None,
+            surrogate_type: str = None,
+            max_iterations: int = None,
+            time_limit_per_trial: int = None,
+            surrogate_model: Union[AbstractModel, List[AbstractModel]] = None,
+            constraint_models: List[AbstractModel] = None,
+    ):
+        super().__init__()
+        assert isinstance(logging_dir, str) and logging_dir
+        task_id = history_container.task_id
+        self.output_dir = os.path.join(logging_dir, "history/%s/" % task_id)
+        os.makedirs(self.output_dir, exist_ok=True)
+
+        self.advanced_analysis = advanced_analysis
+        if advanced_analysis_options is None:
+            advanced_analysis_options = dict()
+        self.advanced_analysis_options = self._default_advanced_analysis_options.copy()
+        self.advanced_analysis_options.update(advanced_analysis_options)
+        self._cache_advanced_data = None
+
+        self.history_container = history_container
+        self.meta_data = {
+            'task_id': task_id,
+            'advisor_type': advisor_type,
+            'surrogate_type': surrogate_type,
+            'max_iterations': max_iterations,
+            'time_limit_per_trial': time_limit_per_trial,
+        }
+        self.surrogate_model = surrogate_model  # todo: if model is altered, this will not be updated
+        self.constraint_models = constraint_models
+        self.timestamp = None
+
+    def setup(self):
+        self.timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+        self.generate_html()  # todo: check file conflict
+
+    def update(self, update_importance=None, verify_surrogate=None):
+        iter_id = len(self.history_container.configurations)
+        max_iter = self.meta_data['max_iterations'] or np.inf
+        if update_importance is None:
+            update_interval = self.advanced_analysis_options['importance_update_interval']
+            update_importance = iter_id and ((iter_id % update_interval == 0) or (iter_id >= max_iter))
+        if verify_surrogate is None:
+            verify_surrogate = iter_id >= max_iter
+        self.save_visualization_data(update_importance=update_importance, verify_surrogate=verify_surrogate)
+
+    def visualize(self, show_importance=False, verify_surrogate=False):
+        self.setup()
+        self.update(update_importance=show_importance, verify_surrogate=verify_surrogate)
+
+    def generate_html(self):
+        pass
+
+    def save_visualization_data(self, update_importance=False, verify_surrogate=False):
+        pass
 
 
 def save_visualization_data(history_container, logging_dir, timestamp, advisor_type, surrogate_type, max_iterations, time_limit_per_trial, verify_sur, surrogate_model, constraint_models):
     task_id = history_container.task_id
 
-    vis_log_dir = os.path.join(logging_dir, "history/$%s/" % task_id)
+    vis_log_dir = os.path.join(logging_dir, "history/%s/" % task_id)
     # with open(os.path.join(vis_log_dir, "%s_%s.json" % (task_id, timestamp)), 'w') as fp:
     #     json.dump({'data': data}, fp, indent=2)
 
@@ -279,7 +352,7 @@ def cons_verify_surrogate(his_con, constraint_models):
 
 
 def generate_html(logging_dir, task_id, timestamp):
-    vis_log_dir = os.path.abspath(os.path.join(logging_dir, "history/$%s/" % task_id))
+    vis_log_dir = os.path.abspath(os.path.join(logging_dir, "history/%s/" % task_id))
     os.makedirs(vis_log_dir, exist_ok=True)
 
     static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets/static')
