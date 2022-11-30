@@ -266,11 +266,6 @@ class SMBO(BOBase):
                 pass
             else:
                 self.config_advisor.update_observation(observation)
-
-                if self.iteration_id % 5 == 0 or self.iteration_id >= self.max_iterations:
-                    save_visualization_data(self.config_advisor.history_container, self.output_dir, self.timestamp, self.advisor_type, self.surrogate_type, self.max_iterations, self.time_limit_per_trial,
-                                            self.iteration_id >= self.max_iterations, self.config_advisor.surrogate_model, self.config_advisor.constraint_models)
-
         else:
             self.logger.info('This configuration has been evaluated! Skip it: %s' % config)
             history = self.get_history()
