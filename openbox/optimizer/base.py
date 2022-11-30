@@ -14,7 +14,7 @@ from openbox.utils.history_container import HistoryContainer
 class BOBase(object, metaclass=abc.ABCMeta):
     def __init__(self, objective_function, config_space, task_id='task_id', output_dir='logs/',
                  random_state=None, initial_runs=3, max_runs=50, runtime_limit=None,
-                 sample_strategy='bo', surrogate_type='gp',
+                 sample_strategy='bo',
                  history_bo_data: List[OrderedDict] = None,
                  time_limit_per_trial=600):
         self.output_dir = output_dir
@@ -37,7 +37,6 @@ class BOBase(object, metaclass=abc.ABCMeta):
         self.iteration_id = 0
         self.sample_strategy = sample_strategy
         self.history_bo_data = history_bo_data
-        self.surrogate_type = surrogate_type
         self.time_limit_per_trial = time_limit_per_trial
         self.config_advisor = None
 
