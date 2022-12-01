@@ -122,7 +122,10 @@ class HTMLVisualizer(BaseVisualizer):
         cons_list_rev = list()
 
         for idx in range(len(his_con.perfs)):
-            results = [round(tmp, 4) for tmp in his_con.perfs[idx]]
+            if his_con.num_objs > 1:
+                results = [round(tmp, 4) for tmp in his_con.perfs[idx]]
+            else:
+                results = [round(his_con.perfs[idx], 4)]
             constraints = None
             if his_con.num_constraints > 0:
                 constraints = [round(tmp, 4) for tmp in his_con.constraint_perfs[idx]]
@@ -253,41 +256,50 @@ class HTMLVisualizer(BaseVisualizer):
         return importance
 
     def generate_verify_surrogate_data(self):
-        pre_label_data, grade_data = self.verify_surrogate()
-        cons_pre_label_data = self.cons_verify_surrogate() if self.history_container.num_constraints > 0 else None
-        return pre_label_data, grade_data, cons_pre_label_data
-
-    def verify_surrogate(self):
-        assert self.surrogate_model is not None
         his_con = self.history_container
-        # only get successful observations
-        confs = [his_con.configurations[i] for i in range(len(his_con.configurations)) if i not in his_con.failed_index]
-        if his_con.num_objs == 1:
-            perfs = [his_con.successful_perfs]
-        else:
-            perfs = [[per[i] for per in his_con.successful_perfs] for i in range(his_con.num_objs)]
-
-        N = len(perfs[0])
-        if len(confs) != N or N == 0:
-            print("No equal!")
-            return None, None
 
         from openbox.utils.config_space.util import convert_configurations_to_array
-        X_all = convert_configurations_to_array(confs)
-        Y_all = [np.array(perfs[i], dtype=np.float64) for i in range(his_con.num_objs)]
+        # prepare object surrogate model data
+        X_all = convert_configurations_to_array(his_con.configurations)
+        Y_all = his_con.get_transformed_perfs(transform=None)
+        if his_con.num_objs == 1:
+            Y_all = Y_all.reshape(-1, 1)
+
         if his_con.num_objs == 1:
             models = [copy.deepcopy(self.surrogate_model)]
         else:
             models = copy.deepcopy(self.surrogate_model)
+        pre_label_data, grade_data = self.verify_surrogate(X_all, Y_all, models)
+
+        if self.history_container.num_constraints == 0:
+            return pre_label_data, grade_data, None
+
+        # prepare constraint surrogate model data
+        cons_X_all = convert_configurations_to_array(his_con.configurations)
+        cons_Y_all = his_con.get_transformed_constraint_perfs(transform='bilog')
+        cons_models = copy.deepcopy(self.constraint_models)
+
+        cons_pre_label_data, _ = self.verify_surrogate(cons_X_all, cons_Y_all, cons_models)
+
+        return pre_label_data, grade_data, cons_pre_label_data
+
+    def verify_surrogate(self, X_all, Y_all, models):
+        assert models is not None
+
+        # configuration number, obj/cons number
+        N, num_objs = Y_all.shape
+        if X_all.shape[0] != N or N == 0:
+            print("No equal!")
+            return None, None
 
         # 10-fold validation
-        pre_perfs = [list() for i in range(his_con.num_objs)]
+        pre_perfs = [list() for i in range(num_objs)]
         interval = math.ceil(N / 10)
 
-        for i in range(his_con.num_objs):
+        for i in range(num_objs):
             for j in range(0, 10):
                 X = np.concatenate((X_all[:j * interval, :], X_all[(j + 1) * interval:, :]), axis=0)
-                Y = np.concatenate((Y_all[i][:j * interval], Y_all[i][(j + 1) * interval:]))
+                Y = np.concatenate((Y_all[:j * interval, i], Y_all[(j + 1) * interval:, i]))
                 tmp_model = copy.deepcopy(models[i])
                 tmp_model.train(X, Y)
 
@@ -296,10 +308,10 @@ class HTMLVisualizer(BaseVisualizer):
                 for tmp in pre_mean:
                     pre_perfs[i].append(tmp[0])
 
-        ranks = [[0] * N for i in range(his_con.num_objs)]
-        pre_ranks = [[0] * N for i in range(his_con.num_objs)]
-        for i in range(his_con.num_objs):
-            tmp = np.argsort(perfs[i]).astype(int)
+        ranks = [[0] * N for i in range(num_objs)]
+        pre_ranks = [[0] * N for i in range(num_objs)]
+        for i in range(num_objs):
+            tmp = np.argsort(Y_all[:, i]).astype(int)
             pre_tmp = np.argsort(pre_perfs[i]).astype(int)
 
             for j in range(N):
@@ -308,75 +320,23 @@ class HTMLVisualizer(BaseVisualizer):
 
         min1 = float('inf')
         max1 = -float('inf')
-        for i in range(his_con.num_objs):
-            min1 = min(min1, round(min(min(pre_perfs[i]), min(perfs[i])), 3))
-            max1 = max(max1, round(max(max(pre_perfs[i]), max(perfs[i])), 3))
+        for i in range(num_objs):
+            min1 = min(min1, round(min(min(pre_perfs[i]), min(Y_all[:, i])), 3))
+            max1 = max(max1, round(max(max(pre_perfs[i]), max(Y_all[:, i])), 3))
         min1 = min(min1, 0)
 
         pre_label_data = {
-                   'data': [list(zip(pre_perfs[i], perfs[i])) for i in range(his_con.num_objs)],
-                   'min': min1,
-                   'max': round(max1 * 1.1, 3)
-               }
-        grade_data = {
-                   'data': [list(zip(pre_ranks[i], ranks[i])) for i in range(his_con.num_objs)],
-                   'min': 0,
-                   'max': self.meta_data['max_iterations']
-               }
-
-        return pre_label_data, grade_data
-
-    def cons_verify_surrogate(self):
-        assert self.constraint_models is not None
-        his_con = self.history_container
-
-        confs = his_con.configurations
-        # every case's constraint value is a list
-        cons_perfs = [[tmp[i] for tmp in his_con.constraint_perfs] for i in range(his_con.num_constraints)]
-        # print(cons_perfs)
-
-        N = len(cons_perfs[0])
-        if len(confs) != N or N == 0:
-            print("No equal!")
-            return None, None
-
-        from openbox.utils.config_space.util import convert_configurations_to_array
-        X_all = convert_configurations_to_array(confs)
-        Y_all = [np.array(cons_perfs[i], dtype=np.float64) for i in range(his_con.num_constraints)]
-        models = copy.deepcopy(self.constraint_models)
-
-        # leave one out validation
-        pre_perfs = [list() for i in range(his_con.num_constraints)]
-        interval = math.ceil(N / 10)
-
-        for i in range(his_con.num_constraints):
-            for j in range(0, 10):
-                X = np.concatenate((X_all[:j * interval, :], X_all[(j + 1) * interval:, :]), axis=0)
-                Y = np.concatenate((Y_all[i][:j * interval], Y_all[i][(j + 1) * interval:]))
-                tmp_model = copy.deepcopy(models[i])
-                tmp_model.train(X, Y)
-
-                test_X = X_all[j * interval:(j + 1) * interval, :]
-                pre_mean, pre_var = tmp_model.predict(test_X)
-                for tmp in pre_mean:
-                    pre_perfs[i].append(tmp[0])
-
-        # print(pre_perfs)
-        min1 = float('inf')
-        max1 = -float('inf')
-        for i in range(his_con.num_objs):
-            min1 = min(min1, round(min(min(pre_perfs[i]), min(cons_perfs[i])), 3))
-            max1 = max(max1, round(max(max(pre_perfs[i]), max(cons_perfs[i])), 3))
-
-        min1 = min(min1, 0)
-
-        cons_pre_label_data = {
-            'data': [list(zip(pre_perfs[i], cons_perfs[i])) for i in range(his_con.num_constraints)],
+            'data': [list(zip(pre_perfs[i], Y_all[:, i])) for i in range(num_objs)],
             'min': min1,
             'max': round(max1 * 1.1, 3)
         }
+        grade_data = {
+            'data': [list(zip(pre_ranks[i], ranks[i])) for i in range(num_objs)],
+            'min': 0,
+            'max': self.meta_data['max_iterations']
+        }
 
-        return cons_pre_label_data
+        return pre_label_data, grade_data
 
     def generate_html(self):
         # todo: move static html files to assets/
