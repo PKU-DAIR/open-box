@@ -158,9 +158,7 @@ print(history)
 history.plot_convergence()
 ```
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="60%">
-</p>
+<img src="../../imgs/plot_convergence_hpo.png" width="60%" class="align-center">
 
 
 如果你在用 Jupyter Notebook 环境，调用 <font color=#FF0000>**history.visualize_jupyter()**</font> 来可视化每个测试：
@@ -169,9 +167,7 @@ history.plot_convergence()
 history.visualize_jupyter()
 ```
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="90%">
-</p>
+<img src="../../imgs/visualize_jupyter_hpo.png" width="90%" class="align-center">
 
 调用 <font color=#FF0000>**print(history.get_importance())**</font> 来输出超参数的重要性：
 (注意：使用该功能需要额外安装`pyrfr`包：[Pyrfr安装教程](../installation/install_pyrfr.md))

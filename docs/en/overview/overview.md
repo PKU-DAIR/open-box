@@ -39,9 +39,7 @@ Its design satisfies the following desiderata:
 
 The figure below shows the high-level architecture of OpenBox service.
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/sys_framework.svg" width="90%">
-</p>
+<img src="../../imgs/sys_framework.svg" width="90%" class="align-center">
 
 ## Main Components
 
@@ -74,7 +72,5 @@ We compare OpenBox with six competitive open-source BBO systems on tuning LightG
 The performance rank (the lower, the better) is shown in the following figure. 
 For dataset information and more experimental results, please refer to our [published article](https://arxiv.org/abs/2106.00421).
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/ranking_lgb_7.svg" width="80%">
-</p>
+<img src="../../imgs/ranking_lgb_7.svg" width="80%" class="align-center">
 

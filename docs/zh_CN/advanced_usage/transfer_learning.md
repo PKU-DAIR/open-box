@@ -32,7 +32,5 @@ D<sup>𝐾</sup> 和一个当前的任务 D<sup>𝑇</sup>。
 有关实验设置、数据集信息和更多实验结果，请参阅我们的 [已发表文章]()。
 
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/tl_lightgbm_75_rank_result.svg" width="70%">
-</p>
+<img src="../../imgs/tl_lightgbm_75_rank_result.svg" width="70%" class="align-center">
 

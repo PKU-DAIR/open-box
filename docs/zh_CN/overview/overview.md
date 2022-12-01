@@ -33,9 +33,7 @@ OpenBox是一个高效的通用黑盒优化系统。它的设计有如下特点�
 
 下图展示了OpenBox服务的系统概览。
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/sys_framework.svg" width="90%">
-</p>
+<img src="../../imgs/sys_framework.svg" width="90%" class="align-center">
 
 
 ## 主要组成部分
@@ -71,7 +69,5 @@ OpenBox是一个高效的通用黑盒优化系统。它的设计有如下特点�
 我们在我们的 [论文](https://arxiv.org/abs/2106.00421) 中给出了详细的数据集描述和更多的实验结果。
 
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/ranking_lgb_7.svg" width="80%">
-</p>
+<img src="../../imgs/ranking_lgb_7.svg" width="80%" class="align-center">
 

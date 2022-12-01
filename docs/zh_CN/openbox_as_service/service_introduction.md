@@ -2,9 +2,7 @@
  
 **OpenBox** 的设计原则是把BBO作为服务提供给用户。
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/sys_framework.svg" width="90%">
-</p>
+<img src="../../imgs/sys_framework.svg" width="90%" class="align-center">
 
 <center>OpenBox的体系结构。</center>
 

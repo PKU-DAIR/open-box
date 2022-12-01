@@ -42,6 +42,4 @@ The average performance rank (the lower, the better) of each algorithm is shown 
 For experimental setups, dataset information and more experimental results, please refer to our [published article]().
 
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/tl_lightgbm_75_rank_result.svg" width="70%">
-</p>
+<img src="../../imgs/tl_lightgbm_75_rank_result.svg" width="70%" class="align-center">

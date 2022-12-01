@@ -99,6 +99,4 @@ print(incumbents)
 
 您将找到您创建的所有任务。单击按钮以进一步观察结果并管理任务。
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/user_board_example.png" width="90%">
-</p>
+<img src="../../imgs/user_board_example.png" width="90%" class="align-center">

@@ -117,9 +117,7 @@ Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the 
 history.plot_convergence(true_minimum=0.397887)
 ```
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_branin.png" width="60%">
-</p>
+<img src="../../imgs/plot_convergence_branin.png" width="60%" class="align-center">
 
 If you are using the Jupyter Notebook environment, call <font color=#FF0000>**history.visualize_jupyter()**</font> for 
 visualization of each trial:
@@ -128,9 +126,7 @@ visualization of each trial:
 history.visualize_jupyter()
 ```
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_jupyter_branin.png" width="90%">
-</p>
+<img src="../../imgs/visualize_jupyter_branin.png" width="90%" class="align-center">
 
 Call <font color=#FF0000>**print(history.get_importance())**</font> to print the parameter importance:
 (Note that you need to install the `pyrfr` package to use this function. [Pyrfr Installation Guide](../installation/install_pyrfr.md))

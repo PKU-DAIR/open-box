@@ -6,9 +6,7 @@ mechanism for distributed parallelization, where multiple configurations can be 
 
 Two parallel settings are considered:
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/parallel_bo.svg" width="90%">
-</p>
+<img src="../../imgs/parallel_bo.svg" width="90%" class="align-center">
 
 1) **Synchronous parallel setting (left)**. The worker pulls a new configuration from the suggestion server to evaluate 
 until all the workers have finished their last evaluations.

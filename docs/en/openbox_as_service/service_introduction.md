@@ -2,9 +2,7 @@
 
 The design of **OpenBox** follows the paradigm of providing “BBO as a service”.
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/sys_framework.svg" width="90%">
-</p>
+<img src="../../imgs/sys_framework.svg" width="90%" class="align-center">
 
 <center>Architecture of OpenBox.</center>
 

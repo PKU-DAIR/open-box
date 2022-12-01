@@ -102,6 +102,4 @@ and login your account.
 
 You will find all the tasks you created. Click the buttons to further observe the results and manage your tasks.
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/user_board_example.png" width="90%">
-</p>
+<img src="../../imgs/user_board_example.png" width="90%" class="align-center">

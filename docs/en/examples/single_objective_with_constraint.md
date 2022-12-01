@@ -111,6 +111,4 @@ Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the 
 history.plot_convergence(true_minimum=-106.7645367)
 ```
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_mishra.png" width="60%">
-</p>
+<img src="../../imgs/plot_convergence_mishra.png" width="60%" class="align-center">
