@@ -130,14 +130,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(1)[0]
         elif self.optimization_strategy == 'bo':
-            ################### train #####################
             self.surrogate_model.train(X, Y)
             incumbent_value = self.history_container.get_incumbents()[0][1]
-            # update acquisition function's parameter, pass the trained surrogate model to it
             self.acquisition_function.update(model=self.surrogate_model,
                                              eta=incumbent_value,
                                              num_data=num_config_evaluated)
-
             challengers = self.optimizer.maximize(runhistory=self.history_container,
                                                   num_points=5000)
             is_repeated_config = True
