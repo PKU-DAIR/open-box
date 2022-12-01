@@ -40,7 +40,7 @@ class HTMLVisualizer(BaseVisualizer):
             advanced_analysis_options = dict()
         self.advanced_analysis_options = self._default_advanced_analysis_options.copy()
         self.advanced_analysis_options.update(advanced_analysis_options)
-        self._cache_advanced_data = None
+        self._cache_advanced_data = dict()
 
         self.history_container = history_container
         self.meta_data = {
@@ -53,19 +53,28 @@ class HTMLVisualizer(BaseVisualizer):
         self.surrogate_model = surrogate_model  # todo: if model is altered, this will not be updated
         self.constraint_models = constraint_models
         self.timestamp = None
+        self.html_path = None
+        self.json_path = None
 
     def setup(self):
         self.timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+        task_id = self.meta_data['task_id']
+        self.html_path = os.path.join(self.output_dir, "%s_%s.html" % (task_id, self.timestamp))
+        self.json_path = os.path.join(self.output_dir, "visualization_data_%s_%s.json" % (task_id, self.timestamp))
         self.generate_html()  # todo: check file conflict
+        # todo: auto open html (win, mac, not linux)
 
     def update(self, update_importance=None, verify_surrogate=None):
         iter_id = len(self.history_container.configurations)
         max_iter = self.meta_data['max_iterations'] or np.inf
         if update_importance is None:
-            update_interval = self.advanced_analysis_options['importance_update_interval']
-            update_importance = iter_id and ((iter_id % update_interval == 0) or (iter_id >= max_iter))
+            if not self.advanced_analysis:
+                update_importance = False
+            else:
+                update_interval = self.advanced_analysis_options['importance_update_interval']
+                update_importance = iter_id and ((iter_id % update_interval == 0) or (iter_id >= max_iter))
         if verify_surrogate is None:
-            verify_surrogate = iter_id >= max_iter
+            verify_surrogate = False if not self.advanced_analysis else (iter_id >= max_iter)
         self.save_visualization_data(update_importance=update_importance, verify_surrogate=verify_surrogate)
 
     def visualize(self, show_importance=False, verify_surrogate=False):
@@ -73,15 +82,30 @@ class HTMLVisualizer(BaseVisualizer):
         self.update(update_importance=show_importance, verify_surrogate=verify_surrogate)
 
     def save_visualization_data(self, update_importance=False, verify_surrogate=False):
-        task_id = self.history_container.task_id
+        # basic data
+        draw_data = self.generate_basic_data()
 
-        processed_data = self.process_data(update_importance=update_importance, verify_surrogate=verify_surrogate)
-        with open(os.path.join(self.output_dir, 'visual_%s_%s.json' % (task_id, self.timestamp)), 'w+') as fp:
+        # advanced data
+        # importance data
+        importance = self._cache_advanced_data.get('importance')
+        if update_importance:
+            importance = self.generate_importance_data(method='shap')
+            self._cache_advanced_data['importance'] = importance
+        draw_data['importance_data'] = importance
+        # verify surrogate data
+        if verify_surrogate:
+            pre_label_data, grade_data, cons_pre_label_data = self.generate_verify_surrogate_data()
+            draw_data['pre_label_data'] = pre_label_data
+            draw_data['grade_data'] = grade_data
+            draw_data['cons_pre_label_data'] = cons_pre_label_data
+
+        # save data to json file
+        with open(self.json_path, 'w') as fp:
             fp.write('var info=')
-            json.dump({'data': processed_data}, fp, indent=2)
+            json.dump({'data': draw_data}, fp, indent=2)
             fp.write(';')
 
-    def process_data(self, update_importance, verify_surrogate):
+    def generate_basic_data(self):
         his_con = self.history_container
 
         # Config Table data
@@ -184,7 +208,8 @@ class HTMLVisualizer(BaseVisualizer):
             'task_inf': {
                 'table_field': ['task_id', 'Advisor Type', 'Surrogate Type', 'max_runs',
                                 'Time Limit Per Trial'],
-                'table_data': [his_con.task_id, self.meta_data['advisor_type'], self.meta_data['surrogate_type'], self.meta_data['max_iterations'],
+                'table_data': [self.meta_data['task_id'], self.meta_data['advisor_type'],
+                               self.meta_data['surrogate_type'], self.meta_data['max_iterations'],
                                self.meta_data['time_limit_per_trial']]
             },
             'importance_data': None,
@@ -192,53 +217,48 @@ class HTMLVisualizer(BaseVisualizer):
             'grade_data': None,
             'cons_pre_label_data': None
         }
-
-        # don't need importance data and surrogate data
-        if not self.advanced_analysis:
-            return draw_data
-
-        importance = self._cache_advanced_data
-        if update_importance:
-            # Importance data
-            history_dict = his_con.get_importance(method='shap', return_allvalue=True)
-            importance_dict = history_dict['importance_dict']
-            con_importance_dict = history_dict['con_importance_dict']
-            importance = {
-                'X': list(history_dict['X']),
-                'x': list(importance_dict.keys()),
-                'data': dict(),
-                'con_data': dict(),
-                'obj_shap_value': history_dict['obj_shap_value'],
-                'con_shap_value': history_dict['con_shap_value'],
-                # 'con_importance_dict':history_dict['con_importance_dict']
-            }
-
-            for key, value in con_importance_dict.items():
-                for i in range(len(value)):
-                    y_name = 'con-value-' + str(i + 1)
-                    if y_name not in importance['con_data']:
-                        importance['con_data'][y_name] = list()
-                    importance['con_data'][y_name].append(value[i])
-
-            for key, value in importance_dict.items():
-                for i in range(len(value)):
-                    y_name = 'opt-value-' + str(i + 1)
-                    if y_name not in importance['data']:
-                        importance['data'][y_name] = list()
-                    importance['data'][y_name].append(value[i])
-
-            self._cache_advanced_data = importance
-
-        draw_data['importance_data'] = importance
-
-        if verify_surrogate:
-            draw_data['pre_label_data'], draw_data['grade_data'] = self.verify_surrogate()
-            if his_con.num_constraints > 0:
-                draw_data['cons_pre_label_data'] = self.cons_verify_surrogate()
-
         return draw_data
 
+    def generate_importance_data(self, method='shap'):
+        if method != 'shap':  # todo: add other methods, such as fanova
+            raise NotImplementedError('Only support shap importance method now.')
+
+        history_dict = self.history_container.get_importance(method=method, return_allvalue=True)
+        importance_dict = history_dict['importance_dict']
+        con_importance_dict = history_dict['con_importance_dict']
+        importance = {
+            'X': list(history_dict['X']),
+            'x': list(importance_dict.keys()),
+            'data': dict(),
+            'con_data': dict(),
+            'obj_shap_value': history_dict['obj_shap_value'],
+            'con_shap_value': history_dict['con_shap_value'],
+            # 'con_importance_dict':history_dict['con_importance_dict']
+        }
+
+        for key, value in con_importance_dict.items():
+            for i in range(len(value)):
+                y_name = 'con-value-' + str(i + 1)
+                if y_name not in importance['con_data']:
+                    importance['con_data'][y_name] = list()
+                importance['con_data'][y_name].append(value[i])
+
+        for key, value in importance_dict.items():
+            for i in range(len(value)):
+                y_name = 'opt-value-' + str(i + 1)
+                if y_name not in importance['data']:
+                    importance['data'][y_name] = list()
+                importance['data'][y_name].append(value[i])
+
+        return importance
+
+    def generate_verify_surrogate_data(self):
+        pre_label_data, grade_data = self.verify_surrogate()
+        cons_pre_label_data = self.cons_verify_surrogate() if self.history_container.num_constraints > 0 else None
+        return pre_label_data, grade_data, cons_pre_label_data
+
     def verify_surrogate(self):
+        assert self.surrogate_model is not None
         his_con = self.history_container
         # only get successful observations
         confs = [his_con.configurations[i] for i in range(len(his_con.configurations)) if i not in his_con.failed_index]
@@ -307,12 +327,13 @@ class HTMLVisualizer(BaseVisualizer):
         return pre_label_data, grade_data
 
     def cons_verify_surrogate(self):
+        assert self.constraint_models is not None
         his_con = self.history_container
 
         confs = his_con.configurations
         # every case's constraint value is a list
         cons_perfs = [[tmp[i] for tmp in his_con.constraint_perfs] for i in range(his_con.num_constraints)]
-        print(cons_perfs)
+        # print(cons_perfs)
 
         N = len(cons_perfs[0])
         if len(confs) != N or N == 0:
@@ -340,7 +361,7 @@ class HTMLVisualizer(BaseVisualizer):
                 for tmp in pre_mean:
                     pre_perfs[i].append(tmp[0])
 
-        print(pre_perfs)
+        # print(pre_perfs)
         min1 = float('inf')
         max1 = -float('inf')
         for i in range(his_con.num_objs):
@@ -358,11 +379,9 @@ class HTMLVisualizer(BaseVisualizer):
         return cons_pre_label_data
 
     def generate_html(self):
-        task_id = self.history_container.task_id
-        vis_log_dir = self.output_dir
-        os.makedirs(vis_log_dir, exist_ok=True)
-
-        static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
+        # todo: move static html files to assets/
+        # static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
+        static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../artifact/user_board/static')
         template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/visual_template.html')
 
         with open(template_path, 'r', encoding='utf-8') as f:
@@ -380,9 +399,8 @@ class HTMLVisualizer(BaseVisualizer):
         html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/custom.css\">",
                            "<link rel=\"stylesheet\" href=" + repr(link3_path) + ">", html_text)
 
-        visual_json_path = os.path.join(vis_log_dir, 'visual_' + "%s_%s.json" % (task_id, self.timestamp))
         html_text = re.sub("<script type=\"text/javascript\" src='json_path'></script>",
-                           "<script type=\"text/javascript\" src=" + repr(visual_json_path) + "></script>", html_text)
+                           "<script type=\"text/javascript\" src=" + repr(self.json_path) + "></script>", html_text)
 
         script1_path = os.path.join(static_path, 'vendor/jquery/jquery.min.js')
         html_text = re.sub("<script src=\"../static/vendor/jquery/jquery.min.js\"></script>",
@@ -408,10 +426,8 @@ class HTMLVisualizer(BaseVisualizer):
         html_text = re.sub("<script src=\"../static/js/common.js\"></script>",
                            "<script src=" + repr(script6_path) + "></script>", html_text)
 
-        html_path = os.path.join(vis_log_dir, "%s_%s.html" % (task_id, self.timestamp))
-        with open(html_path, "w+") as f:
+        with open(self.html_path, "w") as f:
             f.write(html_text)
 
-
-
-
+        # todo: use logger
+        print('[HTMLVisualizer] Please open the html file to view visualization result: %s' % self.html_path)
