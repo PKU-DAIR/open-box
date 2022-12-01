@@ -377,6 +377,9 @@ class HistoryContainer(object):
             from openbox.utils.fanova import fANOVA
             from terminaltables import AsciiTable
 
+            if return_allvalue:
+                raise NotImplementedError()
+
             X = _get_X(self.configurations, config_space)
 
             for col_idx in range(num_objs):
