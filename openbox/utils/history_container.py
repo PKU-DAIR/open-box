@@ -286,6 +286,21 @@ class HistoryContainer(object):
         hip.Experiment.from_iterable(visualize_data).display()
         return
 
+    def visualize_html(self, show_importance=False, verify_surrogate=False, optimizer=None, **kwargs):
+        from openbox.visualization import build_visualizer, HTMLVisualizer
+        # todo: user-friendly interface
+        if optimizer is None:
+            raise ValueError('Please provide optimizer for html visualization.')
+
+        # todo: check installed packages
+        option = 'advanced' if (show_importance or verify_surrogate) else 'basic'
+        visualizer = build_visualizer(option, optimizer=optimizer, **kwargs)  # type: HTMLVisualizer
+        if visualizer.history_container is not self:
+            visualizer.history_container = self
+            visualizer.meta_data['task_id'] = self.task_id
+        visualizer.visualize(show_importance=show_importance, verify_surrogate=verify_surrogate)
+        return visualizer
+
     def get_importance(self, method='fanova', config_space=None, return_dict=False, return_allvalue=False):
         def _get_X(configurations, config_space):
             X_from_dict = np.array([get_config_values(config, config_space) for config in configurations],
@@ -344,7 +359,7 @@ class HistoryContainer(object):
 
             for col_idx in range(num_objs):
                 # Fit a LightGBMRegressor with observations
-                lgbr = LGBMRegressor()
+                lgbr = LGBMRegressor(n_jobs=1)
                 lgbr.fit(X, Y[:, col_idx])
                 explainer = shap.TreeExplainer(lgbr)
                 shap_values = explainer.shap_values(X)
