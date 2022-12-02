@@ -1,43 +1,64 @@
-# Visualization
+# HTML Visualization
 
-In this tutorial, we will explain the visualization of BBO problems in **OpenBox**.
+<font color=#FF0000>(New Feature!)</font> **OpenBox** provides HTML visualization 
+for user to monitor and analyze the optimization process.
+In this tutorial, we will explain the usage of HTML visualization in **OpenBox**.
 
-## Open Visualization
+## Enable HTML Visualization
 
-First, when creating an Optimizier instance, you can choose to open visualization, and pass the location where to put the html and essential data for visualization.
+We assume that you already know how to set up a problem in **OpenBox**. 
+If not, please refer to the [Quick Start Tutorial](../quick_start/quick_start).
 
-Here we use the code in [Single-Objective Black-box Optimization](https://open-box.readthedocs.io/en/latest/examples/single_objective_hpo.html) as an example. For how to optimize different problems, please see [**Examples**](https://open-box.readthedocs.io/en/latest/examples/examples.html).
+Here we use an example problem from 
+[Multi-Objective Black-box Optimization with Constraints](../examples/multi_objective_with_constraint).
+
+To enable HTML visualization, just set `visualization` = `basic` or `advanced` in `Optimizer`:
 
 ```python
 from openbox import Optimizer
-
-# Run
 opt = Optimizer(
-    objective_function,
-    get_configspace(),
-    num_objs=1,
-    num_constraints=0,
-    max_runs=100,
-    surrogate_type='prf',
-    time_limit_per_trial=180,
-    task_id='so_hpo',
+    ..., 
+    visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install lightgbm shap' first
+    task_id='example_task',
+    logging_dir='logs',
 )
 history = opt.run()
 ```
 
-The relevant parameters are:
+There are 3 options for `visualization`:
++ **'none'**: Run the task without visualization. 
+No additional files are generated. Better for running massive experiments.
++ **'basic'**: Run the task with basic visualization, 
+including visualization plots for objectives and constraints.
++ **'advanced'**: Enable the visualization with advanced functions, 
+including model fitting analysis and hyperparameter importance analysis.
 
-+ **visualization='basic'**
-    + Open the visualization with basic functions.
-    + other options:
-        + **'none'**: Run the task without visualization.
-        + **'advanced'**: Open the visualization with advanced functions.
-    + For basic functions and advanced functions, please see below.
+**<font color=#FF0000>Note:</font>** to execute the hyperparameter importance analysis, additional packages, 
+`shap` and `lightgbm`, are required to be installed (`pip install shap lightgbm`).
 
+Once the `Optimizer` is initialized, an HTML page will be generated in `${logging_dir}/history/${task_id}/`.
+Open the HTML page in your browser, you can see the visualization of the optimization process.
 
-+ **logging_dir='usr/logs'**
-    + Set the **absolute path** where you want the visualization webpage locates. 
-    + After the optimization, in path 'logging_dir/history/task_id', you will see an html document named by the task_id and the time you create the task. This is the visualization webpage, and you can open it with a browser.
+During the optimization, click the `Refresh` button to update the visualization result.
+
+### Enable HTML Visualization after the Optimization
+
+If you forget to set `visualization` in `Optimizer`, don't worry,
+you can also view the visualization result after the optimization is finished:
+```python
+history = opt.get_history()
+history.visualize_html(
+    show_importance=True,
+    verify_surrogate=True,
+    optimizer=opt,
+)
+```
+
+An HTML page is then generated in `${logging_dir}/history/${task_id}/`.
+
+Also note that if `show_importance=True`, additional packages, `shap` and `lightgbm`, 
+are required to be installed (`pip install shap lightgbm`).
+
 
 ## Basic Visualization
 
@@ -47,7 +68,9 @@ The relevant parameters are:
 
 This shows the objective value of every iteration. 
 
-For **constrained problems**, observations that meet the constriant will be shown as circle. Otherwise, triangle.
+For **constrained problems**, 
+observations that meet the constriant will be shown as circle <font color=#0000FF>$\bigcirc$</font>,
+Otherwise, triangle <font color=#0000FF>$\triangle$</font>.
 
 <img src="../../imgs/visualization/obj_value.png" width="80%" class="align-center">
 
@@ -80,7 +103,10 @@ In multi-objective problems, since we don't know which objective is the most imp
 
 Visualization of pareto frontier is only available for **two or three objectives problems**.
 
-Pareto frontier will be shown as a curve (2-obj) or a surface (3-obj). For **constrained problems**, observations that meet the constriant will be shown as circle. Otherwise, triangle.
+Pareto frontier will be shown as a curve (2-obj) or a surface (3-obj). 
+For **constrained problems**, 
+observations that meet the constriant will be shown as circle <font color=#0000FF>$\bigcirc$</font>. 
+Otherwise, triangle <font color=#0000FF>$\triangle$</font>.
 
 <img src="../../imgs/visualization/pareto_front.png" width="80%" class="align-center">
 
