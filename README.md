@@ -257,7 +257,7 @@ opt = Optimizer(
 history = opt.run()
 ```
 
-For more visualization details, please refer to [HTML Visualization](https://open-box.readthedocs.io/en/latest/visualization/visualization.html)
+For more visualization details, please refer to [HTML Visualization](https://open-box.readthedocs.io/en/latest/visualization/visualization.html).
 
 **More Examples**:
 + [Single-Objective with Constraints](https://github.com/PKU-DAIR/open-box/blob/master/examples/optimize_problem_with_constraint.py)
