@@ -245,6 +245,20 @@ if __name__ == "__main__":
     print(opt.get_history().get_pareto())
 ```
 
+We also provide HTML Visualization by setting `visualization` = `basic` or `advanced` when defining an `Optimizer`:
+
+```python
+opt = Optimizer(
+    ...,
+    visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install lightgbm shap' first
+    task_id='example_task',
+    logging_dir='logs',
+)
+history = opt.run()
+```
+
+For more visualization details, please refer to [HTML Visualization](https://open-box.readthedocs.io/en/latest/visualization/visualization.html)
+
 **More Examples**:
 + [Single-Objective with Constraints](https://github.com/PKU-DAIR/open-box/blob/master/examples/optimize_problem_with_constraint.py)
 + [Multi-Objective](https://github.com/PKU-DAIR/open-box/blob/master/examples/optimize_multi_objective.py)
