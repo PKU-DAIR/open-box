@@ -342,7 +342,7 @@ class HTMLVisualizer(BaseVisualizer):
         # todo: move static html files to assets/
         # static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
         static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../artifact/user_board/static')
-        visual_static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/static')
+        visual_static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
         template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/visual_template.html')
 
         with open(template_path, 'r', encoding='utf-8') as f:
