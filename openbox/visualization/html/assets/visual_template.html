@@ -299,9 +299,10 @@
     <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="../static/vendor/jquery.cookie/jquery.cookie.js"></script>
     <script src="../static/vendor/datatables/js/datatables.js"></script>
-    <!-- <script src="../static/js/echarts.min.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script>
+    <script src="../static/js/echarts.min.js"></script>
+    <script src="../static/js/echarts-gl.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script> -->
     <script src="../static/js/common.js"></script>
     <script>
 
@@ -408,7 +409,6 @@
         var line_option = {
             title:{
                 text: 'Objective Value',
-                subtext: 'This shows min objective value after n iterations.'
             },
             tooltip: {
                 trigger: 'item',
@@ -484,7 +484,7 @@
             var pareto_hv_chart = echarts.init($('#pareto_hv')[0]);
             var pareto_hv_option = {
                 title:{
-                    text: 'Pareto frontier hypervolume',
+                    text: 'Pareto Frontier Hypervolume',
                     subtext: 'This shows the hypervolume surrounded by the Pareto frontier.'
                 },
                 tooltip: {
@@ -590,6 +590,9 @@
                 ]
             };
             var cons_line_option = {
+                title:{
+                    text: 'Constraint Value',
+                },
                 grid: {
                     left: '100px',
                 },
@@ -691,7 +694,7 @@
 
             pareto_option = {
                 title: {
-                    text: 'Pareto Front',
+                    text: 'Pareto Frontier',
                 },
                 tooltip: {
                     trigger: 'axis'
@@ -732,9 +735,27 @@
             var pareto_chart = echarts.init($('#pareto_front')[0]);
             var pareto_option;
             var pareto_list = data["pareto_data"]["pareto_point"];
+
+            var no_point = [];
+            var yes_point = [];
+
+            for(var j=0; j<data["pareto_data"]["all_points"].length; j++){
+                var flag = 1;
+                for (var i = 0; i < data['num_constraints']; i++) {
+                    if (data['cons_line_data'][i][j][1] > 0){
+                        flag = 0;
+                        break;
+                    }
+                }
+                if (flag == 1)
+                    yes_point.push(data["pareto_data"]["all_points"][j]);
+                else   
+                    no_point.push(data["pareto_data"]["all_points"][j]);
+            }
+
             pareto_option = {
                 title: {
-                    text: 'Pareto Front',
+                    text: 'Pareto Frontier',
                 },
                 tooltip: {
                     formatter: function (params) {
@@ -795,9 +816,18 @@
                     {
                         type: 'scatter3D',
                         itemStyle:{
-                            color: 'grey'
+                            color: 'grey',
+                            symbol: 'circle',
                         },
-                        data:data["pareto_data"]["all_points"],
+                        data: yes_point,
+                    },
+                    {
+                        type: 'scatter3D',
+                        itemStyle:{
+                            color: 'grey',
+                            symbol: 'triangle',
+                        },
+                        data: no_point,
                     },
                 ]
             };
@@ -840,7 +870,7 @@
             var para_chart = echarts.init($('#para_importance')[0]);
             var para_option = {
                 title: {
-                    text: 'Parameter Importance',
+                    text: 'Overall Parameter Importance',
                 },
                 tooltip: {
                     trigger: 'axis'
@@ -893,7 +923,7 @@
                 var con_para_chart = echarts.init($('#con_para_importance')[0]);
                 var con_para_option = {
                     title: {
-                        text: 'Parameter Importance of Constraints',
+                        text: 'Overall Parameter Importance of Constraints',
                     },
                     tooltip: {
                         trigger: 'axis'
@@ -1182,12 +1212,15 @@
             // initialize Predict-Label Scatter Chart
             var pre_label_chart = echarts.init($('#pre_label_scatter')[0]);
             var pre_label_option = {
+                title:{
+                    text: 'Predicted Objective Value',
+                },
                 grid: {
                     left: '150px',
                 },
                 legend: {
                     left: 10,
-                    top: 10,
+                    top: 30,
                     'selected': {},
                     selectedMode: 'single'
                 },
@@ -1209,12 +1242,12 @@
                         fontSize: 16
                     },
                     splitLine: {
-                        show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     },
                     min: data['pre_label_data']['min'],
                     max: data['pre_label_data']['max']
@@ -1230,11 +1263,11 @@
                     },
                     splitLine: {
                         show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     },
                     min: data['pre_label_data']['min'],
                     max: data['pre_label_data']['max']
@@ -1288,12 +1321,15 @@
             // initialize Rank Grade Scatter Chart
             var grade_chart = echarts.init($('#grade_scatter')[0]);
             var grade_option = {
+                title:{
+                    text: 'Predicted Objective Value Rank',
+                },
                 grid: {
                     left: '150px',
                 },
                 legend: {
                     left: 10,
-                    top: 10,
+                    top: 30,
                     'selected': {},
                     selectedMode: 'single'
                 },
@@ -1315,12 +1351,12 @@
                         fontSize: 16
                     },
                     splitLine: {
-                        show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     }
                 },
                 yAxis: {
@@ -1334,11 +1370,11 @@
                     },
                     splitLine: {
                         show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     }
                 },
                 series: [
@@ -1391,12 +1427,15 @@
             // initialize Predict-Label Scatter Chart
             var cons_pre_label_chart = echarts.init($('#cons_pre_label_scatter')[0]);
             var cons_pre_label_option = {
+                title:{
+                    text: 'Predicted Constraint Value',
+                },
                 grid: {
                     left: '150px',
                 },
                 legend: {
                     left: 10,
-                    top: 10,
+                    top: 30,
                     'selected': {},
                     selectedMode: 'single'
                 },
@@ -1418,12 +1457,12 @@
                         fontSize: 16
                     },
                     splitLine: {
-                        show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     },
                     min: data['cons_pre_label_data']['min'],
                     max: data['cons_pre_label_data']['max']
@@ -1439,11 +1478,11 @@
                     },
                     splitLine: {
                         show: true,
-                        lineStyle: {
-                            color: ['black'],
-                            width: 1,
-                            type: 'solid'
-                        }
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
                     },
                     min: data['cons_pre_label_data']['min'],
                     max: data['cons_pre_label_data']['max']

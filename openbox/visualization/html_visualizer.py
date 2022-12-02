@@ -342,6 +342,7 @@ class HTMLVisualizer(BaseVisualizer):
         # todo: move static html files to assets/
         # static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
         static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../artifact/user_board/static')
+        visual_static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/static')
         template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/visual_template.html')
 
         with open(template_path, 'r', encoding='utf-8') as f:
@@ -378,13 +379,17 @@ class HTMLVisualizer(BaseVisualizer):
         html_text = re.sub("<script src=\"../static/vendor/datatables/js/datatables.js\"></script>",
                            "<script src=" + repr(script4_path) + "></script>", html_text)
 
-        script5_path = os.path.join(static_path, 'js/echarts.min.js')
+        script5_path = os.path.join(visual_static_path, 'js/echarts.min.js')
         html_text = re.sub("<script src=\"../static/js/echarts.min.js\"></script>",
                            "<script src=" + repr(script5_path) + "></script>", html_text)
 
         script6_path = os.path.join(static_path, 'js/common.js')
         html_text = re.sub("<script src=\"../static/js/common.js\"></script>",
                            "<script src=" + repr(script6_path) + "></script>", html_text)
+
+        script7_path = os.path.join(visual_static_path, 'js/echarts-gl.min.js')
+        html_text = re.sub("<script src=\"../static/js/echarts-gl.min.js\"></script>",
+                           "<script src=" + repr(script7_path) + "></script>", html_text)
 
         with open(self.html_path, "w") as f:
             f.write(html_text)
