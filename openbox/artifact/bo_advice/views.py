@@ -55,7 +55,7 @@ def task_register(request):
             options = json.loads(request.POST.get('options', '{}'))
 
             time_limit_per_trial = int(request.POST.get('time_limit_per_trial', 300))
-            active_worker_num = int(request.POST.get('time_limit_per_trial', 1))
+            active_worker_num = int(request.POST.get('active_worker_num', 1))
             parallel_type = request.POST.get('parallel_type', 'async')
             task_name = request.POST.get('task_name', 'task')
             if task_name == 'task':

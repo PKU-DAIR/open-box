@@ -12,6 +12,7 @@ from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import get_result
 from openbox.core.base import Observation
+from openbox.visualization import build_visualizer
 
 """
     The objective function returns a dictionary that has --- config, constraints, objs ---.
@@ -92,6 +93,8 @@ class SMBO(BOBase):
         Directory to save log files.
     task_id : str
         Task identifier.
+    visualization : ['none', 'basic', 'advanced']
+        HTML visualization option
     random_state : int
         Random seed for RNG.
     """
@@ -113,6 +116,7 @@ class SMBO(BOBase):
                  history_bo_data: List[OrderedDict] = None,
                  logging_dir='logs',
                  task_id='default_task_id',
+                 visualization='none',
                  random_state=None,
                  advisor_kwargs: dict = None,
                  **kwargs):
@@ -203,6 +207,9 @@ class SMBO(BOBase):
         else:
             raise ValueError('Invalid advisor type!')
 
+        self.visualizer = build_visualizer(visualization, self)
+        self.visualizer.setup()
+
     def run(self):
         for _ in tqdm(range(self.iteration_id, self.max_iterations)):
             if self.budget_left < 0:
@@ -270,6 +277,7 @@ class SMBO(BOBase):
                 objs = (objs,)
 
         self.iteration_id += 1
+        self.visualizer.update()
         # Logging.
         if self.num_constraints > 0:
             self.logger.info('Iteration %d, objective value: %s. constraints: %s.'

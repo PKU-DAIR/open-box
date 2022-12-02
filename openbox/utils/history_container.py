@@ -12,7 +12,6 @@ from openbox.utils.config_space import Configuration, ConfigurationSpace
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.multi_objective import Hypervolume, get_pareto_front
 from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values
-from openbox.utils.visualization.plot_convergence import plot_convergence
 from openbox.core.base import Observation
 from openbox.utils.transform import get_transform_function
 
@@ -256,6 +255,7 @@ class HistoryContainer(object):
         ax : `Axes`
             The matplotlib axes.
         """
+        from openbox.visualization import plot_convergence
         losses = list(self.perfs)
 
         n_calls = len(losses)
@@ -286,7 +286,22 @@ class HistoryContainer(object):
         hip.Experiment.from_iterable(visualize_data).display()
         return
 
-    def get_importance(self, method='fanova', config_space=None, return_dict=False):
+    def visualize_html(self, show_importance=False, verify_surrogate=False, optimizer=None, **kwargs):
+        from openbox.visualization import build_visualizer, HTMLVisualizer
+        # todo: user-friendly interface
+        if optimizer is None:
+            raise ValueError('Please provide optimizer for html visualization.')
+
+        # todo: check installed packages
+        option = 'advanced' if (show_importance or verify_surrogate) else 'basic'
+        visualizer = build_visualizer(option, optimizer=optimizer, **kwargs)  # type: HTMLVisualizer
+        if visualizer.history_container is not self:
+            visualizer.history_container = self
+            visualizer.meta_data['task_id'] = self.task_id
+        visualizer.visualize(show_importance=show_importance, verify_surrogate=verify_surrogate)
+        return visualizer
+
+    def get_importance(self, method='fanova', config_space=None, return_dict=False, return_allvalue=False):
         def _get_X(configurations, config_space):
             X_from_dict = np.array([get_config_values(config, config_space) for config in configurations],
                                    dtype=object)
@@ -302,12 +317,14 @@ class HistoryContainer(object):
         if len(Y.shape) == 1:
             Y = np.reshape(Y, (len(Y), 1))
         num_objs = Y.shape[1]
+        num_contraints = self.num_constraints
         if config_space is None:
             config_space = self.config_space
         if config_space is None:
             raise ValueError('Please provide config_space to show parameter importance!')
         keys = [hp.name for hp in config_space.get_hyperparameters()]
         importance_dict = {key: [] for key in keys}
+        con_importance_dict = {key: [] for key in keys}
 
         if method == 'shap':
             import shap
@@ -320,18 +337,47 @@ class HistoryContainer(object):
                           "hyperparameters, we recommend setting the method to fanova.")
 
             X = _get_X(self.configurations, config_space)
+            constraint_num = np.array(self.constraint_perfs)
+            obj_shape_value = []
+            con_shape_value = []
+
+            for col_idx in range(num_contraints):
+                # Fit a LightGBMRegressor with observations
+                lgbr = LGBMRegressor(n_jobs=1)
+                lgbr.fit(X, constraint_num[:, col_idx])
+                explainer = shap.TreeExplainer(lgbr)
+                shap_values = explainer.shap_values(X)
+                if type(shap_values) == type(X):
+                    con_shape_value.append(shap_values.tolist())
+                else:
+                    con_shape_value.append(shap_values)
+                con_feature_importance = np.mean(np.abs(shap_values), axis=0)
+
+                keys = [hp.name for hp in config_space.get_hyperparameters()]
+                for i, hp_name in enumerate(keys):
+                    con_importance_dict[hp_name].append(con_feature_importance[i])
 
             for col_idx in range(num_objs):
                 # Fit a LightGBMRegressor with observations
-                lgbr = LGBMRegressor()
+                lgbr = LGBMRegressor(n_jobs=1)
                 lgbr.fit(X, Y[:, col_idx])
                 explainer = shap.TreeExplainer(lgbr)
                 shap_values = explainer.shap_values(X)
+                if type(shap_values) == type(X):
+                    obj_shape_value.append(shap_values.tolist())
+                else:
+                    obj_shape_value.append(shap_values)
                 feature_importance = np.mean(np.abs(shap_values), axis=0)
 
                 keys = [hp.name for hp in config_space.get_hyperparameters()]
                 for i, hp_name in enumerate(keys):
                     importance_dict[hp_name].append(feature_importance[i])
+            
+            if return_allvalue:
+                return dict({'X': X.tolist(),
+                    'obj_shap_value':obj_shape_value, 'importance_dict':importance_dict,
+                    'con_shap_value':con_shape_value, 'con_importance_dict':con_importance_dict
+                })
 
         elif method == 'fanova':
             try:
@@ -345,6 +391,9 @@ class HistoryContainer(object):
                 raise
             from openbox.utils.fanova import fANOVA
             from terminaltables import AsciiTable
+
+            if return_allvalue:
+                raise NotImplementedError()
 
             X = _get_X(self.configurations, config_space)
 

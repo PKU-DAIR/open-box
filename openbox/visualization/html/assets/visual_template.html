@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>OpenBox</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="all,follow">
+    <link rel="stylesheet" href="../static/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/style.default.css" id="theme-stylesheet">
+    <link rel="stylesheet" href="../static/css/custom.css">
+    <link rel="shortcut icon" href="favicon.png">
+    <script type="text/javascript" src='json_path'></script>
+</head>
+
+<body>
+    <div id="all">
+
+        <div class="container" style="zoom:0.8">
+            <div class="row">
+                <div class="col-lg-10">
+                    <div class="box">
+                        <div class="row" style="float: right">
+                            <button onclick="refresh()" class="btn btn-outline-secondary"
+                                style="background: #4fbfa8;color: white"> Refresh</button>
+                        </div>
+                        <br />
+                        <br />
+                        <!--  BEGIN TASK INFO  -->
+                        <div class="row">
+                            <table id="task-inf-tab" class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th> task_id </th>
+                                        <th> Advisor Type </th>
+                                        <th> Surrogate Type </th>
+                                        <th> max_runs </th>
+                                        <th> Time Limit Per Trial </th>
+                                    </tr>
+                                </thead>
+
+                            </table>
+                        </div>
+                        <!--  END TASK INFO  -->
+
+                        <!--  BEGIN SWITCH TAB  -->
+                        <ul class="nav nav-tabs nav-tabs-solid nav-justified" role="tablist">
+                            <li class="nav-item">
+                                <b class="nav-link active" data-toggle="tab" role="tab" href="#obj">Objective Function</b>
+                            </li>
+                            <script>
+                                if (info.data["num_objs"] > 1){
+                                    document.write(
+                                        "<li class=\"nav-item\"><b class=\"nav-link\" data-toggle=\"tab\" role=\"tab\" href=\"#pareto\">Pareto</b></li>"
+                                    );
+                                }
+                            </script>
+
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#surrogate">Surrogate Model</b>
+                            </li>
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#para">Parameter Importance</b>
+                            </li>
+                            <li class="nav-item">
+                                <b class="nav-link" data-toggle="tab" role="tab" href="#history">Historical configurations</b>
+                            </li>
+                        </ul>
+                        <!--  END SWITCH TAB  -->
+
+                        <!--  BEGIN INFORMATION TAB  -->
+                        <div class="container-fluid tab-content" id="myTabContent">
+
+                            <!--  BEGIN OBJECTIVE TAB  -->
+                            <div class="tab-pane active" id="obj" role="tabpanel">
+                                <br>
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="line" style="height: 400px; zoom:1.25"></div>
+
+                                </div>
+                                <script>
+                                    if (info.data["num_constraints"] > 0){
+                                        document.write(
+                                            "<br><div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"cons_line\" style=\"height: 400px; zoom:1.25\"></div></div>"
+                                        );
+                                    }
+                                </script>
+                                <br>
+                                <div class="row">
+
+                                    <div class="col-md-6  col-lg-12" id="parallel_coordinates" style="height: 400px;zoom:1.25">
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <!--  END OBJECTIVE TAB  -->
+
+                            <!--  BEGIN PARETO TAB  -->
+                            <div class="tab-pane fade" id="pareto" role="tabpanel">
+                                <script>
+                                    if (info.data["num_objs"] == 2 || info.data["num_objs"] == 3){
+                                        document.write(
+                                            "<div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"pareto_front\" style=\"height: 500px; width: 800px; zoom:1.25\"></div></div>"
+                                        );
+                                    }
+                                </script>
+                                <br>
+                                <script>
+                                    if (info.data["num_objs"] > 1){
+                                        document.write(
+                                            "<div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"pareto_hv\" style=\"height: 500px; width: 800px; zoom:1.25\"></div></div>"
+                                        );
+                                    }
+                                </script>
+                            </div>
+                            <!--  END PARETO TAB  -->
+
+                            <!--  BEGIN SURROGATE TAB  -->
+                            <div class="tab-pane fade" id="surrogate" role="tabpanel">
+
+                                <script>
+                                    if(info.data['advance'] == true) {
+                                        document.write(
+                                            "<div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"pre_label_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
+                                        )
+                                        document.write("<br>")
+                                        document.write(
+                                            "<div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"grade_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
+                                        )
+                                        document.write("<br>")
+                                        if (info.data["num_constraints"] > 0){
+                                            document.write(
+                                                "<br><div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"cons_pre_label_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
+                                            );
+                                        }
+                                    }
+                                    else {
+                                        document.write("<br>")
+                                        document.write("To see surrogate model data, please select Advanced Visualization!")
+                                    }
+
+                                </script>
+                            </div>
+                            <!--  END SURROGATE TAB  -->
+
+                            <!--  BEGIN PARA TAB  -->
+                            <div class="tab-pane fade" id="para" role="tabpanel">
+                                <script>
+                                    if(info.data['advance'] == true) {
+                                        document.write(
+                                            "<div class=\"col-md-6  col-lg-12\" id=\"para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
+                                        )
+
+                                        if (info.data["num_constraints"] > 0){
+                                            document.write(
+                                                "<br><div class=\"col-md-6  col-lg-12\" id=\"con_para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
+                                            );
+                                        }
+                                        var len = info.data["num_objs"];
+                                        document.write(
+                                            "<div class=\"col-lg-2\"><select class=\"form-control\" onchange=\"selectObjs(this)\">"
+                                        );
+                                        for(var i = 0; i < len; i++){
+                                            document.write("<option value=\"obj");
+                                            document.write(i);
+                                            document.write("\">objective ");
+                                            document.write(i);
+                                            document.write("</option>");
+                                        }
+                                        document.write("</select></div>");
+                                        document.write(
+                                            "<div class=\"col-md-6  col-lg-12\" id=\"single_para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
+                                        )
+                                        if (info.data["num_constraints"] > 0){
+                                            var len = info.data["num_constraints"];
+                                            document.write(
+                                                "<div class=\"col-lg-2\"><select class=\"form-control\" onchange=\"selectCons(this)\">"
+                                            );
+                                            for(var i = 0; i < len; i++){
+                                                document.write("<option value=\"con");
+                                                document.write(i);
+                                                document.write("\">constraint ");
+                                                document.write(i);
+                                                document.write("</option>");
+                                            }
+                                            document.write("</select></div>");
+                                            document.write(
+                                                "<br><div class=\"col-md-6  col-lg-12\" id=\"con_single_para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
+                                            );
+                                        }
+                                    }
+                                    else {
+                                        document.write("<br>")
+                                        document.write("\nTo see parameter importance data, please select Advanced Visualization!")
+                                    }
+
+                                </script>
+                            </div>
+                            <!--  END PARA TAB  -->
+
+                            <!--  BEGIN HISTORY TAB  -->
+                            <div class="tab-pane fade" id="history" role="tabpanel">
+                                <table id="pipeline_table" class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th> Index </th>
+                                            <th> Result </th>
+                                            <th> Constraint </th>
+                                            <th> Configuration </th>
+                                            <th> Status </th>
+                                            <th> Cost </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!--  END HISTORY TAB  -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- pipeline detail modal -->
+    <div class="modal fade bs-example-modal-lg" id="myModal_1" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
+        aria-hidden="true">
+        <!--modal start -->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel_1">Config List</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id='rh_config_div'>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade bs-example-modal-lg" id="myModal_2" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
+        aria-hidden="true">
+        <!--modal start -->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel_2">Object Values</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id='rh_result_div'>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade bs-example-modal-lg" id="myModal_3" tabindex="-1" role="dialog" aria-labelledby="myModalLable"
+        aria-hidden="true">
+        <!--modal start -->
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel_3">Constraint Values</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id='rh_constraint_div'>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--modal end -->
+
+
+    <!-- <script type="text/javascript" src='json_path'></script> -->
+    <script src="../static/vendor/jquery/jquery.min.js"></script>
+    <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/vendor/jquery.cookie/jquery.cookie.js"></script>
+    <script src="../static/vendor/datatables/js/datatables.js"></script>
+    <script src="../static/js/echarts.min.js"></script>
+    <script src="../static/js/echarts-gl.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl/dist/echarts-gl.min.js"></script> -->
+    <script src="../static/js/common.js"></script>
+    <script>
+
+        var data = info.data
+        console.log(data)
+
+        // add data to the task information table
+        var oTable = document.getElementById('task-inf-tab')
+        var tbody = document.createElement("tbody");
+        oTable.appendChild(tbody);
+        tbody.insertRow(0)
+        tbody.rows[0].insertCell(0)
+        tbody.rows[0].cells[0].appendChild(document.createTextNode(data["task_inf"]["table_data"][0]));
+        tbody.rows[0].insertCell(1)
+        tbody.rows[0].cells[1].appendChild(document.createTextNode(data["task_inf"]["table_data"][1]));
+        tbody.rows[0].insertCell(2)
+        tbody.rows[0].cells[2].appendChild(document.createTextNode(data["task_inf"]["table_data"][2]));
+        tbody.rows[0].insertCell(3)
+        tbody.rows[0].cells[3].appendChild(document.createTextNode(data["task_inf"]["table_data"][3]));
+        tbody.rows[0].insertCell(4)
+        tbody.rows[0].cells[4].appendChild(document.createTextNode(data["task_inf"]["table_data"][4]));
+
+        var lineStyle = {
+            normal: {
+                width: 1,
+                opacity: 0.75
+            }
+        };
+
+        var mydataZoom = [
+            {
+                type: 'slider',
+                xAxisIndex: 0,
+                start: 0,
+                end: 100
+            },
+            {
+                type: 'inside',
+                xAxisIndex: 0,
+                start: 0,
+                end: 100
+            },
+        ]
+
+
+        var history_table = $('#pipeline_table').DataTable({
+            "aaSorting": [],
+            "destroy": true,
+            "searching": false
+        });
+
+
+
+        var rh_config = {};
+        var task_id = "{{ task_id | safe}}";
+        function show_config(rh_id) {
+            $('#rh_config_div').html('');
+            $('#rh_config_div').append("<pre>" + JSON.stringify(rh_config[rh_id], null, 2) + "</pre>")
+            $('#myModal_1').modal('show');
+        }
+
+        var rh_result = [];
+        function show_result(rh_id) {
+            $('#rh_result_div').html('');
+            $('#rh_result_div').append("<pre>" + JSON.stringify(rh_result[rh_id], null, 2) + "</pre>")
+            $('#myModal_2').modal('show');
+        }
+
+        var rh_constraint = [];
+        function show_constraint(rh_id) {
+            $('#rh_constraint_div').html('');
+            $('#rh_constraint_div').append("<pre>" + JSON.stringify(rh_constraint[rh_id], null, 2) + "</pre>")
+            $('#myModal_3').modal('show');
+        }
+
+        // initialize Parallel Chart
+        var parallel_coordinates_chart = echarts.init($('#parallel_coordinates')[0]);
+        var parallel_coordinates_option = {
+            title:{
+                text: 'Parallel Coordinates Plot',
+                subtext: 'This shows the features of individual observation of each round.'
+            },
+            parallel: {
+                top: 100
+            },
+            legend: {
+                left: 10,
+                top: 50,
+                'selected': {}
+            },
+            visualMap: {
+                show: true,
+                inRange: {
+                    color: ['#d94e5d', '#eac736', '#50a3ba'],
+                }
+            },
+
+            series: [
+            ]
+        };
+
+        // initialize Line Chart
+        var line_chart = echarts.init($('#line')[0]);
+        var line_option = {
+            title:{
+                text: 'Objective Value',
+            },
+            tooltip: {
+                trigger: 'item',
+                axisPointer: {
+                    animation: false
+                },
+                formatter: function(paras) {
+                    console.log(paras);
+                    var res = paras.seriesName + "</br>";
+                    res = res + "obj value: " + paras.value[1] + '</br>';
+                    if(data['num_constraints'] > 0 && paras.value[0] < data['cons_list_rev'].length) {
+                        res = res + "cons value: " + data['cons_list_rev'][paras.value[0]];
+                    }
+
+                    console.log(res)
+                    return res;
+                }
+            },
+            dataZoom: mydataZoom,
+            legend: {
+                left: 10,
+                top: 50,
+                'selected': {},
+                selectedMode: 'single'
+            },
+            grid:{
+                top: 90
+            },
+            xAxis: {
+
+                name: 'Number of iterations n',
+                boundaryGap: false,
+                nameLocation: 'center',
+                nameRotate: '0',
+                nameTextStyle: {
+                    padding: [20, 0, 0, 0],
+                    fontSize: 16
+                },
+                splitLine: {
+                    show: false,
+                    // lineStyle: {
+                    //     color: ['black'],
+                    //     width: 1,
+                    //     type: 'solid'
+                    // }
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Min objective value after n iterations',
+                nameLocation: 'center',
+                nameRotate: '90',
+                nameTextStyle: {
+                    padding: [0, 0, 50, 50],
+                    fontSize: 16
+                },
+                splitLine: {
+                    show: true,
+                    // lineStyle: {
+                    //     color: ['black'],
+                    //     width: 1,
+                    //     type: 'solid'
+                    // }
+                }
+            },
+            series: [
+            ]
+
+        };
+
+        // initialize the pareto hv line
+        if(data['num_objs'] > 1) {
+            var pareto_hv_chart = echarts.init($('#pareto_hv')[0]);
+            var pareto_hv_option = {
+                title:{
+                    text: 'Pareto Frontier Hypervolume',
+                    subtext: 'This shows the hypervolume surrounded by the Pareto frontier.'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                dataZoom: mydataZoom,
+                legend: {
+                    left: 10,
+                    top: 50,
+                    'selected': {}
+                },
+                grid:{
+                    top: 90
+                },
+                xAxis: {
+
+                    name: 'Number of iterations n',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Pareto frontier hypervolume value',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    min: 'dataMin',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    }
+                },
+                series: [
+                    {
+                        name: 'pareto hv',
+                        type: 'line',
+                        smooth: false,
+                        color: '#4fbfa8',
+                        symbol: 'roundRect',
+                        data: data['pareto_data']['hv'],
+                        lineStyle: {
+                            normal: {
+                                width: 2,
+                                opacity: 0.75
+                            }
+                        }
+                    }
+                ]
+            };
+
+            pareto_hv_option && pareto_hv_chart.setOption(pareto_hv_option);
+        }
+
+        // initialize Constraint Line Chart
+        if(data['num_constraints'] > 0) {
+            var cons_line_chart = echarts.init($('#cons_line')[0]);
+            var cons_line_markLineOpt1 = {
+                animation: false,
+                label: {
+                    formatter: 'y = 0',
+                },
+                lineStyle: {
+                    type: 'solid',
+                    width: 3
+                },
+                tooltip: {
+                    formatter: 'y = 0'
+                },
+                data: [
+                    [
+                        {
+                            coord: [0, 0],
+                            symbol: 'none'
+                        },
+                        {
+                            coord: [data['cons_line_data'][0].length, 0],
+                            symbol: 'none'
+                        }
+                    ]
+                ]
+            };
+            var cons_line_option = {
+                title:{
+                    text: 'Constraint Value',
+                },
+                grid: {
+                    left: '100px',
+                },
+                legend: {
+                    left: 10,
+                    top: 10,
+                    'selected': {}
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                dataZoom: mydataZoom,
+                xAxis: {
+                    type: 'value',
+                    name: 'Number of iterations n',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    },
+                },
+                yAxis: {
+                    type: 'value',
+                    name: ' Constraint value after n iterations',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    },
+                },
+                series: [
+
+                ]
+            }
+            for (var i = 0; i < data['num_constraints']; i++) {
+                cons_line_option['series'].push(
+                {
+                    name: 'cons ' + (i+1),
+                    type: 'scatter',
+                    data: data['cons_line_data'][i],
+                    markLine: cons_line_markLineOpt1
+                })
+                if(i != 0) {
+                    cons_line_option['legend']['selected']['cons ' + (i+1)] = false;
+                }
+            }
+
+            cons_line_option && cons_line_chart.setOption(cons_line_option);
+        }
+
+
+        if (data["num_objs"] == 2){
+            var pareto_chart = echarts.init($('#pareto_front')[0]);
+            var pareto_option;
+            var pareto_list = data["pareto_data"]["pareto_point"];
+
+            var no_point = [];
+            var yes_point = [];
+
+            for(var j=0; j<data["pareto_data"]["all_points"].length; j++){
+                var flag = 1;
+                for (var i = 0; i < data['num_constraints']; i++) {
+                    if (data['cons_line_data'][i][j][1] > 0){
+                        flag = 0;
+                        break;
+                    }
+                }
+                if (flag == 1)
+                    yes_point.push(data["pareto_data"]["all_points"][j]);
+                else   
+                    no_point.push(data["pareto_data"]["all_points"][j]);
+            }
+
+            pareto_list .sort(function(a,b){
+                return b[0]-a[0];
+            });
+
+            pareto_option = {
+                title: {
+                    text: 'Pareto Frontier',
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                dataZoom: mydataZoom,
+                xAxis: {
+                    name: 'obj1\n',
+                    nameLocation:'center',
+                    splitLine: {
+                        show: false,
+                    },
+                },
+                yAxis: {
+                    name: 'obj2\n',
+                    nameLocation:'center',
+                },
+                series: [
+                    {
+                        data: pareto_list,
+                        type: 'line',
+                        smooth: true,
+                    },
+                    {
+                        data: yes_point,
+                        type: 'scatter',
+                        symbol: 'circle'
+                    },
+                    {
+                        data: no_point,
+                        type: 'scatter',
+                        symbol: 'triangle'
+                    },
+                ]
+            };
+            pareto_option && pareto_chart.setOption(pareto_option);
+        }
+        else if(data["num_objs"] == 3){
+            var pareto_chart = echarts.init($('#pareto_front')[0]);
+            var pareto_option;
+            var pareto_list = data["pareto_data"]["pareto_point"];
+
+            var no_point = [];
+            var yes_point = [];
+
+            for(var j=0; j<data["pareto_data"]["all_points"].length; j++){
+                var flag = 1;
+                for (var i = 0; i < data['num_constraints']; i++) {
+                    if (data['cons_line_data'][i][j][1] > 0){
+                        flag = 0;
+                        break;
+                    }
+                }
+                if (flag == 1)
+                    yes_point.push(data["pareto_data"]["all_points"][j]);
+                else   
+                    no_point.push(data["pareto_data"]["all_points"][j]);
+            }
+
+            pareto_option = {
+                title: {
+                    text: 'Pareto Frontier',
+                },
+                tooltip: {
+                    formatter: function (params) {
+                        return '[' + params.value[0].toFixed(2) + ' , ' + params.value[1].toFixed(2) + ' , ' + params.value[2].toFixed(2) + ']';
+                    }
+                },
+                xAxis3D: {
+                    type: 'value',
+                    min: 'dataMin',
+                    name: 'obj1\n',
+                    nameLocation: 'center',
+                    axisLabel:{
+                    formatter:function(value,index){
+                        return value.toFixed(2)
+                    }
+                    }
+                },
+                yAxis3D: {
+                    type: 'value',
+                    min: 'dataMin',
+                    name: 'obj2\n',
+                    nameLocation: 'center',
+                    axisLabel:{
+                    formatter:function(value,index){
+                        return value.toFixed(2)
+                    }
+                    }
+                },
+                zAxis3D: {
+                    type: 'value',
+                    min: 'dataMin',
+                    name: 'obj3\n',
+                    nameLocation: 'center',
+                    axisLabel:{
+                    formatter:function(value,index){
+                        return value.toFixed(2)
+                    }
+                    }
+                },
+                grid3D: {
+                    boxHeight: 80
+                },
+                series: [
+                    {
+                        type: 'surface',
+                        wireframe: {
+                            show: false
+                        },
+                        data:pareto_list
+                    },
+                    {
+                        type: 'scatter3D',
+                        itemStyle:{
+                            color: 'red'
+                        },
+                        data:pareto_list,
+                    },
+                    {
+                        type: 'scatter3D',
+                        itemStyle:{
+                            color: 'grey',
+                            symbol: 'circle',
+                        },
+                        data: yes_point,
+                    },
+                    {
+                        type: 'scatter3D',
+                        itemStyle:{
+                            color: 'grey',
+                            symbol: 'triangle',
+                        },
+                        data: no_point,
+                    },
+                ]
+            };
+            pareto_option && pareto_chart.setOption(pareto_option);
+        }
+
+
+
+        if(data['pre_label_data'] != null) {
+            verify_surrogate_model();
+        }
+        if(data['cons_pre_label_data'] != null) {
+            verify_cons_surrogate_model();
+        }
+
+        // initialize the Parameter, Constraints Importance Chart
+        if(data["importance_data"] != null) {
+            let legend_list = [];
+            let series_list = [];
+            for(var key in data["importance_data"]["data"]) {
+                legend_list.push(key);
+
+                series_list.push(
+                {
+                      name: key,
+                      type: 'bar',
+                      data: data["importance_data"]["data"][key],
+                      markPoint: {
+                        data: [
+                          { type: 'max', name: 'Max' },
+                          { type: 'min', name: 'Min' }
+                        ]
+                      },
+                      markLine: {
+                        data: [{ type: 'average', name: 'Avg' }]
+                      }
+                    }
+                )
+            }
+            var para_chart = echarts.init($('#para_importance')[0]);
+            var para_option = {
+                title: {
+                    text: 'Overall Parameter Importance',
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: legend_list,
+                    top: '30'
+                },
+                grid:{
+                    top: '60'
+                },
+                xAxis: [
+                    {
+                      type: 'category',
+                      // prettier-ignore
+                      data: data["importance_data"]["x"]
+                    }
+                  ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ],
+                series: series_list,
+
+            }
+            para_option && para_chart.setOption(para_option);
+
+            if (data["num_constraints"] > 0){
+                let series_data = [];
+                for(var key in data["importance_data"]["con_data"]) {
+                    series_data.push(
+                    {
+                        name: key,
+                        type: 'bar',
+                        data: data["importance_data"]["con_data"][key],
+                        markPoint: {
+                            data: [
+                            { type: 'max', name: 'Max' },
+                            { type: 'min', name: 'Min' }
+                            ]
+                        },
+                        markLine: {
+                            data: [{ type: 'average', name: 'Avg' }]
+                        }
+                        }
+                    )
+                }
+
+                var con_para_chart = echarts.init($('#con_para_importance')[0]);
+                var con_para_option = {
+                    title: {
+                        text: 'Overall Parameter Importance of Constraints',
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    legend: {
+                        data: legend_list,
+                        top: '30'
+                    },
+                    grid:{
+                        top: '60'
+                    },
+                    xAxis: {
+                        data: data["importance_data"]["x"]
+                    },
+                    yAxis: {},
+                    series: series_data
+                }
+                con_para_option && con_para_chart.setOption(con_para_option);
+
+            }
+        }
+
+        // initialize the Single Parameter Importance Chart
+        if(data["importance_data"] != null) {
+            let X = data["importance_data"]["X"];
+            let para_num = data["importance_data"]["x"].length;
+            let obj_shap_value = data["importance_data"]["obj_shap_value"];
+            let obj_num = data["importance_data"]["obj_shap_value"].length;
+            var multi_slist = {};
+            for (var n = 0; n < obj_num; n++) {
+                let slist = [];
+                for (var j = 0; j < para_num; j++) {
+                    let val2shap = [];
+                    for (var i = 0; i < X.length; i++) {
+                        let pair = [X[i][j], obj_shap_value[n][i][j]];
+                        val2shap.push(pair);
+                    }
+                    slist.push({name: data["importance_data"]["x"][j], type: 'scatter', data: val2shap});
+                }
+                let name = "obj" + n.toString();
+                console.log(name);
+                multi_slist[name] = slist;
+            }
+
+            var spara_chart = echarts.init($('#single_para_importance')[0]);
+            var spara_option = {
+                title: {
+                    text: 'Single Parameter Importance',
+                    subtext: 'This chart shows how the model depends on the given feature.\n -- X-axis is the value of the feature.\n -- Y-axis is the SHAP value for that feature.\n -- Shap value represents how much knowing that feature\'s value changes the output.\n',
+                },
+                grid: {
+                    top: '120',
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    selectedMode: 'single',
+                    top: '90'
+                },
+                xAxis: {
+                    name: 'para value\n',
+                    nameLocation: 'center',
+                },
+                yAxis: {
+                    name: 'shap value\n',
+                    nameLocation: 'center',
+                    axisTick: {
+                        show: false
+                    }
+                },
+                series: multi_slist['obj0'],
+            };
+            spara_option && spara_chart.setOption(spara_option);
+
+            function selectObjs(obj) {
+                // console.log(multi_series[obj.value]);
+                // alert(obj.value);
+                console.log(multi_slist[obj.value]);
+                spara_option.series = multi_slist[obj.value];
+                console.log(multi_slist[obj.value]);
+                spara_option && spara_chart.setOption(spara_option);
+            }
+        }
+
+
+
+        // initialize the Constraints Single Parameter Importance Chart
+        if (data["importance_data"] != null && data["num_constraints"] > 0){
+            let X = data["importance_data"]["X"];
+            let para_num = data["importance_data"]["x"].length;
+            let con_shap_value = data["importance_data"]["con_shap_value"];
+            let cons_num = data["importance_data"]["con_shap_value"].length;
+            var multi_series = {};
+            for (var n=0; n<cons_num; n++){
+                let slist2 = [];
+                for(var j=0; j<para_num; j++){
+                    let val2shap = [];
+                    for(var i=0; i < X.length; i++){
+                        let pair = [X[i][j], con_shap_value[n][i][j]];
+                        val2shap.push(pair);
+                    }
+                    slist2.push({name:data["importance_data"]["x"][j], type:'scatter', data: val2shap});
+                }
+                let name = "con" + n.toString();
+                console.log(name);
+                multi_series[name] = slist2;
+            }
+            console.log(multi_series);
+            var con_spara_chart = echarts.init($('#con_single_para_importance')[0]);
+            var con_spara_option = {
+                title: {
+                    text: 'Single Parameter Importance of Constraints',
+                    subtext: 'This chart shows how the model depends on the given feature.\n -- X-axis is the value of the feature.\n -- Y-axis is the SHAP value for that feature.\n -- Shap value represents how much knowing that feature\'s value changes the output.\n',
+                },
+                grid:{
+                    top:'120',
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    selectedMode: 'single',
+                    top:'90'
+                },
+                xAxis: {
+                    name: 'para value\n',
+                    nameLocation:'center',
+                },
+                yAxis: {
+                    name: 'shap value\n',
+                    nameLocation:'center',
+                    axisTick: {
+                        show: false
+                    }
+                },
+                series: multi_series["con0"],
+            };
+            con_spara_option && con_spara_chart.setOption(con_spara_option);
+        }
+        function selectCons(obj){
+            // console.log(multi_series[obj.value]);
+            // alert(obj.value);
+            console.log(multi_series[obj.value]);
+            con_spara_option.series = multi_series[obj.value];
+            console.log(multi_series[obj.value]);
+            con_spara_option && con_spara_chart.setOption(con_spara_option);
+        }
+
+
+
+        // process the data
+        get_history();
+
+        function refresh() {
+            location.reload();
+        }
+
+        function get_history() {
+
+            let parallel_option = data["parallel_data"];
+            let parallel_parallelAxis = [];
+            $.each(parallel_option['schema'], function (i, text) {
+                let item = {};
+                if (i === 0) {
+                    item = { dim: 0, name: text, inverse: true, max: 31, nameLocation: 'start' }
+                } else {
+                    item['name'] = text;
+                    item['dim'] = i;
+                }
+                parallel_parallelAxis.push(item)
+            });
+
+            parallel_coordinates_option['parallelAxis'] = parallel_parallelAxis;
+            console.log(parallel_coordinates_option)
+            for (var i = 0; i < data['num_objs']; i++) {
+                parallel_coordinates_option['series'].push(
+                {
+                    name: 'obj ' + (i+1),
+                    type: 'parallel',
+                    lineStyle: lineStyle,
+                    inactiveOpacity: 0.1,
+                    activeOpacity: 1,
+                    data: parallel_option['data'][i]
+                })
+                if(i != 0) {
+                    parallel_coordinates_option['legend']['selected']['obj ' + (i+1)] = false;
+                }
+            }
+
+
+            parallel_coordinates_option['visualMap']['min'] = parallel_option['visualMap']['min'];
+            parallel_coordinates_option['visualMap']['max'] = parallel_option['visualMap']['max'];
+            parallel_coordinates_option['visualMap']['dimension'] = parallel_option['visualMap']['dimension'];
+            parallel_coordinates_option && parallel_coordinates_chart.setOption(parallel_coordinates_option);
+
+            for (var i = 0; i < data['num_objs']; i++) {
+                line_option['series'].push({
+                    name: 'obj ' + (i+1),
+                    type: 'line',
+                    smooth: false,
+                    symbol: 'circle',
+                    symbolSize: '10',
+                    data: data['line_data'][i]['ok']
+                })
+                line_option['series'].push({
+                    name: 'obj ' + (i+1),
+                    type: 'scatter',
+                    color: 'grey',
+                    data: data['line_data'][i]['other']
+                })
+                line_option['series'].push({
+                    name: 'obj ' + (i+1),
+                    type: 'scatter',
+                    color: 'grey',
+                    symbol: 'triangle',
+                    data: data['line_data'][i]['no']
+                })
+                if(i != 0) {
+                    line_option['legend']['selected']['obj ' + (i+1)] = false;
+                }
+            }
+
+            line_option && line_chart.setOption(line_option);
+
+            rh_config = data['rh_config'];
+            let table_list = data['table_list'];
+            let rows = [];
+            let cons = '';
+            let config_str = '';
+
+            for (let r in table_list) {
+                config_str = table_list[r][3] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_config"+ onclick="show_config(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+                console.log(rh_config[table_list[r][0]])
+                var result_str = table_list[r][1]
+                if(table_list[r][1].length > 1) {
+                    var _result = {}
+                    for(var i = 0; i < table_list[r][1].length; i++) _result['obj '+(i+1)] = table_list[r][1][i];
+                    rh_result.push(_result)
+                    result_str = table_list[r][1][0] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_result"+ onclick="show_result(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+                }
+
+                cons = table_list[r][2] == null ? 'Null' : table_list[r][2]
+                var cons_str = cons
+                if(cons_str != 'Null' && table_list[r][2].length > 1) {
+                    var _constraint = {}
+                    for(var i = 0; i < table_list[r][2].length; i++) _constraint['cons '+(i+1)] = table_list[r][2][i];
+                    rh_constraint.push(_constraint)
+                    cons_str = table_list[r][2][0] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_constraint"+ onclick="show_constraint(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+                }
+
+                rows.push([table_list[r][0], result_str, cons_str, config_str, table_list[r][4], table_list[r][5]])
+            }
+            console.log(rows)
+            history_table.clear().draw();
+            history_table.rows.add(rows).draw();
+
+        }
+
+        function verify_surrogate_model() {
+            var sur_markLineOpt1 = {
+                animation: false,
+                label: {
+                    formatter: 'y = x',
+                    align: 'right'
+                },
+                lineStyle: {
+                    type: 'solid'
+                },
+                tooltip: {
+                    formatter: 'y = x'
+                },
+                data: [
+                    [
+                        {
+                            coord: [data['pre_label_data']['min'], data['pre_label_data']['min']],
+                            symbol: 'none'
+                        },
+                        {
+                            coord: [data['pre_label_data']['max'], data['pre_label_data']['max']],
+                            symbol: 'none'
+                        }
+                    ]
+                ]
+            };
+            // initialize Predict-Label Scatter Chart
+            var pre_label_chart = echarts.init($('#pre_label_scatter')[0]);
+            var pre_label_option = {
+                title:{
+                    text: 'Predicted Objective Value',
+                },
+                grid: {
+                    left: '150px',
+                },
+                legend: {
+                    left: 10,
+                    top: 30,
+                    'selected': {},
+                    selectedMode: 'single'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                dataZoom: mydataZoom,
+                xAxis: {
+                    type: 'value',
+                    name: 'Predicted objective value',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    },
+                    min: data['pre_label_data']['min'],
+                    max: data['pre_label_data']['max']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Ground truth',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    },
+                    min: data['pre_label_data']['min'],
+                    max: data['pre_label_data']['max']
+                },
+                series: [
+
+                ]
+            }
+
+            for (var i = 0; i < data['num_objs']; i++) {
+                pre_label_option['series'].push(
+                {
+                    name: 'obj ' + (i+1),
+                    type: 'scatter',
+                    color: '#50a3ba',
+                    data: data['pre_label_data']['data'][i],
+                    markLine: sur_markLineOpt1
+                })
+                if(i != 0) {
+                    pre_label_option['legend']['selected']['obj ' + (i+1)] = false;
+                }
+            }
+
+            pre_label_option && pre_label_chart.setOption(pre_label_option);
+
+            var sur_markLineOpt2 = {
+                animation: false,
+                label: {
+                    formatter: 'y = x',
+                    align: 'right'
+                },
+                lineStyle: {
+                    type: 'solid'
+                },
+                tooltip: {
+                    formatter: 'y = x'
+                },
+                data: [
+                    [
+                        {
+                            coord: [data['grade_data']['min'], data['grade_data']['min']],
+                            symbol: 'none'
+                        },
+                        {
+                            coord: [data['grade_data']['max'], data['grade_data']['max']],
+                            symbol: 'none'
+                        }
+                    ]
+                ]
+            };
+            // initialize Rank Grade Scatter Chart
+            var grade_chart = echarts.init($('#grade_scatter')[0]);
+            var grade_option = {
+                title:{
+                    text: 'Predicted Objective Value Rank',
+                },
+                grid: {
+                    left: '150px',
+                },
+                legend: {
+                    left: 10,
+                    top: 30,
+                    'selected': {},
+                    selectedMode: 'single'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                dataZoom: mydataZoom,
+                xAxis: {
+                    type: 'value',
+                    name: 'Predicted objective value rank',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Ground truth',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    }
+                },
+                series: [
+
+                ]
+            }
+
+            for (var i = 0; i < data['num_objs']; i++) {
+                grade_option['series'].push(
+                {
+                    name: 'obj ' + (i+1),
+                    type: 'scatter',
+                    color: '#4fbfa8',
+                    data: data['grade_data']['data'][i],
+                    markLine: sur_markLineOpt2
+                })
+                if(i != 0) {
+                    grade_option['legend']['selected']['obj ' + (i+1)] = false;
+                }
+            }
+            grade_option && grade_chart.setOption(grade_option);
+        }
+
+        function verify_cons_surrogate_model() {
+            var cons_sur_markLineOpt1 = {
+                animation: false,
+                label: {
+                    formatter: 'y = x',
+                    align: 'right'
+                },
+                lineStyle: {
+                    type: 'solid'
+                },
+                tooltip: {
+                    formatter: 'y = x'
+                },
+                data: [
+                    [
+                        {
+                            coord: [data['cons_pre_label_data']['min'], data['cons_pre_label_data']['min']],
+                            symbol: 'none'
+                        },
+                        {
+                            coord: [data['cons_pre_label_data']['max'], data['cons_pre_label_data']['max']],
+                            symbol: 'none'
+                        }
+                    ]
+                ]
+            };
+            // initialize Predict-Label Scatter Chart
+            var cons_pre_label_chart = echarts.init($('#cons_pre_label_scatter')[0]);
+            var cons_pre_label_option = {
+                title:{
+                    text: 'Predicted Constraint Value',
+                },
+                grid: {
+                    left: '150px',
+                },
+                legend: {
+                    left: 10,
+                    top: 30,
+                    'selected': {},
+                    selectedMode: 'single'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        animation: false
+                    }
+                },
+                dataZoom: mydataZoom,
+                xAxis: {
+                    type: 'value',
+                    name: 'Predicted constraint value',
+                    boundaryGap: false,
+                    nameLocation: 'center',
+                    nameRotate: '0',
+                    nameTextStyle: {
+                        padding: [20, 0, 0, 0],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: false,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    },
+                    min: data['cons_pre_label_data']['min'],
+                    max: data['cons_pre_label_data']['max']
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Ground truth',
+                    nameLocation: 'center',
+                    nameRotate: '90',
+                    nameTextStyle: {
+                        padding: [0, 0, 50, 50],
+                        fontSize: 16
+                    },
+                    splitLine: {
+                        show: true,
+                        // lineStyle: {
+                        //     color: ['black'],
+                        //     width: 1,
+                        //     type: 'solid'
+                        // }
+                    },
+                    min: data['cons_pre_label_data']['min'],
+                    max: data['cons_pre_label_data']['max']
+                },
+                series: [
+
+                ]
+            }
+            for (var i = 0; i < data['num_objs']; i++) {
+                cons_pre_label_option['series'].push(
+                {
+                    name: 'cons ' + (i+1),
+                    type: 'scatter',
+                    color: '#50a3ba',
+                    data: data['cons_pre_label_data']['data'][i],
+                    markLine: cons_sur_markLineOpt1
+                })
+                if(i != 0) {
+                    cons_pre_label_option['legend']['selected']['cons ' + (i+1)] = false;
+                }
+            }
+            cons_pre_label_option && cons_pre_label_chart.setOption(cons_pre_label_option);
+
+
+        }
+
+
+
+
+
+
+    </script>
+</body>
+
+</html>
