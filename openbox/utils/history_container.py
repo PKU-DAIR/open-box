@@ -343,7 +343,7 @@ class HistoryContainer(object):
 
             for col_idx in range(num_contraints):
                 # Fit a LightGBMRegressor with observations
-                lgbr = LGBMRegressor()
+                lgbr = LGBMRegressor(n_jobs=1)
                 lgbr.fit(X, constraint_num[:, col_idx])
                 explainer = shap.TreeExplainer(lgbr)
                 shap_values = explainer.shap_values(X)
