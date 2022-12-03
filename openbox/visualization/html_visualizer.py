@@ -56,6 +56,9 @@ class HTMLVisualizer(BaseVisualizer):
         self.html_path = None
         self.json_path = None
 
+        if self.advanced_analysis:
+            self.check_dependency()
+
     def setup(self):
         self.timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         task_id = self.meta_data['task_id']
@@ -78,8 +81,20 @@ class HTMLVisualizer(BaseVisualizer):
         self.save_visualization_data(update_importance=update_importance, verify_surrogate=verify_surrogate)
 
     def visualize(self, show_importance=False, verify_surrogate=False):
+        if show_importance:
+            self.check_dependency()
         self.setup()
         self.update(update_importance=show_importance, verify_surrogate=verify_surrogate)
+
+    def check_dependency(self):
+        try:
+            import shap
+            import lightgbm
+        except ModuleNotFoundError as e:
+            raise ModuleNotFoundError(
+                'Please install shap and lightgbm to use importance analysis. '
+                'Run "pip install shap lightgbm"!'
+            ) from e
 
     def save_visualization_data(self, update_importance=False, verify_surrogate=False):
         # basic data
