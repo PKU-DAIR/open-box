@@ -84,7 +84,7 @@ Otherwise, a triangle <font color=#0000FF>$\triangle$</font>.
 This visualization is only available for **constrained problems**.
 
 This example shows the constraint value of each suggested configuration during optimization.
-By default, non-positive constraint values (**”<=0”**) imply feasibility.
+By default, non-positive constraint values (**"<=0"**) imply feasibility.
 
 <img src="../../imgs/visualization/cons_value.png" width="80%" class="align-center">
 
@@ -104,7 +104,7 @@ This part is only available for **multi-objective problems**.
 In multi-objective problems, since we do not know which objective is the most important, we search for a set of pareto optimal solutions. 
 A pareto optimal solution means that it cannot be improved in any of the objectives without degrading at least one of the other objective. 
 All pareto optimal solutions form a pareto frontier. 
-Our target is to maximize the HyperVolume from a worst solution to the pareto frontier.
+Our target is to maximize the HyperVolume from a reference point to the pareto frontier.
 
 #### 2.1 Pareto Frontier
 
