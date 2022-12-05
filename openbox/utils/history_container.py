@@ -222,49 +222,33 @@ class HistoryContainer(object):
 
     def plot_convergence(
             self,
-            xlabel="Number of iterations $n$",
-            ylabel=r"Min objective value after $n$ iterations",
-            ax=None, name=None, alpha=0.2, yscale=None,
-            color=None, true_minimum=None,
+            true_minimum=None, name=None, clip_y=True,
+            title="Convergence plot",
+            xlabel="Iterations",
+            ylabel="Min objective value",
+            ax=None, alpha=0.3, yscale=None,
+            color='C0', infeasible_color='C1',
             **kwargs):
-        """Plot one or several convergence traces.
+        """Plot convergence trace.
 
         Parameters
         ----------
-        args[i] :  `OptimizeResult`, list of `OptimizeResult`, or tuple
-            The result(s) for which to plot the convergence trace.
-
-            - if `OptimizeResult`, then draw the corresponding single trace;
-            - if list of `OptimizeResult`, then draw the corresponding convergence
-              traces in transparency, along with the average convergence trace;
-            - if tuple, then `args[i][0]` should be a string label and `args[i][1]`
-              an `OptimizeResult` or a list of `OptimizeResult`.
-
-        ax : `Axes`, optional
-            The matplotlib axes on which to draw the plot, or `None` to create
-            a new one.
-
         true_minimum : float, optional
-            The true minimum value of the function, if known.
+            True minimum value of the objective function.
 
-        yscale : None or string, optional
-            The scale for the y-axis.
+        For other parameters, see `plot_convergence` in `openbox.visualization`.
 
         Returns
         -------
-        ax : `Axes`
+        ax : matplotlib.axes.Axes
             The matplotlib axes.
         """
         from openbox.visualization import plot_convergence
-        losses = list(self.perfs)
-
-        n_calls = len(losses)
-        iterations = range(1, n_calls + 1)
-        mins = [np.min(losses[:i]) for i in iterations]
-        max_mins = max(mins)
-        cliped_losses = np.clip(losses, None, max_mins)
-        return plot_convergence(iterations, mins, cliped_losses, xlabel, ylabel, ax, name, alpha, yscale, color,
-                                true_minimum, **kwargs)
+        y = np.array(self.perfs, dtype=np.float64)  # do not transform infeasible trials
+        cy = self.get_transformed_constraint_perfs(transform=None)
+        ax = plot_convergence(y, cy, true_minimum, name, clip_y, title, xlabel, ylabel, ax, alpha, yscale,
+                              color, infeasible_color, **kwargs)
+        return ax
 
     def visualize_jupyter(self):
         try:
