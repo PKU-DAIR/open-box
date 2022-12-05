@@ -1,13 +1,13 @@
 # 可视化网页
 
 <font color=#FF0000>(新功能)</font> **OpenBox** 现提供可视化网页
-让用户查看和分析优化过程。
+以便用户查看和分析优化过程。
 
 本教程将介绍如何使用可视化网页，并帮助理解**OpenBox**中的可视化结果。
 
 ## 如何使用可视化网页
 
-我们假定你已经知道如何在**OpenBox**中设置问题。
+我们假定您已经知道如何在**OpenBox**中设置问题，如果您对此不熟悉，请参考[快速入门教程](../quick_start/quick_start)。
 
 这里我们将基于[有约束条件的多目标黑盒优化](../examples/multi_objective_with_constraint)中的例子可视化优化过程。
 
@@ -41,12 +41,12 @@ history = opt.run()
 一旦`Optimizer`被初始化，一个HTML页面会在`${logging_dir}/history/${task_id}/`中生成。
 然后在浏览器中打开这个HTML页面，就可以看到优化过程的可视化。
 
-在优化过程中，你可以点击`Refresh`按钮更新可视化结果。
+在优化过程中，您可以点击`Refresh`按钮更新可视化结果。
 
 ### 在优化后开启可视化
 
-如果你忘记了在`Optimizer`中设置可视化，没有关系，
-你仍然可以在优化结束后开启可视化：
+如果您忘记了在`Optimizer`中设置可视化，没有关系，
+您仍然可以在优化结束后开启可视化：
 ```python
 history = opt.get_history()
 history.visualize_html(
@@ -71,7 +71,7 @@ history.visualize_html(
 这个示例展示在优化中每一个建议配置的目标值。
 
 对于**有约束条件的问题**, 
-满足约束的配置将被展示为圆形<font color=#0000FF>$\bigcirc$</font>，
+满足约束的配置将被展示为圆形 <font color=#0000FF>$\bigcirc$</font>，
 否则为三角形 <font color=#0000FF>$\triangle$</font>。
 
 <img src="../../imgs/visualization/obj_value.png" width="80%" class="align-center">
@@ -83,7 +83,7 @@ history.visualize_html(
 这部分可视化只适用于**有约束条件的问题**。
 
 这个示例展示在优化中每一个建议配置的约束值。
-默认情况下，非正的约束值（**”<=0”**）表示可行。
+默认情况下，非正的约束值（**"<=0"**）表示可行。
 
 <img src="../../imgs/visualization/cons_value.png" width="80%" class="align-center">
 
@@ -104,7 +104,7 @@ history.visualize_html(
 一个帕累托最优解指的是，在不使得至少一个其他的目标变坏的情况下，这个解无法在任何一个目标上被改进。
 
 所有的帕累托最优解组成了帕累托前沿。
-我们的目标是去最大化从一个最坏解到帕累托前沿的超体积。
+我们的目标是去最大化从一个参考点到帕累托前沿的超体积。
 
 #### 2.1 帕累托前沿
 
@@ -113,7 +113,7 @@ history.visualize_html(
 帕累托前沿将被展示为曲线（2个目标时）或曲面（3个目标时）。
 
 对于**有约束条件的问题**,
-满足约束的配置将被展示为圆形<font color=#0000FF>$\bigcirc$</font>，
+满足约束的配置将被展示为圆形 <font color=#0000FF>$\bigcirc$</font>，
 否则为三角形 <font color=#0000FF>$\triangle$</font>。
 
 <img src="../../imgs/visualization/pareto_front.png" width="80%" class="align-center">
@@ -132,7 +132,7 @@ history.visualize_html(
 
 这个表格记录了每一轮观察的信息。
 由于空间有限无法显示所有信息（如所有的参数值），
-你可以点击数据旁的 **"..."** 查看详情。
+您可以点击数据旁的 **"..."** 查看详情。
 
 <img src="../../imgs/visualization/history.png" width="80%" class="align-center">
 
@@ -206,9 +206,9 @@ X轴是代理模型预测的目标值排序，Y轴是真值排序。
 这个示例展示目标值如何依赖于某个特定参数。 
 X轴是参数值，Y轴是对应的SHAP值。
 SHAP值的绝对大小体现了影响程度，正值表示正相关。
-你可以通过点击在上方的标签去切换参数。
+您可以通过点击在上方的标签去切换参数。
 
-对于**多目标问题**，你可以在图像上方的下拉框内选择特定目标。
+对于**多目标问题**，您可以在图像上方的下拉框内选择特定目标。
 
 <img src="../../imgs/visualization/single_obj.png" width="80%" class="align-center">
 
@@ -219,9 +219,9 @@ SHAP值的绝对大小体现了影响程度，正值表示正相关。
 这个示例展示约束值如何依赖于某个特定参数。 
 X轴是参数值，Y轴是对应的SHAP值。
 SHAP值的绝对大小体现了影响程度，正值表示正相关。
-你可以通过点击在上方的标签去切换参数。
+您可以通过点击在上方的标签去切换参数。
 
-如果有**不止一个约束**，你可以在图像上方的下拉框内选择特定约束。
+如果有**不止一个约束**，您可以在图像上方的下拉框内选择特定约束。
 
 <img src="../../imgs/visualization/single_cons.png" width="80%" class="align-center">
 
