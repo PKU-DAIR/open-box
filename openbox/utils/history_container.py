@@ -167,52 +167,37 @@ class HistoryContainer(object):
         return self.incumbents
 
     def get_str(self):
-        from terminaltables import AsciiTable
+        from prettytable import PrettyTable
         incumbents = self.get_incumbents()
         if not incumbents:
             return 'No incumbents in history. Please run optimization process.'
 
-        configs_table = []
-        nil = "-"
-        parameters = list(incumbents[0][0].get_dictionary().keys())
-        for para in parameters:
-            row = []
-            row.append(para)
-            for config, perf in incumbents:
-                val = config.get(para, None)
-                if val is None:
-                    val = nil
-                if isinstance(val, float):
-                    val = "%.6f" % val
-                elif not isinstance(val, str):
-                    val = str(val)
-                row.append(val)
-            configs_table.append(row)
-        configs_title = ["Parameters"] + ["" if i else "Optimal Value" for i, _ in enumerate(incumbents)]
+        max_incumbents = 5
+        if len(incumbents) > max_incumbents:
+            self.logger.info(
+                'Too many incumbents in history. Only show %d/%d of them.' % (max_incumbents, len(incumbents)))
+            incumbents = incumbents[:max_incumbents]
 
-        table_data = ([configs_title] +
-                      configs_table +
-                      [["Optimal Objective Value"] + [perf for config, perf in incumbents]] +
-                      [["Num Configs"] + [str(len(self.configurations))]]
-                      )
+        parameters = incumbents[0][0].configuration_space.get_hyperparameter_names()
+        if len(incumbents) == 1:
+            field_names = ["Parameters"] + ["Optimal Value"]
+        else:
+            field_names = ["Parameters"] + ["Optimal Value %d" % i for i in range(1, len(incumbents) + 1)]
+        table = PrettyTable(field_names=field_names, float_format=".6", align="l")
+        for param in parameters:
+            row = [param] + [config.get_dictionary().get(param) for config, perf in incumbents]
+            table.add_row(row)
+        table.add_row(["Optimal Objective Value"] + [perf for config, perf in incumbents])
+        table.add_row(["Num Configs"] + [len(self.configurations)] + [""] * (len(incumbents) - 1))
 
-        M = 2
-        raw_table = AsciiTable(
-            table_data
-            # title="Result of Optimization"
-        ).table
+        # add hlines for the last 2 rows
+        n_last_rows = 2
+        raw_table = str(table)
         lines = raw_table.splitlines()
-        title_line = lines[1]
-        st = title_line.index("|", 1)
-        col = "Optimal Value"
-        L = len(title_line)
-        lines[0] = "+" + "-" * (L - 2) + "+"
-        new_title_line = title_line[:st + 1] + (" " + col + " " * (L - st - 3 - len(col))) + "|"
-        lines[1] = new_title_line
-        bar = "\n" + lines.pop() + "\n"
-        finals = lines[-M:]
-        prevs = lines[:-M]
-        render_table = "\n".join(prevs) + bar + bar.join(finals) + bar
+        hline = lines[2]
+        for i in range(n_last_rows):
+            lines.insert(-(i + 1) * 2, hline)
+        render_table = "\n".join(lines)
         return render_table
 
     def __str__(self):
@@ -276,7 +261,6 @@ class HistoryContainer(object):
         if optimizer is None:
             raise ValueError('Please provide optimizer for html visualization.')
 
-        # todo: check installed packages
         option = 'advanced' if (show_importance or verify_surrogate) else 'basic'
         visualizer = build_visualizer(option, optimizer=optimizer, **kwargs)  # type: HTMLVisualizer
         if visualizer.history_container is not self:
@@ -297,23 +281,21 @@ class HistoryContainer(object):
             X = X.astype(X_from_array.dtype)
             return X
 
+        from prettytable import PrettyTable
         Y = np.array(self.get_transformed_perfs(transform=None))
         if len(Y.shape) == 1:
             Y = np.reshape(Y, (len(Y), 1))
-        num_objs = Y.shape[1]
-        num_contraints = self.num_constraints
         if config_space is None:
             config_space = self.config_space
         if config_space is None:
             raise ValueError('Please provide config_space to show parameter importance!')
-        keys = [hp.name for hp in config_space.get_hyperparameters()]
+        keys = config_space.get_hyperparameter_names()
         importance_dict = {key: [] for key in keys}
         con_importance_dict = {key: [] for key in keys}
 
         if method == 'shap':
             import shap
             from lightgbm import LGBMRegressor
-            from terminaltables import AsciiTable
 
             for hp in config_space.get_hyperparameters():
                 if isinstance(hp, CategoricalHyperparameter):
@@ -325,7 +307,7 @@ class HistoryContainer(object):
             obj_shape_value = []
             con_shape_value = []
 
-            for col_idx in range(num_contraints):
+            for col_idx in range(self.num_constraints):
                 # Fit a LightGBMRegressor with observations
                 lgbr = LGBMRegressor(n_jobs=1)
                 lgbr.fit(X, constraint_num[:, col_idx])
@@ -341,7 +323,7 @@ class HistoryContainer(object):
                 for i, hp_name in enumerate(keys):
                     con_importance_dict[hp_name].append(con_feature_importance[i])
 
-            for col_idx in range(num_objs):
+            for col_idx in range(self.num_objs):
                 # Fit a LightGBMRegressor with observations
                 lgbr = LGBMRegressor(n_jobs=1)
                 lgbr.fit(X, Y[:, col_idx])
@@ -374,14 +356,13 @@ class HistoryContainer(object):
                 )
                 raise
             from openbox.utils.fanova import fANOVA
-            from terminaltables import AsciiTable
 
             if return_allvalue:
                 raise NotImplementedError()
 
             X = _get_X(self.configurations, config_space)
 
-            for col_idx in range(num_objs):
+            for col_idx in range(self.num_objs):
                 # create an instance of fanova with data for the random forest and the configSpace
                 f = fANOVA(X=X, Y=Y[:, col_idx], config_space=config_space)
 
@@ -397,12 +378,13 @@ class HistoryContainer(object):
         if return_dict:
             return importance_dict
 
-        importance_list = []
-        for key, value in importance_dict.items():
-            importance_list.append([key] + ['%.6f' % imp for imp in value])
-        table_head = [["Parameters"] + ["Obj%d Importance" % i for i in range(1, num_objs + 1)]]
-        table_data = table_head + importance_list
-        importance_table = AsciiTable(table_data).table
+        if self.num_objs == 1:
+            field_names = ["Parameter", "Importance"]
+        else:
+            field_names = ["Parameter"] + ["Obj%d Importance" % i for i in range(1, self.num_objs + 1)]
+        importance_table = PrettyTable(field_names=field_names, float_format=".6", align="l")
+        for param, values in importance_dict.items():
+            importance_table.add_row([param, *values])
         return importance_table
 
     def save_json(self, fn: str = "history_container.json"):

@@ -7,7 +7,7 @@ statsmodels
 pyyaml
 emcee
 tqdm
-terminaltables
+prettytable
 matplotlib<3.3.5
 pandas<1.1.6
 numpy>=1.7.1,<1.19.6
