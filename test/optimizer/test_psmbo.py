@@ -1,7 +1,6 @@
 import numpy as np
 from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperparameter
 from openbox.optimizer.parallel_smbo import pSMBO
-from openbox.utils.visualization.visualizatoin_for_test_psmbo import visualize
 
 # Define Configuration Space
 config_space = ConfigurationSpace()
@@ -46,8 +45,3 @@ inc_value = bo.get_incumbent()
 print('BO', '=' * 30)
 print(inc_value)
 print(bo.get_history())
-
-# =====for vvv=====
-# after the execution of this file
-# goto the root directory using the command `tensorboard --logdir`
-visualize(bo.logger_name)   # todo: update to new api
