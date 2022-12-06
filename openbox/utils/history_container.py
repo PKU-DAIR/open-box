@@ -6,12 +6,12 @@ import json
 import collections
 from typing import List, Union
 import numpy as np
-from ConfigSpace import CategoricalHyperparameter, OrdinalHyperparameter, Constant
+from ConfigSpace import CategoricalHyperparameter
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import Configuration, ConfigurationSpace
 from openbox.utils.logging_utils import get_logger
 from openbox.utils.multi_objective import Hypervolume, get_pareto_front
-from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values
+from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values, get_config_numerical_values
 from openbox.core.base import Observation
 from openbox.utils.transform import get_transform_function
 
@@ -270,18 +270,9 @@ class HistoryContainer(object):
         return visualizer
 
     def get_importance(self, method='fanova', config_space=None, return_dict=False, return_allvalue=False):
-        def _get_X(configurations, config_space):
-            X_from_dict = np.array([get_config_values(config, config_space) for config in configurations],
-                                   dtype=object)
-            X_from_array = np.array([config.get_array() for config in configurations])
-            discrete_types = (CategoricalHyperparameter, OrdinalHyperparameter, Constant)
-            discrete_idx = [isinstance(hp, discrete_types) for hp in config_space.get_hyperparameters()]
-            X = X_from_dict.copy()
-            X[:, discrete_idx] = X_from_array[:, discrete_idx]
-            X = X.astype(X_from_array.dtype)
-            return X
-
         from prettytable import PrettyTable
+
+        X = np.array([get_config_numerical_values(config) for config in self.configurations])
         Y = np.array(self.get_transformed_perfs(transform=None))
         if len(Y.shape) == 1:
             Y = np.reshape(Y, (len(Y), 1))
@@ -302,7 +293,6 @@ class HistoryContainer(object):
                     print("SHAP can not support categorical hyperparameters well. To analyze a space with categorical "
                           "hyperparameters, we recommend setting the method to fanova.")
 
-            X = _get_X(self.configurations, config_space)
             constraint_num = np.array(self.constraint_perfs)
             obj_shape_value = []
             con_shape_value = []
@@ -357,10 +347,8 @@ class HistoryContainer(object):
                 raise
             from openbox.utils.fanova import fANOVA
 
-            if return_allvalue:
+            if return_allvalue:  # todo
                 raise NotImplementedError()
-
-            X = _get_X(self.configurations, config_space)
 
             for col_idx in range(self.num_objs):
                 # create an instance of fanova with data for the random forest and the configSpace
@@ -454,7 +442,7 @@ class HistoryContainer(object):
             trial_state = data_item['trial_state']
             elapsed_time = data_item['elapsed_time']
 
-            config = get_config_from_dict(config_dict, config_space)
+            config = get_config_from_dict(config_space, config_dict)
             objs = perf if self.num_objs > 1 else [perf]
 
             observation = Observation(

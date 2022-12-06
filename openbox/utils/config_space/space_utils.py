@@ -2,13 +2,13 @@
 
 import re
 import numpy as np
-from typing import List
-from openbox.utils.config_space import Configuration, ConfigurationSpace
-from ConfigSpace import ConfigurationSpace, UniformIntegerHyperparameter, UniformFloatHyperparameter, \
-    CategoricalHyperparameter, Constant
-from ConfigSpace import EqualsCondition, InCondition
-from ConfigSpace import ForbiddenEqualsClause, ForbiddenAndConjunction, ForbiddenInClause
-from ConfigSpace.util import deactivate_inactive_hyperparameters
+from ConfigSpace import (
+    Configuration, ConfigurationSpace,
+    UniformIntegerHyperparameter, UniformFloatHyperparameter,
+    CategoricalHyperparameter, OrdinalHyperparameter, Constant,
+    EqualsCondition, InCondition,
+    ForbiddenEqualsClause, ForbiddenAndConjunction, ForbiddenInClause,
+)
 
 
 def parse_bool(input_):
@@ -168,16 +168,48 @@ def string2config_space(space_desc: str):
     return cs
 
 
-def get_config_values(config: Configuration, config_space: ConfigurationSpace):
+def get_config_values(config: Configuration):
     # DO NOT USE config.get_dictionary().values()! may get random value order for different configs
-    config_values = [config[key] for key in config_space.get_hyperparameter_names()]
+    config_space = config.configuration_space
+    config_values = [config.get_dictionary().get(key) for key in config_space.get_hyperparameter_names()]
     return config_values
 
 
-def get_config_from_dict(config_dict: dict, config_space: ConfigurationSpace):
-    config = deactivate_inactive_hyperparameters(configuration_space=config_space,
-                                                 configuration=config_dict)
-    return config
+def get_config_numerical_values(config: Configuration):
+    """
+    Get the numerical values of a configuration.
+    For categorical hyperparameters, the index of the value in the choices list is used.
+    For numerical hyperparameters, the value is used.
+    """
+    X_from_dict = np.array(get_config_values(config), dtype=object)
+    X_from_array = config.get_array()
+    discrete_types = (CategoricalHyperparameter, OrdinalHyperparameter, Constant)
+    config_space = config.configuration_space
+    discrete_idx = [isinstance(hp, discrete_types) for hp in config_space.get_hyperparameters()]
+    X = X_from_dict.copy()
+    X[discrete_idx] = X_from_array[discrete_idx]
+    X = X.astype(X_from_array.dtype)
+    return X
+
+
+def round_config(config: Configuration):
+    """
+    Round config if q is set in Int/Float hyperparameter.
+    Make config.get_array() return the correct value.
+    """
+    return Configuration(configuration_space=config.configuration_space, values=config.get_dictionary())
+
+
+def get_config_from_dict(config_space: ConfigurationSpace, config_dict: dict):
+    # update:
+    #   inactive_with_values is not allowed, or you should use ConfigSpace.util.deactivate_inactive_hyperparameters
+    config = Configuration(configuration_space=config_space, values=config_dict)
+    return round_config(config)
+
+
+def get_config_from_array(config_space: ConfigurationSpace, config_array: np.ndarray):
+    config = Configuration(configuration_space=config_space, vector=config_array)
+    return round_config(config)
 
 
 def get_config_space_from_dict(space_dict: dict):
