@@ -378,13 +378,16 @@ class HistoryContainer(object):
         if return_dict:
             return importance_dict
 
+        rows = []
+        for param, values in importance_dict.items():
+            rows.append([param, *values])
         if self.num_objs == 1:
             field_names = ["Parameter", "Importance"]
+            rows.sort(key=lambda x: x[1], reverse=True)
         else:
             field_names = ["Parameter"] + ["Obj%d Importance" % i for i in range(1, self.num_objs + 1)]
         importance_table = PrettyTable(field_names=field_names, float_format=".6", align="l")
-        for param, values in importance_dict.items():
-            importance_table.add_row([param, *values])
+        importance_table.add_rows(rows)
         return importance_table
 
     def save_json(self, fn: str = "history_container.json"):
