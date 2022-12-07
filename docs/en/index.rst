@@ -205,7 +205,7 @@ Related Project
 ---------------
 
 Targeting at openness and advancing the AutoML ecosystem,
-we have also released another open-source project.
+we have also released other open-source projects.
 
 -  `MindWare <https://github.com/PKU-DAIR/mindware>`__: an
    open-source system that provides end-to-end ML model training and inference capabilities.

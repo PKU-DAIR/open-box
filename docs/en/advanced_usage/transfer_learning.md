@@ -11,28 +11,28 @@ advantages:
 
 2) Compatibility with most Bayesian optimization methods.
 
-OpenBox takes as input observations from 𝐾 + 1 tasks: D<sup>1</sup>, ...,
-D<sup>𝐾</sup> for 𝐾 previous tasks and D<sup>𝑇</sup> for the current task. 
-Each D<sup>𝑖</sup> = {(𝒙, 𝒚)},
-𝑖 = 1, ...,𝐾, includes a set of observations. Note that,
-𝒚 is an array, including multiple objectives for configuration 𝒙.
-For multi-objective problems with 𝑝 objectives, we propose to
-transfer the knowledge about 𝑝 objectives individually. Thus, the
-transfer learning of multiple objectives is turned into 𝑝 single-objective
+OpenBox takes as input observations from $𝐾 + 1$ tasks: $D^1$, ...,
+$D^𝐾$ for $𝐾$ previous tasks and $D^𝑇$ for the current task. 
+Each task $D^𝑖 = \{(𝒙, 𝒚)\}$ 
+$(𝑖 = 1, ...,𝐾)$ includes a set of observations. Note that,
+$𝒚$ is an array, including multiple objectives for configuration $𝒙$.
+For multi-objective problems with $𝑝$ objectives, we propose to
+transfer the knowledge about $𝑝$ objectives individually. Thus, the
+transfer learning of multiple objectives is turned into $𝑝$ single-objective
 transfer learning processes. For each dimension of the
 objectives, we take the following transfer-learning technique:
 
-1) We first train a surrogate model 𝑀<sup>𝑖</sup> on 𝐷<sup>𝑖</sup> for the 𝑖-th prior task
-and 𝑀<sup>𝑇</sup> on 𝐷<sup>𝑇</sup>; 
+1) We first train a surrogate model $𝑀^𝑖$ on $𝐷^𝑖$ for the $𝑖$-th prior task
+and $𝑀^𝑇$ on $𝐷^𝑇$; 
 
-2) Based on 𝑀<sup>1:𝐾</sup> and 𝑀<sup>𝑇</sup>, we then build a transfer learning surrogate by combining all base surrogates:
-𝑀<sup>TL</sup> = agg({𝑀<sup>1</sup>, ...,𝑀<sup>𝐾</sup>,𝑀<sup>𝑇</sup> };w);
+2) Based on $𝑀^{1:𝐾}$ and $𝑀^𝑇$, we then build a transfer learning surrogate by combining all base surrogates:
+$𝑀^{TL} = agg(\{𝑀^1, ...,𝑀^𝐾,𝑀^𝑇 \};w)$;
 
-3) The surrogate 𝑀<sup>TL</sup> is used to guide the configuration search,
-instead of the original 𝑀<sup>𝑇</sup>. 
+3) The surrogate $𝑀^{TL}$ is used to guide the configuration search,
+instead of the original $𝑀^𝑇$. 
 
 Concretely, we use gPoE to combine the multiple base surrogates (agg), 
-and the parameters w are calculated based on the ranking of configurations, 
+and the parameters $w$ are calculated based on the ranking of configurations, 
 which reflects the similarity between the source tasks and the target task.
 
 

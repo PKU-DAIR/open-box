@@ -11,7 +11,7 @@ OpenBox: 高效通用的黑盒优化系统
 
 **OpenBox** 是一个高效的开源系统，旨在解决泛化的黑盒优化（BBO）问题，
 例如 `自动化超参数调优 <./examples/single_objective_hpo.html>`__ 、自动化A/B测试、
-实验设计、数据库参数调优、处理器体系结构和电路设计、资源分配等。
+实验设计、数据库参数调优、处理器体系结构和电路设计、资源分配、自动化学设计等。
 
 **OnenBox** 的设计理念是将BBO作为一种服务提供给用户。
 我们的目标是将 **OpenBox** 实现为一个分布式的、有容错、可扩展的、高效的服务。
@@ -169,15 +169,28 @@ Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawe
 **MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements**
 Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; The Thirty-Fifth AAAI Conference on Artificial Intelligence (AAAI 2021).
 
+**Transfer Learning based Search Space Design for Hyperparameter Tuning.**
+Yang Li, Yu Shen, Huaijun Jiang, Tianyi Bai, Wentao Zhang, Ce Zhang, Bin Cui; KDD 2022.
+
+**TransBO: Hyperparameter Optimization via Two-Phase Transfer Learning.**
+Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Zhi Yang, Ce Zhang, Bin Cui; KDD 2022.
+
+**PaSca: a Graph Neural Architecture Search System under the Scalable Paradigm.**
+Wentao Zhang, Yu Shen, Zheyu Lin, Yang Li, Xiaosen Li, Wen Ouyang, Yangyu Tao, Zhi Yang, and Bin Cui; WWW 2022, 🏆 Best Student Paper Award.
+
+**Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale.**
+Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Jixiang Li, Ji Liu, Ce Zhang, Bin Cui; VLDB 2022.
 
 --------------------
 
 相关项目
 ---------------
 
-我们的其它AutoML项目：
+以开放性为目标，为了推进AutoML生态系统的发展，我们还发布了一些其他开源项目。：
 
 -  `MindWare <https://github.com/PKU-DAIR/mindware>`__ ：一个开源的，提供自动化且端到端的ML模型训练和预测的系统。
+
+-  `SGL <https://github.com/PKU-DAIR/SGL>`__: 一个适用于极大型图数据集的可扩展图学习工具箱
 
 ------------------------------------------------
 

@@ -2,10 +2,10 @@
 
 In quick examples, we have shown how to define independent variables in the search space.
 However, real-world search spaces are often complex, which may contain in-space conditions, forbidden clauses, etc.
-In this tutorial, we will show how OpenBox supports complex search spaces.
+In this tutorial, we will show how **OpenBox** supports complex search spaces.
 
 ## Hierarchical Conditions
-The search space in OpenBox is currently built on the package [ConfigSpace](https://github.com/automl/ConfigSpace).
+The search space in **OpenBox** is currently built on the package [ConfigSpace](https://github.com/automl/ConfigSpace).
 While ConfigSpace supports hierarchical conditions, we can directly use the advanced APIs provided in ConfigSpace.
 
 In the following example, we provide an example of building a hierarchical search space using `Conditions`:

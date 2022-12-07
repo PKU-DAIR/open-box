@@ -66,7 +66,7 @@ opt = ParallelOptimizer(
     max_runs=50,
     surrogate_type='gp',
     time_limit_per_trial=180,
-    task_id='parallel_sync',
+    task_id='parallel_async',
 )
 history = opt.run()
 ```

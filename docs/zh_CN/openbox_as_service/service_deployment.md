@@ -88,6 +88,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 + **EMAIL_PORT:** 邮件注册服务提供商的 SMTP 端口号。 从邮件注册服务提供商获取端口号。 如果 465 没能奏效，你可以再试一下 25，587，或者其它端口号。
 + **EMAIL_HOST_USER:** 你注册服务的邮件地址。
 + **EMAIL_HOST_PASSWORD:** 你 SMTP 验证的密钥。
++ **EMAIL_ACTIVE_ENABLE:** 是否使用邮件激活功能。
 
 **注意：** 不要把带有你隐私信息的文件push到 **Github** 。
 
