@@ -1,6 +1,6 @@
 import os
 import re
-import time
+from datetime import datetime
 import json
 import math
 import copy
@@ -30,9 +30,10 @@ class HTMLVisualizer(BaseVisualizer):
             constraint_models: List[AbstractModel] = None,
     ):
         super().__init__()
-        assert isinstance(logging_dir, str) and logging_dir
+        assert isinstance(logging_dir, str) and logging_dir != ''
         task_id = history_container.task_id
-        self.output_dir = os.path.join(os.path.abspath(logging_dir), "history/%s/" % task_id)
+        self.output_dir = os.path.join(logging_dir, "history/%s/" % task_id)
+        self.output_dir = os.path.abspath(self.output_dir)
         os.makedirs(self.output_dir, exist_ok=True)
 
         self.advanced_analysis = advanced_analysis
@@ -60,7 +61,7 @@ class HTMLVisualizer(BaseVisualizer):
             self.check_dependency()
 
     def setup(self):
-        self.timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+        self.timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
         task_id = self.meta_data['task_id']
         self.html_path = os.path.join(self.output_dir, "%s_%s.html" % (task_id, self.timestamp))
         self.json_path = os.path.join(self.output_dir, "visualization_data_%s_%s.json" % (task_id, self.timestamp))
