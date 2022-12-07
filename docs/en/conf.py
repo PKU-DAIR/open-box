@@ -42,6 +42,8 @@ extensions = [
     'sphinx.ext.napoleon',
 ]
 
+# myst_parser
+# documentation: https://myst-parser.readthedocs.io/en/latest/syntax/optional.html
 myst_enable_extensions = [
     "amsmath",
     "colon_fence",

@@ -5,9 +5,9 @@
 
 :github_url: https://github.com/PKU-DAIR/open-box
 
-###########################
+###############################
 OpenBox: 高效通用的黑盒优化系统
-###########################
+###############################
 
 **OpenBox** 是一个高效的开源系统，旨在解决泛化的黑盒优化（BBO）问题，
 例如 `自动化超参数调优 <./examples/single_objective_hpo.html>`__ 、自动化A/B测试、
@@ -186,7 +186,7 @@ Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Jixiang Li, Ji Liu, Ce Zhang, Bin
 相关项目
 ---------------
 
-以开放性为目标，为了推进AutoML生态系统的发展，我们还发布了一些其他开源项目。：
+以开放性为目标，为了推进AutoML生态系统的发展，我们还发布了一些其他开源项目：
 
 -  `MindWare <https://github.com/PKU-DAIR/mindware>`__ ：一个开源的，提供自动化且端到端的ML模型训练和预测的系统。
 
@@ -219,7 +219,7 @@ OpenBox项目基于 `MIT License <https://github.com/PKU-DAIR/open-box/blob/mast
     快速入门 <quick_start/quick_start>
     使用实例 <examples/examples>
     可视化 <visualization/visualization>
-    高级 <advanced_usage/advanced_usage>
+    高级用法 <advanced_usage/advanced_usage>
     OpenBox服务 <openbox_as_service/openbox_as_service>
     研究成果 <research_and_publications/research_and_publications>
     更新历史 <change_logs/change_logs>
