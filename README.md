@@ -152,7 +152,7 @@ The design of OpenBox follows the following principles:
 ### System Requirements
 
 Installation Requirements:
-+ Python >= 3.6 (Python 3.7 is recommended!)
++ Python >= 3.7 (Python 3.7 is recommended!)
 
 Supported Systems:
 + Linux (Ubuntu, ...)
@@ -161,8 +161,8 @@ Supported Systems:
 
 We **strongly** suggest you to create a Python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
-conda create -n openbox3.7 python=3.7
-conda activate openbox3.7
+conda create -n openbox python=3.7
+conda activate openbox
 ```
 
 Then update your `pip` and `setuptools` as follows:
@@ -181,9 +181,6 @@ pip install openbox
 ### Manual Installation from Source
 
 To install the newest OpenBox package, just type the following scripts on the command line:
-
-(Python >= 3.7 only. For Python == 3.6, please see our [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html))
-
 ```bash
 git clone https://github.com/PKU-DAIR/open-box.git && cd open-box
 cat requirements/main.txt | xargs -n 1 -L 1 pip install

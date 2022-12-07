@@ -239,13 +239,10 @@ class HistoryContainer(object):
         try:
             import hiplot as hip
         except ModuleNotFoundError:
-            if sys.version_info < (3, 6):
-                raise ValueError("HiPlot requires Python 3.6 or newer. "
-                                 "See https://facebookresearch.github.io/hiplot/getting_started.html")
             self.logger.error("Please run 'pip install hiplot'. "
                               "HiPlot requires Python 3.6 or newer.")
             raise
-
+        # HiPlot documentation: https://facebookresearch.github.io/hiplot/
         visualize_data = []
         for config, perf in zip(self.configurations, self.perfs):
             config_perf = config.get_dictionary().copy()

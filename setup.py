@@ -11,16 +11,10 @@ from setuptools import find_packages
 requirements = dict()
 for extra in ["dev", "main"]:
     # Skip `package @ git+[repo_url]` because not supported by pypi
-    if (3, 6) <= sys.version_info < (3, 7):
-        requirements[extra] = [r
-                               for r in Path("requirements/%s_py36.txt" % extra).read_text().splitlines()
-                               if '@' not in r
-                               ]
-    else:
-        requirements[extra] = [r
-                               for r in Path("requirements/%s.txt" % extra).read_text().splitlines()
-                               if '@' not in r
-                               ]
+    requirements[extra] = [r
+                           for r in Path("requirements/%s.txt" % extra).read_text().splitlines()
+                           if '@' not in r
+                           ]
 
 # Find version number
 spec = importlib.util.spec_from_file_location("openbox.pkginfo", str(Path(__file__).parent / "openbox" / "pkginfo.py"))
@@ -65,7 +59,7 @@ setup(
     extras_require={"dev": requirements["dev"]},
     package_data={"open-box": ["py.typed"]},
     include_package_data=True,
-    python_requires='>=3.6.0',
+    python_requires='>=3.7.0',
     entry_points={
         "console_scripts": [
             "openbox = openbox.__main__:main",

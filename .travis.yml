@@ -12,8 +12,6 @@ matrix:
   include:
     # Unit tests
     - os: linux
-      env: TESTSUITE=functionality_tests.sh PYTHON_VERSION="3.6" MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-    - os: linux
       env: TESTSUITE=functionality_tests.sh PYTHON_VERSION="3.7" MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"
     - os: linux
       env: TESTSUITE=functionality_tests.sh PYTHON_VERSION="3.8" MINICONDA_URL="https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh"

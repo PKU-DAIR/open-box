@@ -85,7 +85,7 @@ CONSTR             | SRN
 ### 系统环境需求
 
 安装需求：
-+ Python >= 3.6 （推荐版本为Python 3.7）
++ Python >= 3.7 （推荐版本为Python 3.7）
 
 支持系统：
 + Linux (Ubuntu, ...)
@@ -94,8 +94,8 @@ CONSTR             | SRN
 
 我们**强烈建议**您为OpenBox创建一个单独的Python环境，例如通过[Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
-conda create -n openbox3.7 python=3.7
-conda activate openbox3.7
+conda create -n openbox python=3.7
+conda activate openbox
 ```
 
 我们建议您在安装OpenBox之前通过以下命令更新`pip`和`setuptools`：
@@ -113,10 +113,7 @@ pip install openbox
 
 ### 通过源码手动安装
 
-使用以下命令通过Github源码安装OpenBox：
-
-（以下命令仅适用于Python >= 3.7，对于Python == 3.6，请参考[安装文档](https://open-box.readthedocs.io/zh_CN/latest/installation/installation_guide.html) ）
-
+使用以下命令通过Github源码安装OpenBox:
 ```bash
 git clone https://github.com/PKU-DAIR/open-box.git && cd open-box
 cat requirements/main.txt | xargs -n 1 -L 1 pip install
