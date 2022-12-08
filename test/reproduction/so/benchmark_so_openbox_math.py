@@ -55,7 +55,7 @@ def evaluate(mth, run_i, seed):
         y = problem.evaluate_config(config)
         res = dict()
         res['config'] = config
-        res['objs'] = (y,)
+        res['objectives'] = (y,)
         res['constraints'] = None
         return res
 
@@ -70,9 +70,9 @@ def evaluate(mth, run_i, seed):
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, _, objs = bo.iterate()
+        config, trial_state, _, objectives = bo.iterate()
         global_time = time.time() - global_start_time
-        print(seed, i, objs, config, trial_state, 'time=', global_time)
+        print(seed, i, objectives, config, trial_state, 'time=', global_time)
         time_list.append(global_time)
     config_list = bo.get_history().configurations
     perf_list = bo.get_history().perfs

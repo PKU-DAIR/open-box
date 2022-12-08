@@ -53,7 +53,7 @@ def objective_function(config: sp.Configuration):
     y_pred = model.predict(x_test)
 
     loss = 1 - balanced_accuracy_score(y_test, y_pred)  # minimize
-    return dict(objs=(loss, ))
+    return dict(objectives=(loss, ))
 ```
 
 下面给出了一些定义搜索空间的提示：
@@ -74,7 +74,7 @@ def objective_function(config: sp.Configuration):
 评估性能后，目标函数返回一个 <font color=#FF0000>**dict (Recommended)**</font>
 其中的结果包含：
 
-+ **'objs'**：一个 **要被最小化目标值** 的 **列表/元组**。
++ **'objectives'**：一个 **要被最小化目标值** 的 **列表/元组**。
 在这个例子中，我们只有一个目标，所以这个元组只包含一个值。
 
 + **'constraints**'：一个含有 **约束值** 的 **列表/元组**。
@@ -96,7 +96,7 @@ from openbox import Optimizer
 opt = Optimizer(
     objective_function,
     get_configspace(),
-    num_objs=1,
+    num_objectives=1,
     num_constraints=0,
     max_runs=100,
     surrogate_type='prf',
@@ -109,7 +109,7 @@ history = opt.run()
 这里我们创建一个 <font color=#FF0000>**Optimizer**</font> 实例，传入目标函数和配置空间。
 其它的参数是：
 
-+ **num_objs=1** 和 **num_constraints=0** 表示我们的函数返回一个没有约束的单目标值。
++ **num_objectives=1** 和 **num_constraints=0** 表示我们的函数返回一个没有约束的单目标值。
 
 + **max_runs=100** 表示优化会进行100轮（优化目标函数100次）。
 

@@ -110,7 +110,7 @@ Our target is to maximize the HyperVolume from a reference point to the pareto f
 
 The visualization of Pareto frontier is only available for **problems with two or three objectives**.
 
-The Pareto frontier is shown as a curve (2-obj) or a surface (3-obj). 
+The Pareto frontier is shown as a curve (2 objectives) or a surface (3 objectives). 
 For **constrained problems**, 
 a configuration that satisfies the constriants is shown as circle <font color=#0000FF>$\bigcirc$</font>. 
 Otherwise, a triangle <font color=#0000FF>$\triangle$</font>.

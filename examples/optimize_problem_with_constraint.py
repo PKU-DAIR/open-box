@@ -14,7 +14,7 @@ def mishra(config: sp.Configuration):
     t3 = (x - y)**2
 
     result = dict()
-    result['objs'] = [t1 + t2 + t3, ]
+    result['objectives'] = [t1 + t2 + t3, ]
     result['constraints'] = [np.sum((X + 5)**2) - 25, ]
     return result
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         mishra,
         space,
         num_constraints=1,
-        num_objs=1,
+        num_objectives=1,
         surrogate_type='gp',
         acq_optimizer_type='random_scipy',
         max_runs=50,

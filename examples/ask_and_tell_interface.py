@@ -16,7 +16,7 @@ def branin(config):
     x1, x2 = config['x1'], config['x2']
     y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
         + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
-    return {'objs': (y,)}
+    return {'objectives': (y,)}
 
 
 # Run
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         # evaluate
         ret = branin(config)
         # tell
-        observation = Observation(config=config, objs=ret['objs'])
+        observation = Observation(config=config, objectives=ret['objectives'])
         advisor.update_observation(observation)
         print('===== ITER %d/%d: %s.' % (i+1, MAX_RUNS, observation))
 

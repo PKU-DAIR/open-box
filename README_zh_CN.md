@@ -165,11 +165,11 @@ def CONSTR(config):
     x1, x2 = config['x1'], config['x2']
     y1, y2 = x1, (1.0 + x2) / x1
     c1, c2 = 6.0 - 9.0 * x1 - x2, 1.0 - 9.0 * x1 + x2
-    return dict(objs=[y1, y2], constraints=[c1, c2])
+    return dict(objectives=[y1, y2], constraints=[c1, c2])
 
 # Run
 if __name__ == "__main__":
-    opt = Optimizer(CONSTR, space, num_objs=2, num_constraints=2,
+    opt = Optimizer(CONSTR, space, num_objectives=2, num_constraints=2,
                     max_runs=50, ref_point=[10.0, 10.0], task_id='moc')
     opt.run()
     print(opt.get_history().get_pareto())

@@ -13,7 +13,7 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
     def __init__(self,
 
                  config_space: ConfigurationSpace,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=0,
                  population_size=30,
                  optimization_strategy='ea',
@@ -41,7 +41,7 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
         f and cr may be a tuple of two floats, such as (0.1,0.9)
         If so, these two values are adjusted automatically within this range.
         """
-        super().__init__(config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
+        super().__init__(config_space=config_space, num_objectives=num_objectives, num_constraints=num_constraints,
                          population_size=population_size, optimization_strategy=optimization_strategy,
                          batch_size=batch_size, output_dir=output_dir, task_id=task_id,
                          random_state=random_state,
@@ -62,7 +62,7 @@ class DifferentialEAAdvisor(ModularEAAdvisor):
         self.dynamic_f = isinstance(f, tuple)
         self.dynamic_cr = isinstance(cr, tuple)
 
-        assert self.num_objs == 1 or not (self.dynamic_f or self.dynamic_cr)
+        assert self.num_objectives == 1 or not (self.dynamic_f or self.dynamic_cr)
 
         self.iter = None
         self.cur = 0

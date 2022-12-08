@@ -73,7 +73,7 @@ history = opt.run()
 这里我们创建了一个 <font color=#FF0000>**Optimizer**</font> 实例，传入目标函数 **branin** 和搜索空间 **space**。 
 其余参数的含义是：
 
-+ **num_objs=1** 和 **num_constraints=0** 表明我们的 branin 函数返回一个没有约束条件的单目标值。
++ **num_objectives=1** 和 **num_constraints=0** 表明我们的 branin 函数返回一个没有约束条件的单目标值。
 
 + **max_runs=50** 表示优化过程共50轮 （优化目标函数50次）。
 

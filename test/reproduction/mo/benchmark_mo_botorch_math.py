@@ -137,8 +137,8 @@ def evaluate(mth, run_i, seed):
         x = unnormalize(x, bounds=problem_bounds)
         x = x.cpu().numpy().astype(np.float64)      # caution
         res = problem.evaluate(x)
-        objs = [-y for y in res['objs']]
-        return objs
+        objectives = [-y for y in res['objectives']]
+        return objectives
 
     hv_diffs = []
     time_list = []
@@ -176,7 +176,7 @@ def evaluate(mth, run_i, seed):
             # define the qEHVI acquisition modules using a QMC sampler
             sampler = SobolQMCNormalSampler(num_samples=MC_SAMPLES)
             # partition non-dominated space into disjoint rectangles
-            partitioning = NondominatedPartitioning(num_outcomes=problem.num_objs, Y=train_obj)
+            partitioning = NondominatedPartitioning(num_outcomes=problem.num_objectives, Y=train_obj)
             qEHVI = qExpectedHypervolumeImprovement(
                 model=model,
                 ref_point=problem.ref_point.tolist(),  # use known reference point
@@ -202,7 +202,7 @@ def evaluate(mth, run_i, seed):
             # define the qEHVI acquisition modules using a QMC sampler
             sampler = SobolQMCNormalSampler(num_samples=MC_SAMPLES)
             # partition non-dominated space into disjoint rectangles
-            partitioning = NondominatedPartitioning(num_outcomes=problem.num_objs, Y=train_obj[::step])
+            partitioning = NondominatedPartitioning(num_outcomes=problem.num_objectives, Y=train_obj[::step])
             qEHVI = qExpectedHypervolumeImprovement(
                 model=model,
                 ref_point=problem.ref_point.tolist(),  # use known reference point

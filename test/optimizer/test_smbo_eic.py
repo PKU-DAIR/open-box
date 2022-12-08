@@ -7,7 +7,7 @@ def townsend(config):
     config_dict = config.get_dictionary()
     X = np.array([config_dict['x%d' % i] for i in range(2)])
     res = dict()
-    res['objs'] = (-(np.cos((X[0]-0.1)*X[1])**2 + X[0] * np.sin(3*X[0]+X[1])), )
+    res['objectives'] = (-(np.cos((X[0]-0.1)*X[1])**2 + X[0] * np.sin(3*X[0]+X[1])), )
     res['constraints'] = (-(-np.cos(1.5*X[0]+np.pi)*np.cos(1.5*X[1])+np.sin(1.5*X[0]+np.pi)*np.sin(1.5*X[1])), )
     return res
 
@@ -31,7 +31,7 @@ def mishra(config):
     t3 = (x - y)**2
 
     result = dict()
-    result['objs'] = [t1 + t2 + t3]
+    result['objectives'] = [t1 + t2 + t3]
     result['constraints'] = [np.sum((X + 5)**2) - 25]
     return result
 
@@ -52,7 +52,7 @@ cs = mishra_cs
 
 bo = SMBO(obj_func, cs,
           num_constraints=1,
-          num_objs=1,
+          num_objectives=1,
           acq_optimizer_type='random_scipy',
           max_runs=50,
           task_id='soc')

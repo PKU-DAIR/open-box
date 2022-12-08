@@ -95,7 +95,7 @@ def generate_initial_data(init_num, obj_func, time_list, global_start_time):
     train_con = []
     for x in train_x:
         res = obj_func(x)
-        y = res['objs']
+        y = res['objectives']
         c = res['constraints']
         train_obj.append(y)
         train_con.append(c)
@@ -117,8 +117,8 @@ def initialize_model(train_x, train_obj, train_con, state_dict=None):
     return mll, model
 
 
-def constraint_callable_list(num_constraints, num_objs):
-    return [lambda Z: Z[..., i+num_objs] for i in range(num_constraints)]
+def constraint_callable_list(num_constraints, num_objectives):
+    return [lambda Z: Z[..., i+num_objectives] for i in range(num_constraints)]
 
 
 def get_constrained_mc_objective(train_obj, train_con, scalarization):
@@ -130,7 +130,7 @@ def get_constrained_mc_objective(train_obj, train_con, scalarization):
 
     constrained_obj = ConstrainedMCObjective(
         objective=objective,
-        constraints=constraint_callable_list(problem.num_constraints, num_objs=problem.num_objs), # index the constraint
+        constraints=constraint_callable_list(problem.num_constraints, num_objectives=problem.num_objectives), # index the constraint
         infeasible_cost=MIN_OBJ_UPPER_BOUND,    # CAUTION if objective to be minimized can return positive value!!!
                                                 # (or objective to be maximized can return nagetive value)
     )
@@ -143,7 +143,7 @@ def optimize_qparego_and_get_observation(model, train_obj, train_con, sampler, o
     acq_func_list = []
     for _ in range(1):
         # sample random weights
-        weights = sample_simplex(problem.num_objs, **tkwargs).squeeze()
+        weights = sample_simplex(problem.num_objectives, **tkwargs).squeeze()
         # construct augmented Chebyshev scalarization
         scalarization = get_chebyshev_scalarization(weights=weights, Y=train_obj)
         # initialize ConstrainedMCObjective
@@ -170,7 +170,7 @@ def optimize_qparego_and_get_observation(model, train_obj, train_con, sampler, o
     new_con = []
     for x in new_x:
         res = obj_func(x)
-        y = res['objs']
+        y = res['objectives']
         c = res['constraints']
         new_obj.append(y)
         new_con.append(c)
@@ -191,7 +191,7 @@ def expand_initial_data(train_x, train_obj, train_con, obj_func, time_list, glob
     new_con = []
     for x in new_x:
         res = obj_func(x)
-        y = res['objs']
+        y = res['objectives']
         c = res['constraints']
         new_obj.append(y)
         new_con.append(c)
@@ -215,7 +215,7 @@ def evaluate(mth, run_i, seed):
         x = unnormalize(x, bounds=problem_bounds)
         x = x.cpu().numpy().astype(np.float64)      # caution
         res = problem.evaluate(x)
-        res['objs'] = [-y for y in res['objs']]
+        res['objectives'] = [-y for y in res['objectives']]
         return res  # Caution: negative values imply feasibility in botorch
 
     hv_diffs = []

@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
         x0 = space.sample_configuration()
 
-        dim = len(function(x0)['objs'])
+        dim = len(function(x0)['objectives'])
 
         all_results = dict()
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
                             # print(len(configs))
                             for config in configs:
                                 ret = function(config)
-                                observation = Observation(config=config, objs=ret['objs'])
+                                observation = Observation(config=config, objectives=ret['objectives'])
                                 advisor.update_observation(observation)
                             if trange == range:
                                 print('===== ITER %d/%d.' % ((i + 1) * BATCH_SIZE, MAX_RUNS))
@@ -140,9 +140,9 @@ if __name__ == "__main__":
                             # print(config.get_array())
                             # print("function return ", config.get_array())
                             ret = function(config)
-                            observation = Observation(config=config, objs=ret['objs'])
+                            observation = Observation(config=config, objectives=ret['objectives'])
                             advisor.update_observation(observation)
-                            # print("result ", ret['objs'])
+                            # print("result ", ret['objectives'])
                             if trange == range:
                                 print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
 
@@ -180,7 +180,7 @@ if __name__ == "__main__":
 
                     config = advisor.to_original_space(advisor.line_space.sample_configuration())
                     # config = Configuration(space, vector = advisor.last_gp_data[0][i] + np.random.randn(12) * 0.01)
-                    res1 = function(config)['objs'][0]
+                    res1 = function(config)['objectives'][0]
                     res2 = advisor.objective_surrogate.predict(np.array([config.get_array()]))
                     print(config.get_array())
                     print(

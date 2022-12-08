@@ -74,7 +74,7 @@ history = opt.run()
 Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function **branin** and the 
 search space **space** to it. The other parameters are:
 
-+ **num_objs=1** and **num_constraints=0** indicates our branin function returns a single value with no 
++ **num_objectives=1** and **num_constraints=0** indicates our branin function returns a single value with no 
 constraint. 
 
 + **max_runs=50** means the optimization will take 50 rounds (optimizing the objective function 50 times). 

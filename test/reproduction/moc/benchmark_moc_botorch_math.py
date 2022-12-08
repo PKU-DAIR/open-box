@@ -88,7 +88,7 @@ def generate_initial_data(init_num, obj_func, time_list, global_start_time):
     train_con = []
     for x in train_x:
         res = obj_func(x)
-        y = res['objs']
+        y = res['objectives']
         c = res['constraints']
         train_obj.append(y)
         train_con.append(c)
@@ -128,7 +128,7 @@ def optimize_acqf_and_get_observation(acq_func, obj_func, time_list, global_star
     new_con = []
     for x in new_x:
         res = obj_func(x)
-        y = res['objs']
+        y = res['objectives']
         c = res['constraints']
         new_obj.append(y)
         new_con.append(c)
@@ -140,8 +140,8 @@ def optimize_acqf_and_get_observation(acq_func, obj_func, time_list, global_star
     return new_x, new_obj, new_con
 
 
-def constraint_callable_list(num_constraints, num_objs):
-    return [lambda Z: Z[..., i+num_objs] for i in range(num_constraints)]
+def constraint_callable_list(num_constraints, num_objectives):
+    return [lambda Z: Z[..., i+num_objectives] for i in range(num_constraints)]
 
 
 # ===== end of botorch helper functions =====
@@ -153,7 +153,7 @@ def expand_initial_data(train_x, train_obj, train_con, obj_func, time_list, glob
     new_con = []
     for x in new_x:
         res = obj_func(x)
-        y = res['objs']
+        y = res['objectives']
         c = res['constraints']
         new_obj.append(y)
         new_con.append(c)
@@ -177,7 +177,7 @@ def evaluate(mth, run_i, seed):
         x = unnormalize(x, bounds=problem_bounds)
         x = x.cpu().numpy().astype(np.float64)      # caution
         res = problem.evaluate(x)
-        res['objs'] = [-y for y in res['objs']]
+        res['objectives'] = [-y for y in res['objectives']]
         return res  # Caution: negative values imply feasibility in botorch
 
     hv_diffs = []
@@ -237,7 +237,7 @@ def evaluate(mth, run_i, seed):
             better_than_ref = (train_obj > problem.ref_point).all(dim=-1)
             # partition non-dominated space into disjoint rectangles
             partitioning = NondominatedPartitioning(
-                num_outcomes=problem.num_objs,
+                num_outcomes=problem.num_objectives,
                 # use observations that are better than the specified reference point and feasible
                 Y=train_obj[better_than_ref & is_feas],
             )
@@ -247,9 +247,9 @@ def evaluate(mth, run_i, seed):
                 partitioning=partitioning,
                 sampler=sampler,
                 # define an objective that specifies which outcomes are the objectives
-                objective=IdentityMCMultiOutputObjective(outcomes=list(range(problem.num_objs))),
+                objective=IdentityMCMultiOutputObjective(outcomes=list(range(problem.num_objectives))),
                 # specify that the constraint is on the last outcome
-                constraints=constraint_callable_list(problem.num_constraints, num_objs=problem.num_objs),
+                constraints=constraint_callable_list(problem.num_constraints, num_objectives=problem.num_objectives),
             )
             # optimize and get new observation
             new_x, new_obj, new_con = optimize_acqf_and_get_observation(qEHVI, objective_function, time_list, global_start_time)
@@ -276,7 +276,7 @@ def evaluate(mth, run_i, seed):
             better_than_ref = (train_obj[::step] > problem.ref_point).all(dim=-1)
             # partition non-dominated space into disjoint rectangles
             partitioning = NondominatedPartitioning(
-                num_outcomes=problem.num_objs,
+                num_outcomes=problem.num_objectives,
                 # use observations that are better than the specified reference point and feasible
                 Y=train_obj[::step][better_than_ref & is_feas],
             )
@@ -286,9 +286,9 @@ def evaluate(mth, run_i, seed):
                 partitioning=partitioning,
                 sampler=sampler,
                 # define an objective that specifies which outcomes are the objectives
-                objective=IdentityMCMultiOutputObjective(outcomes=list(range(problem.num_objs))),
+                objective=IdentityMCMultiOutputObjective(outcomes=list(range(problem.num_objectives))),
                 # specify that the constraint is on the last outcome
-                constraints=constraint_callable_list(problem.num_constraints, num_objs=problem.num_objs),
+                constraints=constraint_callable_list(problem.num_constraints, num_objectives=problem.num_objectives),
             )
             # optimize and get new observation
             new_x, new_obj, new_con = optimize_acqf_and_get_observation(qEHVI, objective_function, time_list,

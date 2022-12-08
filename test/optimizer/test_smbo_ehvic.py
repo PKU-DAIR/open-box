@@ -19,7 +19,7 @@ max_runs = 100
 
 bo = SMBO(prob.evaluate, prob.config_space,
           task_id='ehvic',
-          num_objs=prob.num_objs,
+          num_objectives=prob.num_objectives,
           num_constraints=prob.num_constraints,
           acq_type='ehvic',
           acq_optimizer_type=acq_optimizer_type,

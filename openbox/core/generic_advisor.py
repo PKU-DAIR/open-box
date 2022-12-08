@@ -24,7 +24,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
     def __init__(
             self,
             config_space,
-            num_objs=1,
+            num_objectives=1,
             num_constraints=0,
             initial_trials=3,
             initial_configurations=None,
@@ -43,7 +43,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             **kwargs,
     ):
 
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
         self.init_strategy = init_strategy
         self.output_dir = output_dir
@@ -71,10 +71,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.ref_point = ref_point
 
         # init history container
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
         else:  # multi-objectives
-            self.history_container = MOHistoryContainer(task_id, self.num_objs, self.num_constraints,
+            self.history_container = MOHistoryContainer(task_id, self.num_objectives, self.num_constraints,
                                                         config_space=self.config_space, ref_point=ref_point)
 
         # initial design
@@ -126,12 +126,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
             info_str += ' surrogate_type: %s.' % self.surrogate_type
 
         if self.acq_type == 'auto':
-            if self.num_objs == 1:  # single objective
+            if self.num_objectives == 1:  # single objective
                 if self.num_constraints == 0:
                     self.acq_type = 'ei'
                 else:   # with constraints
                     self.acq_type = 'eic'
-            elif self.num_objs <= 4:    # multi objective (<=4)
+            elif self.num_objectives <= 4:    # multi objective (<=4)
                 if self.num_constraints == 0:
                     self.acq_type = 'ehvi'
                 else:   # with constraints
@@ -174,17 +174,17 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
     def check_setup(self):
         """
-        Check optimization_strategy, num_objs, num_constraints, acq_type, surrogate_type.
+        Check optimization_strategy, num_objectives, num_constraints, acq_type, surrogate_type.
         Returns
         -------
         None
         """
         assert self.optimization_strategy in ['bo', 'random']
-        assert isinstance(self.num_objs, int) and self.num_objs >= 1
+        assert isinstance(self.num_objectives, int) and self.num_objectives >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
         # single objective
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             if self.num_constraints == 0:
                 assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
             else:  # with constraints
@@ -227,7 +227,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         -------
         An optimizer object.
         """
-        if self.num_objs == 1 or self.acq_type == 'parego':
+        if self.num_objectives == 1 or self.acq_type == 'parego':
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
                                                    rng=self.rng,
@@ -237,7 +237,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                     config_space=self.config_space,
                                                     rng=self.rng,
                                                     history_hpo_data=self.history_bo_data)
-                                    for _ in range(self.num_objs)]
+                                    for _ in range(self.num_objectives)]
 
         if self.num_constraints > 0:
             self.constraint_models = [build_surrogate(func_str=self.constraint_surrogate_type,
@@ -369,15 +369,15 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 return [res] if return_list else res
 
             # train surrogate model
-            if self.num_objs == 1:
+            if self.num_objectives == 1:
                 self.surrogate_model.train(X, Y)
             elif self.acq_type == 'parego':
-                weights = self.rng.random_sample(self.num_objs)
+                weights = self.rng.random_sample(self.num_objectives)
                 weights = weights / np.sum(weights)
                 scalarized_obj = get_chebyshev_scalarization(weights, Y)
                 self.surrogate_model.train(X, scalarized_obj(Y))
             else:  # multi-objectives
-                for i in range(self.num_objs):
+                for i in range(self.num_objectives):
                     self.surrogate_model[i].train(X, Y[:, i])
 
             # train constraint model
@@ -385,7 +385,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 self.constraint_models[i].train(X, cY[:, i])
 
             # update acquisition function
-            if self.num_objs == 1:
+            if self.num_objectives == 1:
                 incumbent_value = history_container.get_incumbents()[0][1]
                 self.acquisition_function.update(model=self.surrogate_model,
                                                  constraint_models=self.constraint_models,
@@ -399,7 +399,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                      eta=scalarized_obj(np.atleast_2d(mo_incumbent_value)),
                                                      num_data=num_config_evaluated)
                 elif self.acq_type.startswith('ehvi'):
-                    partitioning = NondominatedPartitioning(self.num_objs, Y)
+                    partitioning = NondominatedPartitioning(self.num_objectives, Y)
                     cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,

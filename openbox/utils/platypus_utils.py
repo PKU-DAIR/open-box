@@ -57,9 +57,9 @@ def objective_wrapper(objective_function, config_space, num_constraints):
     def obj_func(x):
         config = Configuration(config_space, vector=x)
         result = objective_function(config)
-        objs, constraints = get_result(result)
+        objectives, constraints = get_result(result)
         if num_constraints > 0:
-            return objs, constraints
+            return objectives, constraints
         else:
-            return objs
+            return objectives
     return obj_func

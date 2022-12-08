@@ -12,7 +12,7 @@ from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 class CMAESEAAdvisor(ModularEAAdvisor):
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=0,
                  population_size=None,
                  optimization_strategy='ea',
@@ -45,7 +45,7 @@ class CMAESEAAdvisor(ModularEAAdvisor):
         if population_size is None:
             population_size = (4 + int(3 * np.log(self.n))) * 3
 
-        super().__init__(config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
+        super().__init__(config_space=config_space, num_objectives=num_objectives, num_constraints=num_constraints,
                          population_size=population_size, optimization_strategy=optimization_strategy,
                          batch_size=batch_size, output_dir=output_dir, task_id=task_id,
                          random_state=random_state,

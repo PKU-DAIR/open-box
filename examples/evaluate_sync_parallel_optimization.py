@@ -16,7 +16,7 @@ def branin(config):
     x1, x2 = config['x1'], config['x2']
     y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
         + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
-    return {'objs': (y,)}
+    return {'objectives': (y,)}
 
 
 if __name__ == "__main__":
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         parallel_strategy='sync',
         batch_size=4,
         batch_strategy='default',
-        num_objs=1,
+        num_objectives=1,
         num_constraints=0,
         max_runs=50,
         # surrogate_type='gp',

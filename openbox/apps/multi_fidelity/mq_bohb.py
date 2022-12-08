@@ -39,7 +39,7 @@ class mqBOHB(mqHyperband):
         # using median_imputation batch_strategy implemented in OpenBox to generate BO suggestions
         _logger_kwargs = {'force_init': False}  # do not init logger in advisor
         self.config_advisor = SyncBatchAdvisor(config_space,
-                                               num_objs=1,
+                                               num_objectives=1,
                                                num_constraints=0,
                                                batch_size=None,
                                                batch_strategy='median_imputation',
@@ -80,9 +80,9 @@ class mqBOHB(mqHyperband):
         self.incumbent_perfs.extend(val_losses)
         # update config advisor
         for config, perf in zip(T, val_losses):
-            objs = [perf]
+            objectives = [perf]
             observation = Observation(
-                config=config, objs=objs, constraints=None,
+                config=config, objectives=objectives, constraints=None,
                 trial_state=SUCCESS, elapsed_time=None,
             )
             self.config_advisor.update_observation(observation)

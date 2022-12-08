@@ -20,7 +20,7 @@ class EAAdvisor(abc.ABC):
     """
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=0,
                  population_size=30,
                  optimization_strategy='ea',
@@ -35,7 +35,7 @@ class EAAdvisor(abc.ABC):
         self.output_dir = output_dir
 
         # Objectives Settings
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
         self.config_space = config_space
         self.config_space_seed = self.rng.randint(MAXINT)
@@ -58,10 +58,10 @@ class EAAdvisor(abc.ABC):
         assert self.population_size is not None
 
         # init history container
-        if num_objs == 1:
+        if num_objectives == 1:
             self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
         else:
-            self.history_container = MOHistoryContainer(task_id, self.num_objs, self.num_constraints)
+            self.history_container = MOHistoryContainer(task_id, self.num_objectives, self.num_constraints)
 
     def get_suggestion(self):
         """
@@ -153,7 +153,7 @@ def as_individual(observation: Observation, allow_constraint=True) -> Optional[I
     constraint = constraint_check(observation.constraints) and observation.trial_state == SUCCESS
     if not allow_constraint and not constraint:
         return None
-    perf = observation.objs
+    perf = observation.objectives
 
     return Individual(config=config, constraints_satisfied=constraint, perf=perf)
 

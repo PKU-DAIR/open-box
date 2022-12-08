@@ -41,7 +41,7 @@ def branin(config):
     x1, x2 = config['x1'], config['x2']
     y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
         + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
-    return {'objs': (y,)}
+    return {'objectives': (y,)}
 ```
 
 If you are not familiar with the problem setup, please refer to [Quick Start Tutorial](../quick_start/quick_start).
@@ -61,7 +61,7 @@ opt = ParallelOptimizer(
     parallel_strategy='async',
     batch_size=4,
     batch_strategy='default',
-    num_objs=1,
+    num_objectives=1,
     num_constraints=0,
     max_runs=50,
     surrogate_type='gp',
@@ -82,7 +82,7 @@ We suggest using **'async'** because it makes better use of resources and achiev
 + **batch_strategy='default'** sets the strategy on how to make multiple suggestions at the same time.
 We suggest using **'default'** for stable performance.
 
-+ **num_objs=1** and **num_constraints=0** indicates that our function returns a single objective value with no constraint. 
++ **num_objectives=1** and **num_constraints=0** indicates that our function returns a single objective value with no constraint. 
 
 + **max_runs=100** means the optimization will take 100 rounds (optimizing the objective function 100 times). 
 
@@ -131,7 +131,7 @@ opt = DistributedOptimizer(
     parallel_strategy='async',
     batch_size=n_workers,
     batch_strategy='default',
-    num_objs=1,
+    num_objectives=1,
     num_constraints=0,
     max_runs=50,
     surrogate_type='gp',
@@ -158,7 +158,7 @@ We suggest using **'async'** because it makes better use of resources and achiev
 + **batch_strategy='default'** sets the strategy on how to make multiple suggestions at the same time.
 We suggest using **'default'** for stable performance.
 
-+ **num_objs=1** and **num_constraints=0** indicates that our function returns a single objective value with no constraint. 
++ **num_objectives=1** and **num_constraints=0** indicates that our function returns a single objective value with no constraint. 
 
 + **max_runs=100** means the optimization will take 100 rounds (optimizing the objective function 100 times). 
 

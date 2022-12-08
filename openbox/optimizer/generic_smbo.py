@@ -16,7 +16,7 @@ from openbox.core.base import Observation
 from openbox.visualization import build_visualizer
 
 """
-    The objective function returns a dictionary that has --- config, constraints, objs ---.
+    The objective function returns a dictionary that has --- config, constraints, objectives ---.
 """
 
 
@@ -30,7 +30,7 @@ class SMBO(BOBase):
         Configuration space.
     num_constraints : int
         Number of constraints in objective function.
-    num_objs : int
+    num_objectives : int
         Number of objectives in objective function.
     max_runs : int
         Number of optimization iterations.
@@ -104,7 +104,7 @@ class SMBO(BOBase):
             objective_function: callable,
             config_space,
             num_constraints=0,
-            num_objs=1,
+            num_objectives=1,
             sample_strategy: str = 'bo',
             max_runs=200,
             runtime_limit=None,
@@ -129,9 +129,9 @@ class SMBO(BOBase):
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
-        self.FAILED_PERF = [MAXINT] * num_objs
+        self.FAILED_PERF = [MAXINT] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          runtime_limit=runtime_limit, sample_strategy=sample_strategy,
@@ -144,7 +144,7 @@ class SMBO(BOBase):
         if advisor_type == 'default':
             from openbox.core.generic_advisor import Advisor
             self.config_advisor = Advisor(config_space,
-                                          num_objs=num_objs,
+                                          num_objectives=num_objectives,
                                           num_constraints=num_constraints,
                                           initial_trials=initial_runs,
                                           init_strategy=init_strategy,
@@ -163,7 +163,7 @@ class SMBO(BOBase):
         elif advisor_type == 'mcadvisor':
             from openbox.core.mc_advisor import MCAdvisor
             self.config_advisor = MCAdvisor(config_space,
-                                            num_objs=num_objs,
+                                            num_objectives=num_objectives,
                                             num_constraints=num_constraints,
                                             initial_trials=initial_runs,
                                             init_strategy=init_strategy,
@@ -181,14 +181,14 @@ class SMBO(BOBase):
                                             **advisor_kwargs)
         elif advisor_type == 'tpe':
             from openbox.core.tpe_advisor import TPE_Advisor
-            assert num_objs == 1 and num_constraints == 0
+            assert num_objectives == 1 and num_constraints == 0
             self.config_advisor = TPE_Advisor(config_space, task_id=task_id, random_state=random_state,
                                               logger_kwargs=_logger_kwargs, **advisor_kwargs)
         elif advisor_type == 'ea':
             from openbox.core.ea_advisor import EA_Advisor
-            assert num_objs == 1 and num_constraints == 0
+            assert num_objectives == 1 and num_constraints == 0
             self.config_advisor = EA_Advisor(config_space,
-                                             num_objs=num_objs,
+                                             num_objectives=num_objectives,
                                              num_constraints=num_constraints,
                                              optimization_strategy=sample_strategy,
                                              batch_size=1,
@@ -200,7 +200,7 @@ class SMBO(BOBase):
         elif advisor_type == 'random':
             from openbox.core.random_advisor import RandomAdvisor
             self.config_advisor = RandomAdvisor(config_space,
-                                                num_objs=num_objs,
+                                                num_objectives=num_objectives,
                                                 num_constraints=num_constraints,
                                                 initial_trials=initial_runs,
                                                 init_strategy=init_strategy,
@@ -254,7 +254,7 @@ class SMBO(BOBase):
                         'Timeout: time limit for this evaluation is %.1fs' % _time_limit_per_trial)
                 else:
                     # parse result
-                    objs, constraints = get_result(_result)
+                    objectives, constraints = get_result(_result)
             except Exception as e:
                 # parse result of failed trial
                 if isinstance(e, TimeoutException):
@@ -263,13 +263,13 @@ class SMBO(BOBase):
                 else:
                     logger.warning('Exception when calling objective function: %s' % str(e))
                     trial_state = FAILED
-                objs = self.FAILED_PERF
+                objectives = self.FAILED_PERF
                 constraints = None
 
             elapsed_time = time.time() - start_time
             # update observation to advisor
             observation = Observation(
-                config=config, objs=objs, constraints=constraints,
+                config=config, objectives=objectives, constraints=constraints,
                 trial_state=trial_state, elapsed_time=elapsed_time,
             )
             if _time_limit_per_trial != self.time_limit_per_trial and trial_state == TIMEOUT:
@@ -282,22 +282,22 @@ class SMBO(BOBase):
             history = self.get_history()
             config_idx = history.configurations.index(config)
             trial_state = history.trial_states[config_idx]
-            objs = history.perfs[config_idx]
+            objectives = history.perfs[config_idx]
             constraints = history.constraint_perfs[config_idx] if self.num_constraints > 0 else None
-            if self.num_objs == 1:
-                objs = (objs,)
+            if self.num_objectives == 1:
+                objectives = (objectives,)
 
         self.iteration_id += 1
         self.visualizer.update()
         # Logging
         if self.num_constraints > 0:
             logger.info('Iteration %d, objective value: %s. constraints: %s.'
-                             % (self.iteration_id, objs, constraints))
+                             % (self.iteration_id, objectives, constraints))
         else:
-            logger.info('Iteration %d, objective value: %s.' % (self.iteration_id, objs))
+            logger.info('Iteration %d, objective value: %s.' % (self.iteration_id, objectives))
 
         # Visualization.
-        # for idx, obj in enumerate(objs):
+        # for idx, obj in enumerate(objectives):
         #     if obj < self.FAILED_PERF[idx]:
         #         self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
-        return config, trial_state, constraints, objs
+        return config, trial_state, constraints, objectives

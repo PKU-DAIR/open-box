@@ -16,7 +16,7 @@ def CONSTR(config: sp.Configuration):
     c2 = 1.0 - 9.0 * x1 + x2
 
     result = dict()
-    result['objs'] = [obj1, obj2]
+    result['objectives'] = [obj1, obj2]
     result['constraints'] = [c1, c2]
     return result
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     opt = Optimizer(
         CONSTR,
         space,
-        num_objs=2,
+        num_objectives=2,
         num_constraints=2,
         max_runs=20,
         surrogate_type='gp',

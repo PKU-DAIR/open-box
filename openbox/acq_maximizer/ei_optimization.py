@@ -1198,7 +1198,7 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
                 upper_bounds = None
             else:
                 assert isinstance(runhistory, MultiStartHistoryContainer)
-                if runhistory.num_objs > 1:
+                if runhistory.num_objectives > 1:
                     # TODO implement adaptive strategy to choose trust region center for MO
                     raise NotImplementedError()
                 else:

@@ -96,10 +96,10 @@ class EHVI(AbstractAcquisitionFunction):
         return (upper - lower) * (1 - norm.cdf((upper - mu) / sigma))
 
     def _compute(self, X: np.ndarray, **kwargs):
-        num_objs = len(self.model)
-        mu = np.zeros((X.shape[0], 1, num_objs))
-        sigma = np.zeros((X.shape[0], 1, num_objs))
-        for i in range(num_objs):
+        num_objectives = len(self.model)
+        mu = np.zeros((X.shape[0], 1, num_objectives))
+        sigma = np.zeros((X.shape[0], 1, num_objectives))
+        for i in range(num_objectives):
             mean, variance = self.model[i].predict_marginalized_over_instances(X)
             sigma[:, :, i] = np.sqrt(variance)
             mu[:, :, i] = -mean

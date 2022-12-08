@@ -14,7 +14,7 @@ class SyncBatchAdvisor(Advisor):
     def __init__(
             self,
             config_space,
-            num_objs=1,
+            num_objectives=1,
             num_constraints=0,
             batch_size=4,
             batch_strategy='default',
@@ -37,7 +37,7 @@ class SyncBatchAdvisor(Advisor):
         self.batch_size = batch_size
         self.batch_strategy = batch_strategy
         super().__init__(config_space,
-                         num_objs=num_objs,
+                         num_objectives=num_objectives,
                          num_constraints=num_constraints,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
@@ -62,7 +62,7 @@ class SyncBatchAdvisor(Advisor):
 
         assert self.batch_strategy in ['default', 'median_imputation', 'local_penalization', 'reoptimization']
 
-        if self.num_objs > 1 or self.num_constraints > 0:
+        if self.num_objectives > 1 or self.num_constraints > 0:
             # local_penalization only supports single objective with no constraint
             assert self.batch_strategy in ['default', 'median_imputation', 'reoptimization']
 
@@ -115,7 +115,7 @@ class SyncBatchAdvisor(Advisor):
                 curr_batch_config = super().get_suggestion(batch_history_container)
 
                 # imputation
-                observation = Observation(config=curr_batch_config, objs=estimated_y, constraints=estimated_c,
+                observation = Observation(config=curr_batch_config, objectives=estimated_y, constraints=estimated_c,
                                           trial_state=SUCCESS, elapsed_time=None)
                 batch_history_container.update_observation(observation)
                 batch_configs_list.append(curr_batch_config)

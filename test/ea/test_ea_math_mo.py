@@ -24,18 +24,18 @@ space = function.config_space
 if __name__ == "__main__":
     advisors = [RegularizedEAAdvisor(
         config_space = space,
-        num_objs = 2,
+        num_objectives = 2,
         task_id = 'OpenBox',
     ), SAEAAdvisor(
         config_space = space,
-        num_objs = 2,
+        num_objectives = 2,
         task_id = 'OpenBox',
         ea = RegularizedEAAdvisor,
         ref_point = (150, 150)
     )]
 
     res = function(space.sample_configuration())
-    dim = len(res['objs'])
+    dim = len(res['objectives'])
 
     axes = None
     histories = []
@@ -50,7 +50,7 @@ if __name__ == "__main__":
             # evaluate
             ret = function(config)
             # tell
-            observation = Observation(config = config, objs = ret['objs'])
+            observation = Observation(config = config, objectives = ret['objectives'])
             advisor.update_observation(observation)
             if trange == range:
                 print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         function,
         space_bo,
         num_constraints = 0,
-        num_objs = 2,
+        num_objectives = 2,
         surrogate_type = 'gp',
         acq_optimizer_type = 'random_scipy',
         max_runs = MAX_RUNS,

@@ -50,7 +50,7 @@ class HARTMANN6(BaseTestProblem):
             sum += alp[i] * np.exp(-tmp)
 
         result = dict()
-        result['objs'] = [-(2.58 + sum) / 1.94]
+        result['objectives'] = [-(2.58 + sum) / 1.94]
         return result
 
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
             )]
 
     res = function(space.sample_configuration())
-    dim = len(res['objs'])
+    dim = len(res['objectives'])
 
     if TEST_MOD == 2:
         X = []
@@ -133,20 +133,20 @@ if __name__ == "__main__":
             # evaluate
             ret = function(config)
             # tell
-            observation = Observation(config = config, objs = ret['objs'])
+            observation = Observation(config = config, objectives = ret['objectives'])
             eaad.update_observation(observation)
-            if res is None or res.objs[0] > observation.objs[0]:
+            if res is None or res.objectives[0] > observation.objectives[0]:
                 res = observation
             X.append(i)
-            Y.append(res.objs[0])
+            Y.append(res.objectives[0])
             if trange == range:
                 print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
             tmpconf = space.sample_configuration()
             tmpret = function(tmpconf)
-            tmpobs = Observation(config = tmpconf, objs = tmpret['objs'])
-            if res_rd is None or res_rd.objs[0] > tmpobs.objs[0]:
+            tmpobs = Observation(config = tmpconf, objectives = tmpret['objectives'])
+            if res_rd is None or res_rd.objectives[0] > tmpobs.objectives[0]:
                 res_rd = tmpobs
-            Y_rd.append(res_rd.objs[0])
+            Y_rd.append(res_rd.objectives[0])
 
         print(res)
         plt.plot(X, Y_rd, label = 'Random')
@@ -167,14 +167,14 @@ if __name__ == "__main__":
                 for config in configs:
                     ret = function(config)
                     rets.append(ret)
-                    tmp = Observation(config = config, objs = ret['objs'])
+                    tmp = Observation(config = config, objectives = ret['objectives'])
                     observations.append(tmp)
-                    if res is None or res.objs[0] > tmp.objs[0]:
+                    if res is None or res.objectives[0] > tmp.objectives[0]:
                         res = tmp
                 # tell
                 advisor.update_observations(observations)
                 X.append(i * 30)
-                Y.append(res.objs[0])
+                Y.append(res.objectives[0])
                 if trange == range:
                     print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))
             print(res)
@@ -201,9 +201,9 @@ if __name__ == "__main__":
                 for config in configs:
                     ret = function(config)
                     rets.append(ret)
-                    tmp = Observation(config = config, objs = ret['objs'])
+                    tmp = Observation(config = config, objectives = ret['objectives'])
                     observations.append(tmp)
-                    if res is None or res.objs[0] > tmp.objs[0]:
+                    if res is None or res.objectives[0] > tmp.objectives[0]:
                         res = tmp
                 # tell
                 advisor.update_observations(observations)
@@ -213,11 +213,11 @@ if __name__ == "__main__":
                 kk = []
                 for t in observations:
                     X_all.append(i)
-                    Y_all.append(t.objs[0])
-                    kk.append(t.objs[0])
+                    Y_all.append(t.objectives[0])
+                    kk.append(t.objectives[0])
                 X_best.append(i)
                 Y_cur.append(min(kk))
-                Y_best.append(res.objs[0])
+                Y_best.append(res.objectives[0])
 
                 if trange == range:
                     print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))

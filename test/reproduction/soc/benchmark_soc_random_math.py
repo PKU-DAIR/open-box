@@ -58,11 +58,11 @@ def evaluate(mth, run_i, seed):
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, objs, trial_info = bo.iterate()
+        config, trial_state, objectives, trial_info = bo.iterate()
         global_time = time.time() - global_start_time
-        print(seed, i, objs, config, trial_state, trial_info, 'time=', global_time)
+        print(seed, i, objectives, config, trial_state, trial_info, 'time=', global_time)
         config_list.append(config)
-        perf_list.append(objs[0])
+        perf_list.append(objectives[0])
         time_list.append(global_time)
 
     _perf_list = []

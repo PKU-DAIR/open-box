@@ -25,7 +25,7 @@ problem = get_problem(problem_str)
 print('===== problem :', problem_str)
 
 dim = problem.dim
-num_objs = problem.num_objs
+num_objectives = problem.num_objectives
 num_constraints = problem.num_constraints
 bounds = problem.bounds
 
@@ -33,11 +33,11 @@ bounds = problem.bounds
 def CMO(xi):
     xi = np.asarray(xi)
     res = problem.evaluate(xi)
-    return res['objs'], res['constraints']
+    return res['objectives'], res['constraints']
 
 
 t0 = time.time()
-nsgaii_problem = Problem(dim, num_objs, num_constraints)
+nsgaii_problem = Problem(dim, num_objectives, num_constraints)
 for k in range(dim):
     nsgaii_problem.types[k] = Real(bounds[k][0], bounds[k][1])
 nsgaii_problem.constraints[:] = "<=0"

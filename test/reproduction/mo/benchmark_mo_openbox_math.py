@@ -69,7 +69,7 @@ def evaluate(mth, run_i, seed):
         return res
 
     bo = SMBO(objective_function, cs,
-              num_objs=problem.num_objs,
+              num_objectives=problem.num_objectives,
               num_constraints=0,
               surrogate_type=surrogate_type,            # default: gp
               acq_type=acq_type,                        # default: ehvi
@@ -85,9 +85,9 @@ def evaluate(mth, run_i, seed):
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, _, objs = bo.iterate()
+        config, trial_state, _, objectives = bo.iterate()
         global_time = time.time() - global_start_time
-        print(seed, i, objs, config, trial_state, 'time=', global_time)
+        print(seed, i, objectives, config, trial_state, 'time=', global_time)
         hv = Hypervolume(problem.ref_point).compute(bo.get_history().get_pareto_front())
         hv_diff = problem.max_hv - hv
         print(seed, i, 'hypervolume =', hv)

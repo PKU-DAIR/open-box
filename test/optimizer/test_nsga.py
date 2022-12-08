@@ -17,12 +17,12 @@ def objective_func(config):
 
     y1 = (x1 + x2 + x3 + 10) ** 2
     y2 = (x1 - x2 - x4 - 10) ** 2
-    return dict(objs=[y1, y2])
+    return dict(objectives=[y1, y2])
 
 opt = NSGAOptimizer(
     objective_func, space,
     num_constraints=0,
-    num_objs=2,
+    num_objectives=2,
     max_runs=2500,
     task_id='test_nsga',
 )

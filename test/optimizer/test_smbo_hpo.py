@@ -37,7 +37,7 @@ def objective_function(config):
     y_pred = model.predict(x_test)
 
     loss = 1 - balanced_accuracy_score(y_test, y_pred)  # minimize
-    return dict(objs=(loss, ))
+    return dict(objectives=(loss, ))
 
 
 from openbox.optimizer.generic_smbo import SMBO
@@ -46,7 +46,7 @@ import matplotlib.pyplot as plt
 # Run Optimization
 bo = SMBO(objective_function,
           get_configspace(),
-          num_objs=1,
+          num_objectives=1,
           num_constraints=0,
           max_runs=100,
           surrogate_type='prf',

@@ -38,7 +38,7 @@ def branin(config):
     x1, x2 = config['x1'], config['x2']
     y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
         + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
-    return {'objs': (y,)}
+    return {'objectives': (y,)}
 ```
 
 如果你对这个问题描述还不熟悉，请参考我们的[快速入门教程](../quick_start/quick_start)。
@@ -57,7 +57,7 @@ opt = ParallelOptimizer(
     parallel_strategy='async',
     batch_size=4,
     batch_strategy='default',
-    num_objs=1,
+    num_objectives=1,
     num_constraints=0,
     max_runs=50,
     surrogate_type='gp',
@@ -78,7 +78,7 @@ history = opt.run()
 + **batch_strategy='default'** 设置如何同时提出多个建议的策略。
 我们推荐使用默认参数 **'default'** 来获取稳定的性能。
 
-+ **num_objs=1** 和 **num_constraints=0** 表明我们的函数返回一个没有约束的单目标值。
++ **num_objectives=1** 和 **num_constraints=0** 表明我们的函数返回一个没有约束的单目标值。
 
 + **max_runs=100** 表明优化过程循环100次 (优化目标函数100次). 
 
@@ -128,7 +128,7 @@ opt = DistributedOptimizer(
     parallel_strategy='async',
     batch_size=n_workers,
     batch_strategy='default',
-    num_objs=1,
+    num_objectives=1,
     num_constraints=0,
     max_runs=50,
     surrogate_type='gp',
@@ -154,7 +154,7 @@ history = opt.run()
 + **batch_strategy='default'** 设置如何同时提出多个建议的策略。
 我们推荐使用默认参数 **'default'** 来获取稳定的性能。
 
-+ **num_objs=1** 和 **num_constraints=0** 表明我们的函数返回一个没有约束的单目标值。
++ **num_objectives=1** 和 **num_constraints=0** 表明我们的函数返回一个没有约束的单目标值。
 
 + **max_runs=100** 表明优化过程循环100次 (优化目标函数100次). 
 

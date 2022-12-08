@@ -52,7 +52,7 @@ def objective_function(config: sp.Configuration):
     y_pred = model.predict(x_test)
 
     loss = 1 - balanced_accuracy_score(y_test, y_pred)  # minimize
-    return dict(objs=(loss, ))
+    return dict(objectives=(loss, ))
 ```
 
 Here are some instructions on how to **define a configuration space**:
@@ -74,7 +74,7 @@ These steps are carried out in the objective function.
 After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
 The result dictionary should contain:
 
-+ **'objs'**: A **list/tuple** of **objective values (to be minimized)**. 
++ **'objectives'**: A **list/tuple** of **objective values (to be minimized)**. 
 In this example, we have only one objective so the tuple contains a single value.
 
 + **'constraints**': A **list/tuple** of **constraint values**.
@@ -96,7 +96,7 @@ from openbox import Optimizer
 opt = Optimizer(
     objective_function,
     get_configspace(),
-    num_objs=1,
+    num_objectives=1,
     num_constraints=0,
     max_runs=100,
     surrogate_type='prf',
@@ -110,7 +110,7 @@ Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the
 and the configuration space to it. 
 The other parameters are:
 
-+ **num_objs=1** and **num_constraints=0** indicate that our function returns a single value with no constraint. 
++ **num_objectives=1** and **num_constraints=0** indicate that our function returns a single value with no constraint. 
 
 + **max_runs=100** means the optimization will take 100 rounds (optimizing the objective function 100 times). 
 

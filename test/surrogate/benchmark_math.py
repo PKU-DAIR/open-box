@@ -70,7 +70,7 @@ def evaluate(mth, run_i, seed):
         y = problem.evaluate_config(config)
         res = dict()
         # res['config'] = config
-        res['objs'] = (y,)
+        res['objectives'] = (y,)
         # res['constraints'] = None
         return res
 

@@ -130,16 +130,16 @@ class HTMLVisualizer(BaseVisualizer):
         # all the config list
         rh_config = {}
         # Parallel Data
-        option = {'data': [list() for i in range(his_con.num_objs)], 'schema': [], 'visualMap': {}}
+        option = {'data': [list() for i in range(his_con.num_objectives)], 'schema': [], 'visualMap': {}}
         # all the performance
-        perf_list = [list() for i in range(his_con.num_objs)]
+        perf_list = [list() for i in range(his_con.num_objectives)]
         # all the constraints, A[i][j]: value of constraint i, configuration j
         cons_list = [list() for i in range(his_con.num_constraints)]
         # A[i][j]: value of configuration i, constraint j
         cons_list_rev = list()
 
         for idx in range(len(his_con.perfs)):
-            if his_con.num_objs > 1:
+            if his_con.num_objectives > 1:
                 results = [round(tmp, 4) for tmp in his_con.perfs[idx]]
             else:
                 results = [round(his_con.perfs[idx], 4)]
@@ -165,10 +165,10 @@ class HTMLVisualizer(BaseVisualizer):
             for parameter in config_dic.keys():
                 config_values.append(config_dic[parameter])
 
-            for i in range(his_con.num_objs):
+            for i in range(his_con.num_objectives):
                 option['data'][i].append(config_values + [results[i]])
 
-            for i in range(his_con.num_objs):
+            for i in range(his_con.num_objectives):
                 perf_list[i].append(results[i])
 
             for i in range(his_con.num_constraints):
@@ -178,7 +178,7 @@ class HTMLVisualizer(BaseVisualizer):
             option['schema'] = list(his_con.configurations[0].get_dictionary().keys()) + ['perf']
             mi = float('inf')
             ma = -float('inf')
-            for i in range(his_con.num_objs):
+            for i in range(his_con.num_objectives):
                 mi = min(mi, np.percentile(perf_list[i], 0))
                 ma = max(ma, np.percentile(perf_list[i], 90))
             option['visualMap']['min'] = mi
@@ -193,9 +193,9 @@ class HTMLVisualizer(BaseVisualizer):
         # ok: fits the constraint, and at the bottom.
         # no：not fits the constraint.
         # other：fits the constraint, not at the bottom
-        line_data = [{'ok': [], 'no': [], 'other': []} for i in range(his_con.num_objs)]
+        line_data = [{'ok': [], 'no': [], 'other': []} for i in range(his_con.num_objectives)]
 
-        for i in range(his_con.num_objs):
+        for i in range(his_con.num_objectives):
             min_value = float("inf")
             for idx, perf in enumerate(perf_list[i]):
                 if his_con.num_constraints > 0 and np.any(
@@ -211,14 +211,14 @@ class HTMLVisualizer(BaseVisualizer):
 
         # Pareto data
         pareto = dict({})
-        if his_con.num_objs > 1:
+        if his_con.num_objectives > 1:
             pareto["ref_point"] = his_con.ref_point
             pareto["hv"] = [[idx, round(v, 3)] for idx, v in enumerate(his_con.hv_data)]
             pareto["pareto_point"] = list(his_con.pareto.values())
             pareto["all_points"] = his_con.perfs
 
         draw_data = {
-            'num_objs': his_con.num_objs, 'num_constraints': his_con.num_constraints,
+            'num_objectives': his_con.num_objectives, 'num_constraints': his_con.num_constraints,
             'advance': self.advanced_analysis,
             'line_data': line_data,
             'cons_line_data': [[[idx, con] for idx, con in enumerate(c_l)] for c_l in cons_list],
@@ -279,10 +279,10 @@ class HTMLVisualizer(BaseVisualizer):
         # prepare object surrogate model data
         X_all = convert_configurations_to_array(his_con.configurations)
         Y_all = his_con.get_transformed_perfs(transform=None)
-        if his_con.num_objs == 1:
+        if his_con.num_objectives == 1:
             Y_all = Y_all.reshape(-1, 1)
 
-        if his_con.num_objs == 1:
+        if his_con.num_objectives == 1:
             models = [copy.deepcopy(self.surrogate_model)]
         else:
             models = copy.deepcopy(self.surrogate_model)
@@ -304,16 +304,16 @@ class HTMLVisualizer(BaseVisualizer):
         assert models is not None
 
         # configuration number, obj/cons number
-        N, num_objs = Y_all.shape
+        N, num_objectives = Y_all.shape
         if X_all.shape[0] != N or N == 0:
             logger.error('Invalid data shape!')
             return None, None
 
         # 10-fold validation
-        pre_perfs = [list() for i in range(num_objs)]
+        pre_perfs = [list() for i in range(num_objectives)]
         interval = math.ceil(N / 10)
 
-        for i in range(num_objs):
+        for i in range(num_objectives):
             for j in range(0, 10):
                 X = np.concatenate((X_all[:j * interval, :], X_all[(j + 1) * interval:, :]), axis=0)
                 Y = np.concatenate((Y_all[:j * interval, i], Y_all[(j + 1) * interval:, i]))
@@ -325,9 +325,9 @@ class HTMLVisualizer(BaseVisualizer):
                 for tmp in pre_mean:
                     pre_perfs[i].append(tmp[0])
 
-        ranks = [[0] * N for i in range(num_objs)]
-        pre_ranks = [[0] * N for i in range(num_objs)]
-        for i in range(num_objs):
+        ranks = [[0] * N for i in range(num_objectives)]
+        pre_ranks = [[0] * N for i in range(num_objectives)]
+        for i in range(num_objectives):
             tmp = np.argsort(Y_all[:, i]).astype(int)
             pre_tmp = np.argsort(pre_perfs[i]).astype(int)
 
@@ -337,18 +337,18 @@ class HTMLVisualizer(BaseVisualizer):
 
         min1 = float('inf')
         max1 = -float('inf')
-        for i in range(num_objs):
+        for i in range(num_objectives):
             min1 = min(min1, round(min(min(pre_perfs[i]), min(Y_all[:, i])), 3))
             max1 = max(max1, round(max(max(pre_perfs[i]), max(Y_all[:, i])), 3))
         min1 = min(min1, 0)
 
         pre_label_data = {
-            'data': [list(zip(pre_perfs[i], Y_all[:, i])) for i in range(num_objs)],
+            'data': [list(zip(pre_perfs[i], Y_all[:, i])) for i in range(num_objectives)],
             'min': min1,
             'max': round(max1 * 1.1, 3)
         }
         grade_data = {
-            'data': [list(zip(pre_ranks[i], ranks[i])) for i in range(num_objs)],
+            'data': [list(zip(pre_ranks[i], ranks[i])) for i in range(num_objectives)],
             'min': 0,
             'max': self.meta_data['max_iterations']
         }

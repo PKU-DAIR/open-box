@@ -71,7 +71,7 @@ class keane(BaseConstrainedSingleObjectiveProblem):
         cosX2 = np.cos(X) ** 2
         up = np.abs(np.sum(cosX2 ** 2) - 2 * np.prod(cosX2))
         down = np.sqrt(np.sum(np.arange(1, 10 + 1) * X ** 2))
-        result['objs'] = [-up / down, ]
+        result['objectives'] = [-up / down, ]
         result['constraints'] = [0.75 - np.prod(X), np.sum(X) - 7.5 * 10, ]
         return result
 
@@ -122,7 +122,7 @@ class ackley(BaseConstrainedSingleObjectiveProblem):
         t1 = -a * np.exp(-b * np.sqrt(np.mean(X ** 2)))
         t2 = -np.exp(np.mean(np.cos(c * X)))
         t3 = a + np.exp(1)
-        result['objs'] = [t1 + t2 + t3, ]
+        result['objectives'] = [t1 + t2 + t3, ]
         result['constraints'] = [np.sign(np.sum(X)) + np.sign(np.sum(X ** 2) - 25) + 1.5, ]
         return result
 
@@ -163,7 +163,7 @@ class mishra(BaseConstrainedSingleObjectiveProblem):
         t1 = np.sin(y) * np.exp((1 - np.cos(x)) ** 2)
         t2 = np.cos(x) * np.exp((1 - np.sin(y)) ** 2)
         t3 = (x - y) ** 2
-        result['objs'] = (t1 + t2 + t3,)
+        result['objectives'] = (t1 + t2 + t3,)
         result['constraints'] = ((X[0] + 5) ** 2 + (X[1] + 5) ** 2 - 25,)
         return result
 
@@ -199,7 +199,7 @@ class townsend(BaseConstrainedSingleObjectiveProblem):
     def evaluate(self, X: np.ndarray):
         X = self.checkX(X)
         res = dict()
-        res['objs'] = (-(np.cos((X[0] - 0.1) * X[1]) ** 2 + X[0] * np.sin(3 * X[0] + X[1])),)
+        res['objectives'] = (-(np.cos((X[0] - 0.1) * X[1]) ** 2 + X[0] * np.sin(3 * X[0] + X[1])),)
         res['constraints'] = (
             -(-np.cos(1.5 * X[0] + np.pi) * np.cos(1.5 * X[1]) + np.sin(1.5 * X[0] + np.pi) * np.sin(1.5 * X[1])),)
         return res

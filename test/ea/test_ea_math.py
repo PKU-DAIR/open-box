@@ -35,7 +35,7 @@ if __name__ == "__main__":
     )]
 
     res = function(space.sample_configuration())
-    dim = len(res['objs'])
+    dim = len(res['objectives'])
 
     axes = None
     histories = []
@@ -51,7 +51,7 @@ if __name__ == "__main__":
             # evaluate
             ret = function(config)
             # tell
-            observation = Observation(config = config, objs = ret['objs'])
+            observation = Observation(config = config, objectives = ret['objectives'])
             advisor.update_observation(observation)
 
             if trange == range:

@@ -48,7 +48,7 @@ def evaluate(mth, run_i, seed):
 
     def objective_function(x):
         res = problem.evaluate(x)
-        return np.array(res['objs']).reshape(1, -1)
+        return np.array(res['objectives']).reshape(1, -1)
 
     # random seed
     np.random.seed(seed)

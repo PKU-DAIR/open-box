@@ -58,13 +58,13 @@ def get_types(config_space, instance_features=None):
 
 def get_result(result):
     """
-    Get objs and constraints from result returned by objective function.
-    Raise ValueError if objs is None as time_limit() function doesn't raise Exception
+    Get objectives and constraints from result returned by objective function.
+    Raise ValueError if objectives is None as time_limit() function doesn't raise Exception
 
     :param result:
         return value from objective function
     :return:
-        objs:
+        objectives:
             list/tuple of objective values
         constraints:
             list/tuple of constraint values or None
@@ -73,20 +73,20 @@ def get_result(result):
     if result is None:
         raise ValueError('result is None!')
     elif isinstance(result, dict):  # recommended usage
-        objs = result['objs']
-        if isinstance(objs, number_typing_list):
-            objs = [objs, ]
+        objectives = result['objectives']
+        if isinstance(objectives, number_typing_list):
+            objectives = [objectives, ]
         constraints = result.get('constraints', None)
     elif isinstance(result, number_typing_list):
-        objs = [result, ]
+        objectives = [result, ]
         constraints = None
     else:
-        objs = result
+        objectives = result
         constraints = None
 
-    if objs is None:
-        raise ValueError('objs is None!')
-    return objs, constraints
+    if objectives is None:
+        raise ValueError('objectives is None!')
+    return objectives, constraints
 
 
 def check_random_state(seed):

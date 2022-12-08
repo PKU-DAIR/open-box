@@ -17,7 +17,7 @@ class BaseTestProblem(object):
 
     def __init__(self, config_space: ConfigurationSpace,
                  noise_std=0,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=0,
                  optimal_value=None,
                  optimal_point=None,
@@ -29,7 +29,7 @@ class BaseTestProblem(object):
 
         noise_std : Standard deviation of the observation noise.
 
-        num_objs : Number of objectives of the test problem.
+        num_objectives : Number of objectives of the test problem.
 
         num_constraints : Number of constraints of the test problem.
 
@@ -41,7 +41,7 @@ class BaseTestProblem(object):
         """
         self.config_space = config_space
         self.noise_std = noise_std
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
         self.optimal_value = optimal_value
         self.optimal_point = optimal_point
@@ -71,7 +71,7 @@ class BaseTestProblem(object):
         else:
             X = config
         result = self._evaluate(X)
-        result['objs'] = [e + self.noise_std*self.rng.randn() for e in result['objs']]
+        result['objectives'] = [e + self.noise_std*self.rng.randn() for e in result['objectives']]
         if 'constraint' in result:
             result['constraint'] = [e + self.noise_std*self.rng.randn() for e in result['constraint']]
         return result
@@ -84,7 +84,7 @@ class BaseTestProblem(object):
         -------
         result : dict
             Result of the evaluation.
-            result['objs'] is the objective value or an iterable of objective values
+            result['objectives'] is the objective value or an iterable of objective values
             result['constraints'] is an iterable of constraint values
         """
         raise NotImplementedError()
@@ -126,7 +126,7 @@ class Ackley(BaseTestProblem):
         t2 = -np.exp(np.mean(np.cos(c*X)))
         t3 = a + np.exp(1)
         result = dict()
-        result['objs'] = [t1 + t2 + t3]
+        result['objectives'] = [t1 + t2 + t3]
         if self.constrained:
             result['constraints'] = [np.sum(X), np.sum(X**2) - 25]
         return result
@@ -149,7 +149,7 @@ class Beale(BaseTestProblem):
         part2 = (2.25 - x1 + x1 * x2 ** 2) ** 2
         part3 = (2.625 - x1 + x1 * x2 ** 3) ** 2
         result = dict()
-        result['objs'] = [part1 + part2 + part3]
+        result['objectives'] = [part1 + part2 + part3]
         return result
 
 
@@ -185,7 +185,7 @@ class Branin(BaseTestProblem):
         )
         t2 = 10 * (1 - 1 / (8 * np.pi)) * np.cos(X[..., 0])
         result = dict()
-        result['objs'] = [t1 ** 2 + t2 + 10]
+        result['objectives'] = [t1 ** 2 + t2 + 10]
         return result
 
 
@@ -205,7 +205,7 @@ class Bukin(BaseTestProblem):
         part1 = 100.0 * np.sqrt(np.abs(X[..., 1] - 0.01 * X[..., 0] ** 2))
         part2 = 0.01 * np.abs(X[..., 0] + 10.0)
         result = dict()
-        result['objs'] = [part1 + part2]
+        result['objectives'] = [part1 + part2]
         return result
 
 
@@ -233,7 +233,7 @@ class Rosenbrock(BaseTestProblem):
 
     def _evaluate(self, X):
         result = dict()
-        result['objs'] = [np.sum(100.0 * (X[..., 1:] - X[..., :-1] ** 2) ** 2
+        result['objectives'] = [np.sum(100.0 * (X[..., 1:] - X[..., :-1] ** 2) ** 2
                                  + (X[..., :-1] - 1) ** 2, axis=-1)]
         if self.constrained:
             result['constraints'] = [np.sum(X**2) - 2]
@@ -259,7 +259,7 @@ class Mishra(BaseTestProblem):
         t1 = np.sin(y) * np.exp((1 - np.cos(x))**2)
         t2 = np.cos(x) * np.exp((1 - np.sin(y))**2)
         t3 = (x - y)**2
-        result['objs'] = [t1 + t2 + t3]
+        result['objectives'] = [t1 + t2 + t3]
         result['constraints'] = [np.sum((X + 5)**2) - 25]
         return result
 
@@ -288,7 +288,7 @@ class Keane(BaseTestProblem):
         cosX2 = np.cos(X)**2
         up = np.abs(np.sum(cosX2**2) - 2*np.prod(cosX2))
         down = np.sqrt(np.sum(np.arange(1, self.dim+1) * X**2))
-        result['objs'] = [-up/down]
+        result['objectives'] = [-up/down]
         result['constraints'] = [0.75 - np.prod(X), np.sum(X) - 7.5 * 30]
         return result
 
@@ -307,7 +307,7 @@ class Simionescu(BaseTestProblem):
     def _evaluate(self, X):
         result = dict()
         x, y = X[0], X[1]
-        result['objs'] = [0.1 * x * y]
+        result['objectives'] = [0.1 * x * y]
         result['constraints'] = [x**2 + y**2 - (1 + 0.2 * np.cos(8*np.arctan(x/y)))**2]
         return result
 
@@ -330,7 +330,7 @@ class Rao(BaseTestProblem):
     def _evaluate(self, X):
         result = dict()
         x, y = X[0], X[1]
-        result['objs'] = [-(3*x + 4*y)]
+        result['objectives'] = [-(3*x + 4*y)]
         result['constraints'] = [3*x - y - 12, 3*x + 11*y - 66]
         return result
 
@@ -341,19 +341,19 @@ class DTLZ(BaseTestProblem):
     See [Deb2005dtlz]_ for more details on DTLZ.
     """
 
-    def __init__(self, dim, num_objs=2, num_constraints=0, noise_std=0, random_state=None):
-        if dim <= num_objs:
+    def __init__(self, dim, num_objectives=2, num_constraints=0, noise_std=0, random_state=None):
+        if dim <= num_objectives:
             raise ValueError(
-                "dim must be > num_objs, but got %s and %s" % (dim, num_objs)
+                "dim must be > num_objectives, but got %s and %s" % (dim, num_objectives)
             )
         self.dim = dim
-        self.k = self.dim - num_objs + 1
+        self.k = self.dim - num_objectives + 1
         self.bounds = [(0.0, 1.0) for _ in range(self.dim)]
-        self.ref_point = [self._ref_val for _ in range(num_objs)]
+        self.ref_point = [self._ref_val for _ in range(num_objectives)]
         params = {'x%d' % i: (0, 1, i/dim) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-        super().__init__(config_space, noise_std, num_objs, num_constraints, random_state=random_state)
+        super().__init__(config_space, noise_std, num_objectives, num_constraints, random_state=random_state)
 
 
 class DTLZ1(DTLZ):
@@ -375,14 +375,14 @@ class DTLZ1(DTLZ):
 
     _ref_val = 400.0
 
-    def __init__(self, dim, num_objs=2, constrained=False,
+    def __init__(self, dim, num_objectives=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
-        super().__init__(dim, num_objs, num_constraints=0, noise_std=noise_std, random_state=random_state)
+        super().__init__(dim, num_objectives, num_constraints=0, noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:
-        return self._ref_val ** self.num_objs - 1 / 2 ** self.num_objs
+        return self._ref_val ** self.num_objectives - 1 / 2 ** self.num_objectives
 
     def _evaluate(self, X):
         X_m = X[..., -self.k :]
@@ -391,15 +391,15 @@ class DTLZ1(DTLZ):
         g_X_m = 100 * (self.k + sum_term)
         g_X_m_term = 0.5 * (1 + g_X_m)
         fs = []
-        for i in range(self.num_objs):
-            idx = self.num_objs - 1 - i
+        for i in range(self.num_objectives):
+            idx = self.num_objectives - 1 - i
             f_i = g_X_m_term * X[..., :idx].prod(axis=-1)
             if i > 0:
                 f_i *= 1 - X[..., idx]
             fs.append(f_i)
 
         result = dict()
-        result['objs'] = fs
+        result['objectives'] = fs
         return result
 
 
@@ -420,23 +420,23 @@ class DTLZ2(DTLZ):
     _ref_val = 1.1
     _r = 0.2
 
-    def __init__(self, dim=12, num_objs=2, constrained=False,
+    def __init__(self, dim=12, num_objectives=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
         num_constraints = 1 if constrained else 0
-        super().__init__(dim, num_objs, num_constraints, noise_std=noise_std, random_state=random_state)
+        super().__init__(dim, num_objectives, num_constraints, noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:
-        if self.constrained and self.dim == 12 and self.num_objs == 2:
+        if self.constrained and self.dim == 12 and self.num_objectives == 2:
             return 0.3996406303723544   # approximate from nsga-ii
         else:
             # hypercube - volume of hypersphere in R^n such that all coordinates are positive
-            hypercube_vol = self._ref_val ** self.num_objs
+            hypercube_vol = self._ref_val ** self.num_objectives
             pos_hypersphere_vol = (
-                np.pi ** (self.num_objs / 2)
-                / gamma(self.num_objs / 2 + 1)
-                / 2 ** self.num_objs
+                np.pi ** (self.num_objectives / 2)
+                / gamma(self.num_objectives / 2 + 1)
+                / 2 ** self.num_objectives
             )
             return hypercube_vol - pos_hypersphere_vol
 
@@ -446,8 +446,8 @@ class DTLZ2(DTLZ):
         g_X_plus1 = 1 + g_X
         fs = []
         pi_over_2 = np.pi / 2
-        for i in range(self.num_objs):
-            idx = self.num_objs - 1 - i
+        for i in range(self.num_objectives):
+            idx = self.num_objectives - 1 - i
             f_i = g_X_plus1.copy()
             f_i *= np.cos(X[..., :idx] * pi_over_2).prod(axis=-1)
             if i > 0:
@@ -455,7 +455,7 @@ class DTLZ2(DTLZ):
             fs.append(f_i)
 
         result = dict()
-        result['objs'] = fs
+        result['objectives'] = fs
 
         if self.constrained:
             f_X = np.atleast_2d(fs)
@@ -503,7 +503,7 @@ class BraninCurrin(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objs=2,
+                         num_objectives=2,
                          num_constraints=num_constraints,
                          random_state=random_state)
 
@@ -518,7 +518,7 @@ class BraninCurrin(BaseTestProblem):
         f2 = (1 - np.exp(-1 / (2 * x2))) * (2300 * x1 ** 3 + 1900 * x1 ** 2 + 2092 * x1 + 60) \
              / (100 * x1 ** 3 + 500 * x1 ** 2 + 4 * x1 + 20)
         result = dict()
-        result['objs'] = [f1, f2]
+        result['objectives'] = [f1, f2]
         if self.constrained:
             result['constraints'] = [(px1 - 2.5)**2 + (px2 - 7.5)**2 - 50]
         return result
@@ -545,7 +545,7 @@ class VehicleSafety(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objs=3,
+                         num_objectives=3,
                          random_state=random_state)
 
     def _evaluate(self, X):
@@ -587,7 +587,7 @@ class VehicleSafety(BaseTestProblem):
         f_X = np.hstack([f1, f2, f3])
 
         result = dict()
-        result['objs'] = f_X
+        result['objectives'] = f_X
         return result
 
 
@@ -604,7 +604,7 @@ class ZDT(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objs=2, num_constraints=num_constraints,
+                         num_objectives=2, num_constraints=num_constraints,
                          random_state=random_state)
 
     @staticmethod
@@ -634,7 +634,7 @@ class ZDT1(ZDT):
         f_1 = g * (1 - np.sqrt(f_0 / g))
 
         result = dict()
-        result['objs'] = np.stack([f_0, f_1], axis=-1)
+        result['objectives'] = np.stack([f_0, f_1], axis=-1)
         return result
 
     def generate_pareto_front(self, n: int):
@@ -666,7 +666,7 @@ class ZDT2(ZDT):
         f_1 = g * (1 - (f_0 / g)**2)
 
         result = dict()
-        result['objs'] = np.stack([f_0, f_1], axis=-1)
+        result['objectives'] = np.stack([f_0, f_1], axis=-1)
         return result
 
     def generate_pareto_front(self, n: int):
@@ -709,7 +709,7 @@ class ZDT3(ZDT):
         f_1 = 1 - np.sqrt(f_0 / g) - f_0 / g * np.sin(10 * np.pi * f_0)
 
         result = dict()
-        result['objs'] = np.stack([f_0, f_1], axis=-1)
+        result['objectives'] = np.stack([f_0, f_1], axis=-1)
         return result
 
     def generate_pareto_front(self, n: int):
@@ -744,12 +744,12 @@ class BNH(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objs=2, num_constraints=2,
+                         num_objectives=2, num_constraints=2,
                          random_state=random_state)
 
     def _evaluate(self, X):
         result = dict()
-        result['objs'] = np.stack(
+        result['objectives'] = np.stack(
             [4.0 * (X ** 2).sum(axis=-1), ((X - 5.0) ** 2).sum(axis=-1)], axis=-1
         )
 
@@ -775,7 +775,7 @@ class SRN(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objs=2,
+                         num_objectives=2,
                          num_constraints=2,
                          random_state=random_state)
 
@@ -783,7 +783,7 @@ class SRN(BaseTestProblem):
         result = dict()
         obj1 = 2.0 + ((X - 2.0) ** 2).sum(axis=-1)
         obj2 = 9.0 * X[..., 0] - (X[..., 1] - 1.0) ** 2
-        result['objs'] = np.stack([obj1, obj2], axis=-1)
+        result['objectives'] = np.stack([obj1, obj2], axis=-1)
 
         c1 = (X ** 2).sum(axis=-1) - 225.0  # fix bug
         c2 = X[..., 0] - 3 * X[..., 1] + 10
@@ -807,14 +807,14 @@ class CONSTR(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objs=2, num_constraints=2,
+                         num_objectives=2, num_constraints=2,
                          random_state=random_state)
 
     def _evaluate(self, X):
         result = dict()
         obj1 = X[..., 0]
         obj2 = (1.0 + X[..., 1]) / X[..., 0]
-        result['objs'] = np.stack([obj1, obj2], axis=-1)
+        result['objectives'] = np.stack([obj1, obj2], axis=-1)
 
         c1 = 6.0 - 9.0 * X[..., 0] - X[..., 1]
         c2 = 1.0 - 9.0 * X[..., 0] + X[..., 1]
@@ -843,7 +843,7 @@ class Schwefel(BaseTestProblem):
 
     def _evaluate(self, X):
         result = dict()
-        result['objs'] = [np.sum(-X * np.sin(np.sqrt(np.abs(X))), axis=-1)]
+        result['objectives'] = [np.sum(-X * np.sin(np.sqrt(np.abs(X))), axis=-1)]
         return result
 
 
@@ -867,7 +867,7 @@ class Rastrigin(BaseTestProblem):
 
     def _evaluate(self, X):
         result = dict()
-        result['objs'] = [np.sum(X ** 2 - 10 * np.cos(2 * np.pi * X) + 10, axis=-1)]
+        result['objectives'] = [np.sum(X ** 2 - 10 * np.cos(2 * np.pi * X) + 10, axis=-1)]
         return result
 
 
@@ -887,7 +887,7 @@ class Gaussian(BaseTestProblem):
 
     def _evaluate(self, X):
         result = dict()
-        result['objs'] = [1 - np.exp(-4 * np.sum(X ** 2, axis=-1))]
+        result['objectives'] = [1 - np.exp(-4 * np.sum(X ** 2, axis=-1))]
         return result
 
 
@@ -903,7 +903,7 @@ class SafetyConstrained(BaseTestProblem):
     def _evaluate(self, X):
         result = self.original(X, convert=False)
         if 'constraints' in result:
-            result['constraints'] = np.concatenate([np.array(result['objs']) - self.h, result['constraints']], axis=-1)
+            result['constraints'] = np.concatenate([np.array(result['objectives']) - self.h, result['constraints']], axis=-1)
         else:
-            result['constraints'] = np.array(result['objs']) - self.h
+            result['constraints'] = np.array(result['objectives']) - self.h
         return result

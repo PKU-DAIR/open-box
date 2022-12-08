@@ -40,7 +40,7 @@ class NondominatedPartitioning(object):
 
     def __init__(
         self,
-        num_objs: int,
+        num_objectives: int,
         Y: Optional[np.ndarray] = None,
         alpha: float = 0.0,
         eps: Optional[float] = None,
@@ -48,14 +48,14 @@ class NondominatedPartitioning(object):
         """Initialize NondominatedPartitioning.
 
         Args:
-            num_objs: The number of objective functions
+            num_objectives: The number of objective functions
             Y: A `n x m`-dim array
             alpha: a thresold fraction of total volume used in an approximate
                 decomposition.
             eps: a small value for numerical stability
         """
         self.alpha = alpha
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self._eps = eps
         if Y is not None:
             self.update(Y=Y)
@@ -103,7 +103,7 @@ class NondominatedPartitioning(object):
         is_new_pareto = self._update_pareto_Y()
         # Update decomposition if the pareto front changed
         if is_new_pareto:
-            if self.num_objs > 2:
+            if self.num_objectives > 2:
                 self.binary_partition_non_dominated_space()
             else:
                 self.partition_non_dominated_space_2d()
@@ -124,16 +124,16 @@ class NondominatedPartitioning(object):
         aug_pareto_Y_idcs = self._get_augmented_pareto_front_indices()
 
         # Initialize one cell over entire pareto front
-        cell = np.zeros((2, self.num_objs), dtype=int)
+        cell = np.zeros((2, self.num_objectives), dtype=int)
         cell[1] = aug_pareto_Y_idcs.shape[0] - 1
         stack = [cell]
         total_volume = (anti_ideal_point - ideal_point).prod()
 
         # hypercells contains the indices of the (augmented) pareto front
         # that specify that bounds of the each hypercell.
-        # It is a `2 x num_cells x num_objs`-dim array
-        self.hypercells = np.empty((2, 0, self.num_objs))
-        outcome_idxr = np.arange(self.num_objs)
+        # It is a `2 x num_cells x num_objectives`-dim array
+        self.hypercells = np.empty((2, 0, self.num_objectives))
+        outcome_idxr = np.arange(self.num_objectives)
 
         # Use binary partitioning
         while len(stack) > 0:
@@ -202,10 +202,10 @@ class NondominatedPartitioning(object):
 
         This direct method works for `m=2` outcomes.
         """
-        if self.num_objs != 2:
+        if self.num_objectives != 2:
             raise Exception(
                 "partition_non_dominated_space_2d requires 2 outputs, "
-                "but num_objs=%d" % self.num_objs
+                "but num_objectives=%d" % self.num_objectives
             )
         pf_ext_idx = self._get_augmented_pareto_front_indices()
         range_pf_plus1 = np.arange(
@@ -223,12 +223,12 @@ class NondominatedPartitioning(object):
         return np.concatenate(
             [
                 np.zeros(
-                    (1, self.num_objs), dtype=int
+                    (1, self.num_objectives), dtype=int
                 ),
                 # Add 1 because index zero is used for the ideal point
                 pf_idx + 1,
                 np.full(
-                    (1, self.num_objs),
+                    (1, self.num_objectives),
                     self._pareto_Y.shape[0] + 1,
                     dtype=int
                 ),
@@ -243,14 +243,14 @@ class NondominatedPartitioning(object):
             ref_point: A `m`-dim array containing the reference point.
 
         Returns:
-            A `2 x num_cells x num_objs`-dim array containing the
+            A `2 x num_cells x num_objectives`-dim array containing the
                 lower and upper vertices bounding each hypercell.
         """
         aug_pareto_Y = np.concatenate(
             [
                 # -inf is the lower bound of the non-dominated space
                 np.full(
-                    (1, self.num_objs),
+                    (1, self.num_objectives),
                     float("-inf")
                 ),
                 self._pareto_Y,
@@ -268,13 +268,13 @@ class NondominatedPartitioning(object):
             the augmented pareto front.
 
         Returns:
-            A `2 x num_cells x num_objs`-dim array containing the
+            A `2 x num_cells x num_objectives`-dim array containing the
                 lower and upper vertices bounding each hypercell.
         """
         num_cells = self.hypercells.shape[1]
-        outcome_idxr = np.tile(np.arange(self.num_objs), num_cells)
+        outcome_idxr = np.tile(np.arange(self.num_objectives), num_cells)
 
-        # this array is 2 x (num_cells *num_objs) x 2
+        # this array is 2 x (num_cells *num_objectives) x 2
         # the batch dim corresponds to lower/upper bound
         cell_bounds_idxr = np.stack(
             [self.hypercells.reshape(2, -1),
@@ -288,8 +288,8 @@ class NondominatedPartitioning(object):
             real_chunks = np.ceil(num_to_chunk / chunk_size).astype(int)
             return tuple(np.take(arr, indices=range(i*chunk_size, (i+1)*chunk_size), axis=axis) for i in range(real_chunks))
 
-        indexers = chunk(cell_bounds_idxr, self.num_objs, axis=-1)
-        cell_bounds_values = aug_pareto_Y[indexers].reshape(2, -1, self.num_objs)
+        indexers = chunk(cell_bounds_idxr, self.num_objectives, axis=-1)
+        cell_bounds_values = aug_pareto_Y[indexers].reshape(2, -1, self.num_objectives)
         return cell_bounds_values
 
     def compute_hypervolume(self, ref_point: np.ndarray) -> float:

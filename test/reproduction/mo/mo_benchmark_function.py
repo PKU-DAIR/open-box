@@ -13,16 +13,16 @@ def get_problem(problem_str, **kwargs):
         params = problem_str.split('-')
         assert params[0] == 'dtlz1'
         if len(params) == 1:
-            return dtlz1(dim=5, num_objs=4)
+            return dtlz1(dim=5, num_objectives=4)
         elif len(params) == 3:
-            return dtlz1(dim=int(params[1]), num_objs=int(params[2]))
+            return dtlz1(dim=int(params[1]), num_objectives=int(params[2]))
     elif problem_str.startswith('dtlz2'):
         params = problem_str.split('-')
         assert params[0] == 'dtlz2'
         if len(params) == 1:
-            return dtlz2(dim=12, num_objs=2)
+            return dtlz2(dim=12, num_objectives=2)
         elif len(params) == 3:
-            return dtlz2(dim=int(params[1]), num_objs=int(params[2]))
+            return dtlz2(dim=int(params[1]), num_objectives=int(params[2]))
     elif problem_str == 'branincurrin':
         problem = branincurrin
     elif problem_str == 'vehiclesafety':
@@ -41,14 +41,14 @@ def get_problem(problem_str, **kwargs):
 
 def plot_pf(problem, problem_str, mth, pf, Y_init=None):
     import matplotlib.pyplot as plt
-    assert problem.num_objs in (2, 3)
-    if problem.num_objs == 2:
+    assert problem.num_objectives in (2, 3)
+    if problem.num_objectives == 2:
         plt.scatter(pf[:, 0], pf[:, 1], label=mth)
         if Y_init is not None:
             plt.scatter(Y_init[:, 0], Y_init[:, 1], label='init', marker='x')
         plt.xlabel('Objective 1')
         plt.ylabel('Objective 2')
-    elif problem.num_objs == 3:
+    elif problem.num_objectives == 3:
         ax = plt.axes(projection='3d')
         ax.scatter3D(pf[:, 0], pf[:, 1], pf[:, 2], label=mth)
         if Y_init is not None:
@@ -57,16 +57,16 @@ def plot_pf(problem, problem_str, mth, pf, Y_init=None):
         ax.set_ylabel('Objective 2')
         ax.set_zlabel('Objective 3')
     else:
-        raise ValueError('Cannot plot_pf with problem.num_objs == %d.' % (problem.num_objs,))
+        raise ValueError('Cannot plot_pf with problem.num_objectives == %d.' % (problem.num_objectives,))
     plt.title('Pareto Front of %s' % (problem_str,))
     plt.legend()
     plt.show()
 
 
 class BaseMultiObjectiveProblem:
-    def __init__(self, dim, num_objs, problem=None, **kwargs):
+    def __init__(self, dim, num_objectives, problem=None, **kwargs):
         self.dim = dim
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         if problem is not None:
             self.problem = problem
             self.ref_point = problem.ref_point
@@ -104,9 +104,9 @@ class BaseMultiObjectiveProblem:
 
 class dtlz1(BaseMultiObjectiveProblem):
 
-    def __init__(self, dim, num_objs, **kwargs):
-        problem = DTLZ1(dim=dim, num_objs=num_objs)
-        super().__init__(dim=dim, num_objs=num_objs, problem=problem, **kwargs)
+    def __init__(self, dim, num_objectives, **kwargs):
+        problem = DTLZ1(dim=dim, num_objectives=num_objectives)
+        super().__init__(dim=dim, num_objectives=num_objectives, problem=problem, **kwargs)
         self.lb = 0
         self.ub = 1
         self.bounds = [(self.lb, self.ub)] * self.dim
@@ -136,9 +136,9 @@ class dtlz1(BaseMultiObjectiveProblem):
 
 class dtlz2(BaseMultiObjectiveProblem):
 
-    def __init__(self, dim, num_objs, **kwargs):
-        problem = DTLZ2(dim=dim, num_objs=num_objs)
-        super().__init__(dim=dim, num_objs=num_objs, problem=problem, **kwargs)
+    def __init__(self, dim, num_objectives, **kwargs):
+        problem = DTLZ2(dim=dim, num_objectives=num_objectives)
+        super().__init__(dim=dim, num_objectives=num_objectives, problem=problem, **kwargs)
         self.lb = 0
         self.ub = 1
         self.bounds = [(self.lb, self.ub)] * self.dim
@@ -170,7 +170,7 @@ class branincurrin(BaseMultiObjectiveProblem):
 
     def __init__(self, **kwargs):
         problem = BraninCurrin()
-        super().__init__(dim=2, num_objs=2, problem=problem, **kwargs)
+        super().__init__(dim=2, num_objectives=2, problem=problem, **kwargs)
         self.lb = 1e-10  # fix numeric problem
         self.ub = 1
         self.bounds = [(self.lb, self.ub)] * self.dim
@@ -205,7 +205,7 @@ class vehiclesafety(BaseMultiObjectiveProblem):
 
     def __init__(self, **kwargs):
         problem = VehicleSafety()
-        super().__init__(dim=5, num_objs=3, problem=problem, **kwargs)
+        super().__init__(dim=5, num_objectives=3, problem=problem, **kwargs)
         self.lb = 1
         self.ub = 3
         self.bounds = [(self.lb, self.ub)] * self.dim
@@ -245,7 +245,7 @@ class zdt(BaseMultiObjectiveProblem):
         else:
             raise ValueError
         problem = problem(dim=dim)
-        super().__init__(dim=dim, num_objs=2, problem=problem, **kwargs)
+        super().__init__(dim=dim, num_objectives=2, problem=problem, **kwargs)
         self.lb = 0
         self.ub = 1
         self.bounds = [(self.lb, self.ub)] * self.dim

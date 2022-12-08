@@ -82,7 +82,7 @@ def generate_initial_data(init_num, obj_func, time_list, global_start_time):
     train_con = []
     for x in train_x:
         res = obj_func(x)
-        y = res['objs']
+        y = res['objectives']
         c = res['constraints']
         train_obj.append(y)
         train_con.append(c)
@@ -120,8 +120,8 @@ def obj_callable(Z):
 # def constraint_callable(Z):
 #     return Z[..., 1]
 
-def constraint_callable_list(num_constraints, num_objs=1):
-    return [lambda Z: Z[..., i + num_objs] for i in range(num_constraints)]
+def constraint_callable_list(num_constraints, num_objectives=1):
+    return [lambda Z: Z[..., i + num_objectives] for i in range(num_constraints)]
 
 
 # define a feasibility-weighted objective for optimization
@@ -150,7 +150,7 @@ def optimize_acqf_and_get_observation(acq_func, obj_func, time_list, global_star
     new_con = []
     for x in new_x:
         res = obj_func(x)
-        y = res['objs']
+        y = res['objectives']
         c = res['constraints']
         new_obj.append(y)
         new_con.append(c)
@@ -173,7 +173,7 @@ def evaluate(mth, run_i, seed):
         x = unnormalize(x, bounds=problem_bounds)
         x = x.cpu().numpy().astype(np.float64)  # caution
         res = problem.evaluate(x)
-        res['objs'] = [-y for y in res['objs']]
+        res['objectives'] = [-y for y in res['objectives']]
         return res  # Caution: negative values imply feasibility in botorch
 
     time_list = []

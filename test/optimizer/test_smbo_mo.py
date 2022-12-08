@@ -9,7 +9,7 @@ prob = ZDT2(dim=dim)
 
 bo = SMBO(prob.evaluate,
           prob.config_space,
-          num_objs=prob.num_objs,
+          num_objectives=prob.num_objectives,
           num_constraints=0,
           acq_type='ehvi',
           acq_optimizer_type='random_scipy',

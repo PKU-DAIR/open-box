@@ -16,7 +16,7 @@ class RemoteAdvisor(object):
                  server_ip, port, email, password,
                  task_name='task',
                  num_constraints=0,
-                 num_objs=1,
+                 num_objectives=1,
                  sample_strategy: str = 'bo',
                  surrogate_type=None,
                  acq_type=None,
@@ -41,7 +41,7 @@ class RemoteAdvisor(object):
         config_space_json = config_json.write(config_space)
 
         # Check setup
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
         self.acq_type = acq_type
         self.constraint_surrogate_type = None
@@ -70,7 +70,7 @@ class RemoteAdvisor(object):
         res = requests.post(self.base_url + 'task_register/',
                             data={'email': self.email, 'password': self.password, 'task_name': task_name,
                                   'config_space_json': config_space_json,
-                                  'num_constraints': num_constraints, 'num_objs': num_objs,
+                                  'num_constraints': num_constraints, 'num_objectives': num_objectives,
                                   'max_runs': self.max_iterations,
                                   'options': json.dumps(options), 'time_limit_per_trial': time_limit_per_trial,
                                   'active_worker_num': active_worker_num, 'parallel_type': parallel_type})
@@ -83,13 +83,13 @@ class RemoteAdvisor(object):
 
     def check_setup(self):
         """
-        Check num_objs, num_constraints, acq_type, surrogate_type.
+        Check num_objectives, num_constraints, acq_type, surrogate_type.
         """
-        assert isinstance(self.num_objs, int) and self.num_objs >= 1
+        assert isinstance(self.num_objectives, int) and self.num_objectives >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
         # single objective no constraint
-        if self.num_objs == 1 and self.num_constraints == 0:
+        if self.num_objectives == 1 and self.num_constraints == 0:
             if self.acq_type is None:
                 self.acq_type = 'ei'
             assert self.acq_type in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', ]
@@ -97,7 +97,7 @@ class RemoteAdvisor(object):
                 self.surrogate_type = 'prf'
 
         # multi-objective with constraints
-        elif self.num_objs > 1 and self.num_constraints > 0:
+        elif self.num_objectives > 1 and self.num_constraints > 0:
             if self.acq_type is None:
                 self.acq_type = 'mesmoc2'
             assert self.acq_type in ['mesmoc', 'mesmoc2']
@@ -118,7 +118,7 @@ class RemoteAdvisor(object):
                                     'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
 
         # multi-objective no constraint
-        elif self.num_objs > 1:
+        elif self.num_objectives > 1:
             if self.acq_type is None:
                 self.acq_type = 'mesmo'
             assert self.acq_type in ['mesmo', 'usemo']
@@ -160,10 +160,10 @@ class RemoteAdvisor(object):
         else:
             raise Exception('Server error %s' % res['msg'])
 
-    def update_observation(self, config_dict, objs, constraints=[], trial_info={}, trial_state=SUCCESS):
+    def update_observation(self, config_dict, objectives, constraints=[], trial_info={}, trial_state=SUCCESS):
         res = requests.post(self.base_url + 'update_observation/',
                             data={'task_id': self.task_id, 'config': json.dumps(config_dict),
-                                  'objs': json.dumps(objs), 'constraints': json.dumps(constraints),
+                                  'objectives': json.dumps(objectives), 'constraints': json.dumps(constraints),
                                   'trial_state': trial_state, 'trial_info': json.dumps(trial_info)})
         res = json.loads(res.text)
         if res['code'] == 0:

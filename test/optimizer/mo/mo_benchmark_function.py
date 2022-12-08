@@ -46,7 +46,7 @@ def get_setup_bc():
         y2 = Currin(x)
         res = dict()
         res['config'] = config
-        res['objs'] = (y1, y2)
+        res['objectives'] = (y1, y2)
         res['constraints'] = None
         return res
 
@@ -74,8 +74,8 @@ def get_setup_bc():
 
     problem_str = 'bc'
     num_inputs = 2
-    num_objs = 2
-    referencePoint = [1e5] * num_objs   # must greater than max value of objective
+    num_objectives = 2
+    referencePoint = [1e5] * num_objectives   # must greater than max value of objective
     real_hv = 1e10
 
     setup = dict(
@@ -84,7 +84,7 @@ def get_setup_bc():
         run_nsgaii=run_nsgaii_bc,
         problem_str=problem_str,
         num_inputs=num_inputs,
-        num_objs=num_objs,
+        num_objectives=num_objectives,
         referencePoint=referencePoint,
         real_hv=real_hv,
     )
@@ -164,12 +164,12 @@ def get_setup_lightgbm(dataset, time_limit=None):
 
         res = dict()
         res['config'] = config
-        res['objs'] = (y1, y2)
+        res['objectives'] = (y1, y2)
         res['constraints'] = None
 
-        if any(res['objs'][i] > referencePoint[i] for i in range(len(referencePoint))):
-            print('[ERROR]=== objective evaluate error! objs =', res['objs'], 'referencePoint =', referencePoint)
-            res['objs'] = [ref - 1e-5 for ref in referencePoint]
+        if any(res['objectives'][i] > referencePoint[i] for i in range(len(referencePoint))):
+            print('[ERROR]=== objective evaluate error! objectives =', res['objectives'], 'referencePoint =', referencePoint)
+            res['objectives'] = [ref - 1e-5 for ref in referencePoint]
         return res
 
     def get_cs_lightgbm():  # todo q and int for compare?
@@ -189,7 +189,7 @@ def get_setup_lightgbm(dataset, time_limit=None):
 
     problem_str = 'lightgbm-' + dataset
     num_inputs = 6
-    num_objs = 2
+    num_objectives = 2
     time_limit = time_limit_dict.get(dataset, time_limit)
     assert time_limit is not None, 'time_limit is not set for dataset: %s' % (dataset,)
     referencePoint = [0.5, time_limit]  # must greater than max value of objective
@@ -201,7 +201,7 @@ def get_setup_lightgbm(dataset, time_limit=None):
         run_nsgaii=None,
         problem_str=problem_str,
         num_inputs=num_inputs,
-        num_objs=num_objs,
+        num_objectives=num_objectives,
         referencePoint=referencePoint,
         real_hv=real_hv,
         time_limit=time_limit

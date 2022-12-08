@@ -108,7 +108,7 @@ class BlendSearchAdvisor(abc.ABC):
 
     def update_observation(self, observation: Observation):
         config = observation.config
-        perf = observation.objs[0]
+        perf = observation.objectives[0]
         self.running_configs.remove(config)
         self.cur.perf = perf
         self.cur.search_method.update_observation(observation)

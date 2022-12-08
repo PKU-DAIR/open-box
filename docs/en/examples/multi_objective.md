@@ -28,14 +28,14 @@ def objective_function(config: sp.Configuration):
     f_1 = g * (1 - (f_0 / g)**2)
 
     result = dict()
-    result['objs'] = np.stack([f_0, f_1], axis=-1)
+    result['objectives'] = np.stack([f_0, f_1], axis=-1)
     return result
 ```
 
 After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
 The result dictionary should contain:
 
-+ **'objs'**: A **list/tuple** of **objective values (to be minimized)**. 
++ **'objectives'**: A **list/tuple** of **objective values (to be minimized)**. 
 In this example, we have two objectives so the tuple contains two values.
 
 + **'constraints**': A **list/tuple** of **constraint values**.
@@ -49,7 +49,7 @@ from openbox import Optimizer
 opt = Optimizer(
     prob.evaluate,
     prob.config_space,
-    num_objs=prob.num_objs,
+    num_objectives=prob.num_objectives,
     num_constraints=0,
     max_runs=50,
     surrogate_type='gp',
@@ -69,8 +69,8 @@ Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the
 and the search space to it. 
 The other parameters are:
 
-+ **num_objs** and **num_constraints** set how many objectives and constraints the objective function will return.
-In this example, **num_objs=2**.
++ **num_objectives** and **num_constraints** set how many objectives and constraints the objective function will return.
+In this example, **num_objectives=2**.
 
 + **max_runs=50** means the optimization will take 50 rounds (optimizing the objective function 50 times). 
 

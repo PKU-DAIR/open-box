@@ -9,7 +9,7 @@ from openbox.optimizer.generic_smbo import SMBO
 from openbox.benchmark.objective_functions.synthetic import VehicleSafety
 
 num_inputs = 5
-num_objs = 3
+num_objectives = 3
 acq_optimizer_type = 'random_scipy'
 seed = 1
 prob = VehicleSafety()
@@ -18,7 +18,7 @@ max_runs = 100 + initial_runs
 
 bo = SMBO(prob.evaluate, prob.config_space,
           task_id='ehvi',
-          num_objs=prob.num_objs,
+          num_objectives=prob.num_objectives,
           num_constraints=prob.num_constraints,
           acq_type='ehvi',
           acq_optimizer_type=acq_optimizer_type,

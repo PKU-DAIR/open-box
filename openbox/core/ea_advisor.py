@@ -20,7 +20,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
     def __init__(
             self,
             config_space,
-            num_objs=1,
+            num_objectives=1,
             num_constraints=0,
             population_size=30,
             subset_size=20,
@@ -34,9 +34,9 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
             logger_kwargs: dict = None,
     ):
 
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
-        assert self.num_objs == 1 and self.num_constraints == 0
+        assert self.num_objectives == 1 and self.num_constraints == 0
         self.output_dir = output_dir
         self.task_id = task_id
         self.rng = check_random_state(random_state)
@@ -129,7 +129,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
         """
 
         config = observation.config
-        perf = observation.objs[0]
+        perf = observation.objectives[0]
         trial_state = observation.trial_state
 
         assert config in self.running_configs

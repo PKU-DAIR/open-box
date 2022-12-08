@@ -17,7 +17,7 @@ from openbox.utils.multi_objective import NondominatedPartitioning, get_chebyshe
 class SAEAAdvisor(ModularEAAdvisor):
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=0,
                  population_size=None,
                  optimization_strategy='ea',
@@ -48,7 +48,7 @@ class SAEAAdvisor(ModularEAAdvisor):
         population_size = population_size or self.ea.population_size
         required_evaluation_count = required_evaluation_count or self.ea.required_evaluation_count
 
-        super().__init__(config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
+        super().__init__(config_space=config_space, num_objectives=num_objectives, num_constraints=num_constraints,
                          population_size=population_size, optimization_strategy=optimization_strategy,
                          batch_size=batch_size, output_dir=output_dir, task_id=task_id,
                          random_state=random_state,
@@ -61,8 +61,8 @@ class SAEAAdvisor(ModularEAAdvisor):
                          )
 
         # Default Acq
-        acq = acq or (('ehvi' if self.num_constraints > 0 else 'ehvic') if self.num_objs > 1 and ref_point
-                      else ('mesmo' if self.num_constraints > 0 else 'mesmoc2') if self.num_objs > 1
+        acq = acq or (('ehvi' if self.num_constraints > 0 else 'ehvic') if self.num_objectives > 1 and ref_point
+                      else ('mesmo' if self.num_constraints > 0 else 'mesmoc2') if self.num_objectives > 1
         else ('eic' if self.num_constraints > 0 else 'ei'))
 
         constraint_surrogate = constraint_surrogate or surrogate
@@ -74,7 +74,7 @@ class SAEAAdvisor(ModularEAAdvisor):
         # This is ALWAYS a list no matter multi-obj or single-obj
         self.objective_surrogates: List[AbstractModel] = [
             build_surrogate(surrogate, config_space, self.rng or random, None)
-            for x in range(self.num_objs)]
+            for x in range(self.num_objectives)]
         self.constraint_surrogates: List[AbstractModel] = [build_surrogate(constraint_surrogate, config_space,
                                                                            self.rng or random, None) for x in
                                                            range(self.num_constraints)]
@@ -132,7 +132,7 @@ class SAEAAdvisor(ModularEAAdvisor):
 
         cY = self.history_container.get_transformed_constraint_perfs(transform='bilog')
 
-        for i in range(self.num_objs):
+        for i in range(self.num_objectives):
             self.objective_surrogates[i].train(X, Y[:, i] if Y.ndim == 2 else Y)
 
         for i in range(self.num_constraints):
@@ -143,7 +143,7 @@ class SAEAAdvisor(ModularEAAdvisor):
         num_config_evaluated = len(self.history_container.configurations)
         # num_config_successful = len(self.history_container.successful_perfs)
         # update acquisition function
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             incumbent_value = self.history_container.get_incumbents()[0][1]
             self.acq.update(model=self.objective_surrogates[0],
                             constraint_models=self.constraint_surrogates,
@@ -152,14 +152,14 @@ class SAEAAdvisor(ModularEAAdvisor):
         else:  # multi-objectives
             mo_incumbent_value = self.history_container.get_mo_incumbent_value()
             if self.acq_type == 'parego':
-                weights = self.rng.random_sample(self.num_objs)
+                weights = self.rng.random_sample(self.num_objectives)
                 weights = weights / np.sum(weights)
                 self.acq.update(model=self.objective_surrogates,
                                 constraint_models=self.constraint_surrogates,
                                 eta=get_chebyshev_scalarization(weights, Y)(np.atleast_2d(mo_incumbent_value)),
                                 num_data=num_config_evaluated)
             elif self.acq_type.startswith('ehvi'):
-                partitioning = NondominatedPartitioning(self.num_objs, Y)
+                partitioning = NondominatedPartitioning(self.num_objectives, Y)
                 cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
                 self.acq.update(model=self.objective_surrogates,
                                 constraint_models=self.constraint_surrogates,

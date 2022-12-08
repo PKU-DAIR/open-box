@@ -15,7 +15,7 @@ space = problem.get_configspace()
 opt = NSGAOptimizer(
     problem.evaluate_config, space,
     num_constraints=0,
-    num_objs=2,
+    num_objectives=2,
     max_runs=2500,
     task_id='test_nsga',
 )

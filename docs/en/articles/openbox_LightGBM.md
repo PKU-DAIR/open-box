@@ -81,7 +81,7 @@ def objective_function(config):
     loss = 1 - balanced_accuracy_score(y_val, y_pred)  # OpenBox minimizes the objective
 
     # return result dictionary
-    result = dict(objs=(loss, ))
+    result = dict(objectives=(loss, ))
     return result
 ```
 

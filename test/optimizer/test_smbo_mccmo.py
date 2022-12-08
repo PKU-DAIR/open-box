@@ -12,7 +12,7 @@ prob = BraninCurrin(constrained=True)
 bo = SMBO(prob.evaluate, prob.config_space,
           advisor_type='mcadvisor',
           task_id='mccmo',
-          num_objs=prob.num_objs,
+          num_objectives=prob.num_objectives,
           num_constraints=prob.num_constraints,
           acq_type='mcparegoc',
           ref_point=prob.ref_point,

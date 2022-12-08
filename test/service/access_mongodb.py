@@ -37,7 +37,7 @@ def branin(x):
     s = 10.
     t = 1. / (8. * np.pi)
     ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-    return {'objs': (ret,)}
+    return {'objectives': (ret,)}
 
 
 task_config = {
@@ -111,9 +111,9 @@ def test_task_manipulation1():
     optimizer = optimizer_class(branin, config_space, **task_config)
 
     for _ in range(10):
-        config, trial_state, objs, trial_info = optimizer.iterate()
-        print(config, objs)
-        new_history = {'task_id': 'abc', 'config': config.get_dictionary(), 'result': list(objs), 'trial_status': trial_state}
+        config, trial_state, objectives, trial_info = optimizer.iterate()
+        print(config, objectives)
+        new_history = {'task_id': 'abc', 'config': config.get_dictionary(), 'result': list(objectives), 'trial_status': trial_state}
         id_ = runhistory_collection.insert_one(new_history).inserted_id
         print(id_)
     item = runhistory_collection.find_one({'task_id': 'abc'})

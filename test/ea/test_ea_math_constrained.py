@@ -54,13 +54,13 @@ class TestFunc(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objs = 1, num_constraints = 1,
+                         num_objectives = 1, num_constraints = 1,
                          random_state = random_state)
 
     def _evaluate(self, X):
         result = dict()
         obj = -(X[..., 0] * np.sin(9 * np.pi * X[..., 1]) + X[..., 1] * np.cos(25 * np.pi * X[..., 0]) + 20)
-        result['objs'] = (obj,)
+        result['objectives'] = (obj,)
 
         c = X[..., 0] ** 2 + X[..., 1] ** 2 - 9 ** 2
         result['constraints'] = (c,)
@@ -82,18 +82,18 @@ if __name__ == "__main__":
     advisors = [RegularizedEAAdvisor(
         config_space = space,
         task_id = 'OpenBox',
-        num_objs = 1,
+        num_objectives = 1,
         num_constraints = CNUM
     ), SAEAAdvisor(
         config_space = space,
         task_id = 'OpenBox',
         ea = RegularizedEAAdvisor,
-        num_objs = 1,
+        num_objectives = 1,
         num_constraints = CNUM
     )]
 
     res = function(space.sample_configuration())
-    dim = len(res['objs'])
+    dim = len(res['objectives'])
 
     axes = None
     histories = []
@@ -109,10 +109,10 @@ if __name__ == "__main__":
             # evaluate
             ret = function(config)
             # tell
-            observation = Observation(config = config, objs = ret['objs'],
+            observation = Observation(config = config, objectives = ret['objectives'],
                                       constraints = ret['constraints'] if 'constraints' in ret.keys() else None)
             advisor.update_observation(observation)
-            # print(observation.objs)
+            # print(observation.objectives)
 
             if trange == range:
                 print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))

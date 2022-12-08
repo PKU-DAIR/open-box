@@ -15,7 +15,7 @@ from platypus import Problem, NSGAII
 from platypus import nondominated as _nondominated
 
 """
-    The objective function returns a dictionary that has --- config, constraints, objs ---.
+    The objective function returns a dictionary that has --- config, constraints, objectives ---.
 """
 
 
@@ -25,7 +25,7 @@ class NSGAOptimizer(NSGABase):
             objective_function: callable,
             config_space,
             num_constraints=0,
-            num_objs=1,
+            num_objectives=1,
             max_runs=2500,
             algorithm='nsgaii',
             logging_dir='logs',
@@ -40,9 +40,9 @@ class NSGAOptimizer(NSGABase):
 
         self.num_inputs = len(config_space.get_hyperparameters())
         self.num_constraints = num_constraints
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.algo = algorithm
-        self.FAILED_PERF = [MAXINT] * num_objs
+        self.FAILED_PERF = [MAXINT] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, max_runs=max_runs, logger_kwargs=logger_kwargs)
         random.seed(self.rng.randint(MAXINT))
@@ -51,7 +51,7 @@ class NSGAOptimizer(NSGABase):
         self.nsga_objective = objective_wrapper(objective_function, config_space, num_constraints)
 
         # set problem
-        self.problem = Problem(self.num_inputs, num_objs, num_constraints)
+        self.problem = Problem(self.num_inputs, num_objectives, num_constraints)
         set_problem_types(config_space, self.problem)
         if num_constraints > 0:
             self.problem.constraints[:] = "<=0"

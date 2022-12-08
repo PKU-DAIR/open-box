@@ -30,7 +30,7 @@ def objective_funtion(config: sp.Configuration):
     result = dict()
     obj1 = X[..., 0]
     obj2 = (1.0 + X[..., 1]) / X[..., 0]
-    result['objs'] = np.stack([obj1, obj2], axis=-1)
+    result['objectives'] = np.stack([obj1, obj2], axis=-1)
 
     c1 = 6.0 - 9.0 * X[..., 0] - X[..., 1]
     c2 = 1.0 - 9.0 * X[..., 0] + X[..., 1]
@@ -42,7 +42,7 @@ def objective_funtion(config: sp.Configuration):
 在评估后，目标函数返回一个 <font color=#FF0000>**dict (Recommended)**</font>。
 这个结果目录包含：
 
-+ **'objs'**: 一个 **要被最小化目标值** 的 **列表/元组**。
++ **'objectives'**: 一个 **要被最小化目标值** 的 **列表/元组**。
 在这个例子中，我们有两个目标，所以这个元组包含两个值。
 
 + **'constraints**': 一个含有 **约束值** 的 **列表/元组**。
@@ -56,7 +56,7 @@ from openbox import Optimizer
 opt = Optimizer(
     prob.evaluate,
     prob.config_space,
-    num_objs=prob.num_objs,
+    num_objectives=prob.num_objectives,
     num_constraints=prob.num_constraints,
     max_runs=100,
     surrogate_type='gp',
@@ -75,7 +75,7 @@ opt.run()
 这里我们创建一个 <font color=#FF0000>**Optimizer**</font> 实例，并传入目标函数和搜索空间。
 其它的参数是：
 
-+ **num_objs** 和 **num_constraints** 设置目标函数将返回多少目标和约束。在这个例子中，**num_objs=2**，**num_constraints=2**。
++ **num_objectives** 和 **num_constraints** 设置目标函数将返回多少目标和约束。在这个例子中，**num_objectives=2**，**num_constraints=2**。
 
 + **max_runs=100** 表示优化会进行100轮（优化目标函数100次）。
 

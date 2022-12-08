@@ -43,7 +43,7 @@ def lgbm_function(x_train, x_val, y_train, y_val, task_type = 'cls'):
         loss = 1 - balanced_accuracy_score(y_val, y_pred)  # OpenBox minimizes the objective
 
         # return result dictionary
-        result = dict(objs = (loss,))
+        result = dict(objectives = (loss,))
         return result
 
     if task_type == 'cls':
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
         x0 = space.sample_configuration()
 
-        dim = len(function(x0)['objs'])
+        dim = len(function(x0)['objectives'])
 
         avg_results = {}
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
                         configs = advisor.get_suggestions()
                         for config in configs:
                             ret = function(config)
-                            observation = Observation(config = config, objs = ret['objs'])
+                            observation = Observation(config = config, objectives = ret['objectives'])
                             advisor.update_observation(observation)
                         if trange == range:
                             print('===== ITER %d/%d.' % ((i + 1) * BATCH_SIZE, MAX_RUNS))
@@ -119,7 +119,7 @@ if __name__ == "__main__":
                     for i in trange(MAX_RUNS):
                         config = advisor.get_suggestion()
                         ret = function(config)
-                        observation = Observation(config = config, objs = ret['objs'])
+                        observation = Observation(config = config, objectives = ret['objectives'])
                         advisor.update_observation(observation)
                         if trange == range:
                             print('===== ITER %d/%d.' % (i + 1, MAX_RUNS))

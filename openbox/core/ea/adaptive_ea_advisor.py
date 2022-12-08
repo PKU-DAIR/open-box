@@ -15,7 +15,7 @@ class AdaptiveEAAdvisor(EAAdvisor):
     def __init__(self,
 
                  config_space,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=0,
                  population_size=30,
                  optimization_strategy='ea',
@@ -31,7 +31,7 @@ class AdaptiveEAAdvisor(EAAdvisor):
                  strategy='worst',
                  ):
 
-        super().__init__(config_space, num_objs=num_objs, num_constraints=num_constraints,
+        super().__init__(config_space, num_objectives=num_objectives, num_constraints=num_constraints,
                          population_size=population_size, optimization_strategy=optimization_strategy,
                          batch_size=batch_size, output_dir=output_dir, task_id=task_id, random_state=random_state,
                          )
@@ -113,7 +113,7 @@ class AdaptiveEAAdvisor(EAAdvisor):
         ret_observations = []
         for observation in observations:
             config = observation.config
-            perf = observation.objs[0]
+            perf = observation.objectives[0]
             trial_state = observation.trial_state
             assert config in self.running_configs
             self.running_configs.remove(config)

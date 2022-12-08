@@ -51,7 +51,7 @@ def task_register(request):
             config_space = config_json.read(config_space_json)
 
             num_constraints = int(request.POST.get('num_constraints', 0))
-            num_objs = int(request.POST.get('num_objs', 1))
+            num_objectives = int(request.POST.get('num_objectives', 1))
             options = json.loads(request.POST.get('options', '{}'))
 
             time_limit_per_trial = int(request.POST.get('time_limit_per_trial', 300))
@@ -80,7 +80,7 @@ def task_register(request):
 
             if advisor_type == 'default':
                 from openbox.core.generic_advisor import Advisor
-                config_advisor = Advisor(config_space, num_objs=num_objs, num_constraints=num_constraints,
+                config_advisor = Advisor(config_space, num_objectives=num_objectives, num_constraints=num_constraints,
                                          task_id=task_id, **options)
             elif advisor_type == 'tpe':
                 from openbox.core.tpe_advisor import TPE_Advisor
@@ -153,19 +153,19 @@ def update_observation(request):
             config = Configuration(config_advisor.config_space, config_dict)
             trial_state = int(request.POST.get('trial_state'))
             constraints = json.loads(request.POST.get('constraints'))
-            objs = json.loads(request.POST.get('objs'))
+            objectives = json.loads(request.POST.get('objectives'))
             trial_info = json.loads(request.POST.get('trial_info'))
             item = {
                 'task_id': task_id,
                 'config': config_dict,
-                'result': list(objs),
+                'result': list(objectives),
                 'status': trial_state,
                 'trial_info': trial_info['trial_info'],
                 'worker_id': trial_info['worker_id'],
                 'cost': trial_info['cost']}
             runhistory_id = Runhistory().insert_one(item)
             observation = Observation(
-                config=config, objs=objs, constraints=constraints,
+                config=config, objectives=objectives, constraints=constraints,
                 trial_state=trial_state, elapsed_time=trial_info['cost'],
             )
             config_advisor.update_observation(observation)

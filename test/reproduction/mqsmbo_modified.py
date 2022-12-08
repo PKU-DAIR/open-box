@@ -33,9 +33,9 @@ class mqSMBO_modified(mqSMBO):
                     break
                 # Report result.
                 result_num += 1
-                if observation.objs is None:
+                if observation.objectives is None:
                     observation = Observation(
-                        config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                        config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
                         trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
                     )
                 self.config_advisor.update_observation(observation)
@@ -43,7 +43,7 @@ class mqSMBO_modified(mqSMBO):
 
                 global_time = time.time() - self.global_start_time
                 self.config_list.append(observation.config)
-                self.perf_list.append(observation.objs[0])  # single objective
+                self.perf_list.append(observation.objectives[0])  # single objective
                 self.time_list.append(global_time)
 
             global_time = time.time() - self.global_start_time
@@ -74,9 +74,9 @@ class mqSMBO_modified(mqSMBO):
                     continue
                 # Report result.
                 result_num += 1
-                if observation.objs is None:
+                if observation.objectives is None:
                     observation = Observation(
-                        config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                        config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
                         trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
                     )
                 self.config_advisor.update_observation(observation)
@@ -85,7 +85,7 @@ class mqSMBO_modified(mqSMBO):
 
                 global_time = time.time() - self.global_start_time
                 self.config_list.append(observation.config)
-                self.perf_list.append(observation.objs[0])  # single objective
+                self.perf_list.append(observation.objectives[0])  # single objective
                 self.time_list.append(global_time)
 
                 if result_num == result_needed:

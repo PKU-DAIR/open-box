@@ -57,7 +57,7 @@ class LinearMappedModel(AbstractModel):
 class LineBOAdvisor:
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=0,
                  task_id='OpenBox',
                  random_state=None,
@@ -74,9 +74,9 @@ class LineBOAdvisor:
                  subbo_samples=5000,
                  ):
         self.last_gp_data = None
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         # Does not support multi-obj!
-        assert self.num_objs == 1
+        assert self.num_objectives == 1
         # Supports one or more constraints
         self.num_constraints = num_constraints
 

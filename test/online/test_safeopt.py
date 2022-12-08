@@ -121,14 +121,14 @@ if __name__ == "__main__":
         space = function.config_space
 
         x0 = space.sample_configuration()
-        dim = len(function(x0)['objs'])
+        dim = len(function(x0)['objectives'])
 
         starting_point = None
         starting_value = 1e100
 
         while True:
             starting_point = space.sample_configuration()
-            starting_value = function(starting_point)['objs'][0]
+            starting_value = function(starting_point)['objectives'][0]
             if starting_value < threshold * 0.75:
                 break
 
@@ -163,10 +163,10 @@ if __name__ == "__main__":
                     for i in trange(MAX_RUNS):
                         config = advisor.get_suggestion()
                         ret = true_f(config)
-                        observation = Observation(config=config, objs=ret['objs'],
+                        observation = Observation(config=config, objectives=ret['objectives'],
                                                   constraints=ret[
                                                       'constraints']) if 'constraints' in ret else Observation(
-                            config=config, objs=ret['objs'])
+                            config=config, objectives=ret['objectives'])
                         advisor.update_observation(observation)
 
                     time_costs.append(time.time() - start_time)

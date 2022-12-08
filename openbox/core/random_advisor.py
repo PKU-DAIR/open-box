@@ -10,7 +10,7 @@ class RandomAdvisor(Advisor):
     """
 
     def __init__(self, config_space,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=0,
                  initial_trials=3,
                  initial_configurations=None,
@@ -27,7 +27,7 @@ class RandomAdvisor(Advisor):
                  **kwargs):
 
         super().__init__(
-            config_space=config_space, num_objs=num_objs, num_constraints=num_constraints,
+            config_space=config_space, num_objectives=num_objectives, num_constraints=num_constraints,
             initial_trials=initial_trials, initial_configurations=initial_configurations,
             init_strategy=init_strategy, history_bo_data=history_bo_data,
             rand_prob=1, optimization_strategy='random',
@@ -61,7 +61,7 @@ class RandomAdvisor(Advisor):
         None
         """
         assert self.optimization_strategy in ['random']
-        assert isinstance(self.num_objs, int) and self.num_objs >= 1
+        assert isinstance(self.num_objectives, int) and self.num_objectives >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
     def setup_bo_basics(self):

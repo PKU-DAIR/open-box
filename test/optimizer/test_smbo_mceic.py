@@ -6,7 +6,7 @@ from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperpara
 def townsend(config):
     X = np.array(list(config.get_dictionary().values()))
     res = dict()
-    res['objs'] = (-(np.cos((X[0]-0.1)*X[1])**2 + X[0] * np.sin(3*X[0]+X[1])), )
+    res['objectives'] = (-(np.cos((X[0]-0.1)*X[1])**2 + X[0] * np.sin(3*X[0]+X[1])), )
     res['constraints'] = (-(-np.cos(1.5*X[0]+np.pi)*np.cos(1.5*X[1])+np.sin(1.5*X[0]+np.pi)*np.sin(1.5*X[1])), )
     return res
 

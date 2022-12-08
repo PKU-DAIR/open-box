@@ -65,9 +65,9 @@ class FLOW2(OnlineAdvisor):
 
         for i in range(3):
             if observation.config == self.conf[i] and self.res[i] is None:
-                self.res[i] = observation.objs[0]
-                if observation.objs[0] < self.inc:
-                    self.inc = observation.objs[0]
+                self.res[i] = observation.objectives[0]
+                if observation.objectives[0] < self.inc:
+                    self.inc = observation.objectives[0]
                     self.incn = 0
                 else:
                     self.incn += 1

@@ -8,9 +8,9 @@ from openbox.utils.util_funcs import get_types
 
 
 class Observation(object):
-    def __init__(self, config, objs, constraints=None, trial_state=SUCCESS, elapsed_time=None):
+    def __init__(self, config, objectives, constraints=None, trial_state=SUCCESS, elapsed_time=None):
         self.config = config
-        self.objs = objs
+        self.objectives = objectives
         self.constraints = constraints
         self.trial_state = trial_state
         self.elapsed_time = elapsed_time
@@ -21,7 +21,7 @@ class Observation(object):
     def __str__(self):
         return "Observation(" \
                + "config=%s" % self.config \
-               + ", objs=%s" % self.objs \
+               + ", objectives=%s" % self.objectives \
                + (", constraints=%s" % self.constraints if self.constraints is not None else "") \
                + ", trial_state=%s" % self.trial_state \
                + (", elapsed_time=%s" % self.elapsed_time if self.elapsed_time is not None else "") \

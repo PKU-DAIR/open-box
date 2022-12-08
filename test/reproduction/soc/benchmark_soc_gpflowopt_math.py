@@ -48,7 +48,7 @@ def evaluate(mth, run_i, seed):
 
     def objective_function(x):
         y = problem.evaluate(x)
-        return np.array([[y['objs'][0]]])
+        return np.array([[y['objectives'][0]]])
 
     def constraint_function(x):
         y = problem.evaluate(x)

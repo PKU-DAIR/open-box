@@ -91,15 +91,15 @@ class CFO(OnlineAdvisor):
     def update_observation(self, observation: Observation):
         self.history_container.update_observation(observation)
 
-        if observation.objs[0] < self.inc:
-            self.inc = observation.objs[0]
+        if observation.objectives[0] < self.inc:
+            self.inc = observation.objectives[0]
             self.incn = 0
         else:
             self.incn += 1
 
         for i in range(3):
             if observation.config == self.conf[i] and self.res[i] is None:
-                self.res[i] = observation.objs[0]
+                self.res[i] = observation.objectives[0]
                 break
 
     def is_converged(self):

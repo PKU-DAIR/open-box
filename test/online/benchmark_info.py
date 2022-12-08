@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     Xi = nd_linspace((0,) * dim, (1,) * dim, SAMPLE)
     X = [np.array([v for k, v in Configuration(space, vector=np.array(x)).items()]) for x in Xi]
-    y = [FUNCTION(x, convert=False)['objs'][0] for x in X]
+    y = [FUNCTION(x, convert=False)['objectives'][0] for x in X]
 
     lipschitz = 0
 

@@ -223,7 +223,7 @@ class SetManager:
 class SafeOptAdvisor:
 
     def __init__(self, config_space: ConfigurationSpace,
-                 num_objs=1,
+                 num_objectives=1,
                  num_constraints=1,
                  task_id='OpenBox',
                  random_state=None,
@@ -238,9 +238,9 @@ class SafeOptAdvisor:
                  beta: Union[float, Callable[[float], float]] = 2.0  # The beta used in original code.
 
                  ):
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         # May support multi-obj in the future.
-        assert self.num_objs == 1
+        assert self.num_objectives == 1
 
         self.num_constraints = num_constraints
         # Let's assume that the only constraint is x - h.
@@ -279,8 +279,8 @@ class SafeOptAdvisor:
         else:
             self.beta = lambda t: beta
 
-        self.history_container = HistoryContainer(task_id, 0, self.config_space) if num_objs == 1 else \
-            MOHistoryContainer(task_id, num_objs, 0, self.config_space)
+        self.history_container = HistoryContainer(task_id, 0, self.config_space) if num_objectives == 1 else \
+            MOHistoryContainer(task_id, num_objectives, 0, self.config_space)
 
         arrays = self.sets.get_arrays()[0]
 

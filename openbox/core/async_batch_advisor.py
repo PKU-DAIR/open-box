@@ -14,7 +14,7 @@ class AsyncBatchAdvisor(Advisor):
     def __init__(
             self,
             config_space,
-            num_objs=1,
+            num_objectives=1,
             num_constraints=0,
             batch_size=4,
             batch_strategy='default',
@@ -39,7 +39,7 @@ class AsyncBatchAdvisor(Advisor):
         self.running_configs = list()
         self.bo_start_n = 3
         super().__init__(config_space,
-                         num_objs=num_objs,
+                         num_objectives=num_objectives,
                          num_constraints=num_constraints,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
@@ -64,7 +64,7 @@ class AsyncBatchAdvisor(Advisor):
 
         assert self.batch_strategy in ['default', 'median_imputation', 'local_penalization']
 
-        if self.num_objs > 1 or self.num_constraints > 0:
+        if self.num_objectives > 1 or self.num_constraints > 0:
             # local_penalization only supports single objective with no constraint
             assert self.batch_strategy in ['default', 'median_imputation', ]
 
@@ -112,7 +112,7 @@ class AsyncBatchAdvisor(Advisor):
             batch_history_container = copy.deepcopy(history_container)
             # imputation
             for config in self.running_configs:
-                observation = Observation(config=config, objs=estimated_y, constraints=estimated_c,
+                observation = Observation(config=config, objectives=estimated_y, constraints=estimated_c,
                                           trial_state=SUCCESS, elapsed_time=None)
                 batch_history_container.update_observation(observation)
 

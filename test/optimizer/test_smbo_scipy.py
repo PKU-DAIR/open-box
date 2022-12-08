@@ -22,7 +22,7 @@ def branin(x):
     ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
 
     result = dict()
-    result['objs'] = (ret, )
+    result['objectives'] = (ret, )
 
     return result
 

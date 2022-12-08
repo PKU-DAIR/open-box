@@ -20,7 +20,7 @@ def mishra(config: sp.Configuration):
     t3 = (x - y)**2
 
     result = dict()
-    result['objs'] = [t1 + t2 + t3, ]
+    result['objectives'] = [t1 + t2 + t3, ]
     result['constraints'] = [np.sum((X + 5)**2) - 25, ]
     return result
 
@@ -39,7 +39,7 @@ space.add_variables([
 After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
 The result dictionary should contain:
 
-+ **'objs'**: A **list/tuple** of **objective values (to be minimized)**. 
++ **'objectives'**: A **list/tuple** of **objective values (to be minimized)**. 
 In this example, we have only one objective so the tuple contains a single value.
 
 + **'constraints**': A **list/tuple** of **constraint values**.
@@ -56,7 +56,7 @@ opt = Optimizer(
     mishra,
     space,
     num_constraints=1,
-    num_objs=1,
+    num_objectives=1,
     surrogate_type='gp',
     acq_optimizer_type='random_scipy',
     max_runs=50,
@@ -70,7 +70,7 @@ Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the
 and the search space to it. 
 The other parameters are:
 
-+ **num_objs=1** and **num_constraints=1** indicate that our function returns a single value with one constraint. 
++ **num_objectives=1** and **num_constraints=1** indicate that our function returns a single value with one constraint. 
 
 + **max_runs=50** means the optimization will take 50 rounds (optimizing the objective function 50 times). 
 

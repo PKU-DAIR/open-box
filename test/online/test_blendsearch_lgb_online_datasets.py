@@ -41,7 +41,7 @@ if __name__ == "__main__":
     axes = None
     histories = {}
 
-    dim = len(function(x0)['objs'])
+    dim = len(function(x0)['objectives'])
 
     opt = SMBO(
         function,
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
             ret = function(config)
 
-            observation = Observation(config=config, objs=ret['objs'])
+            observation = Observation(config=config, objectives=ret['objectives'])
             advisor.update_observation(observation)
 
             if trange == range:

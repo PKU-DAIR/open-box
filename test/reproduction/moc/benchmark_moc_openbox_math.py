@@ -67,12 +67,12 @@ def evaluate(mth, run_i, seed):
     def objective_function(config):
         res = problem.evaluate_config(config)
         res['config'] = config
-        res['objs'] = np.asarray(res['objs']).tolist()
+        res['objectives'] = np.asarray(res['objectives']).tolist()
         res['constraints'] = np.asarray(res['constraints']).tolist()
         return res
 
     bo = SMBO(objective_function, cs,
-              num_objs=problem.num_objs,
+              num_objectives=problem.num_objectives,
               num_constraints=problem.num_constraints,
               surrogate_type=surrogate_type,            # default: gp
               acq_type=acq_type,                        # default: ehvic
@@ -90,15 +90,15 @@ def evaluate(mth, run_i, seed):
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, constraints, origin_objs = bo.iterate()
+        config, trial_state, constraints, origin_objectives = bo.iterate()
         global_time = time.time() - global_start_time
         if any(c > 0 for c in constraints):
-            objs = [9999999.0] * problem.num_objs
+            objectives = [9999999.0] * problem.num_objectives
         else:
-            objs = origin_objs
-        print(seed, i, origin_objs, objs, constraints, config, trial_state, 'time=', global_time)
+            objectives = origin_objectives
+        print(seed, i, origin_objectives, objectives, constraints, config, trial_state, 'time=', global_time)
         config_list.append(config)
-        perf_list.append(objs)
+        perf_list.append(objectives)
         time_list.append(global_time)
         hv = Hypervolume(problem.ref_point).compute(perf_list)
         hv_diff = problem.max_hv - hv

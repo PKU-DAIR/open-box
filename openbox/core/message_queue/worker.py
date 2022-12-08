@@ -42,19 +42,19 @@ class Worker(object):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
                 else:
-                    objs, constraints = get_result(_result)
+                    objectives, constraints = get_result(_result)
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
                 else:
                     traceback.print_exc(file=sys.stdout)
                     trial_state = FAILED
-                objs = None
+                objectives = None
                 constraints = None
 
             elapsed_time = time.time() - start_time
             observation = Observation(
-                config=config, objs=objs, constraints=constraints,
+                config=config, objectives=objectives, constraints=constraints,
                 trial_state=trial_state, elapsed_time=elapsed_time,
             )
 

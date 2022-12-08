@@ -27,7 +27,7 @@ def branin(config):
     y = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
 
     ret = dict(
-        objs=(y, )
+        objectives=(y, )
     )
 
     seed = int(time.time() * 10000 % 10000)
@@ -42,7 +42,7 @@ def branin(config):
 # Run Optimization
 bo = SMBO(branin,
           config_space,
-          num_objs=1,
+          num_objectives=1,
           num_constraints=0,
           max_runs=50,
           surrogate_type='gp',

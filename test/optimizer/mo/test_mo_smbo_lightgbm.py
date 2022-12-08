@@ -47,7 +47,7 @@ for dataset in dataset_list:
     # run_nsgaii = setup['run_nsgaii']
     problem_str = setup['problem_str']
     num_inputs = setup['num_inputs']
-    num_objs = setup['num_objs']
+    num_objectives = setup['num_objectives']
     referencePoint = setup['referencePoint']
     real_hv = setup['real_hv']
     time_limit_per_trial = 2*setup['time_limit']
@@ -56,7 +56,7 @@ for dataset in dataset_list:
     multi_objective_func = partial(multi_objective_func, x=_x, y=_y)
 
     # Evaluate mth
-    bo = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
+    bo = SMBO(multi_objective_func, cs, num_objectives=num_objectives, max_runs=max_runs,
               # surrogate_type='gp_rbf',    # use default
               acq_type=mth,
               # initial_configurations=X_init, initial_runs=10,
@@ -70,8 +70,8 @@ for dataset in dataset_list:
     # bo.run()
     hv_diffs = []
     for i in range(max_runs):
-        config, trial_state, objs, trial_info = bo.iterate()
-        print(i, objs, config)
+        config, trial_state, objectives, trial_info = bo.iterate()
+        print(i, objectives, config)
         hv = Hypervolume(referencePoint).compute(bo.get_history().get_pareto_front())
         print(i, 'hypervolume =', hv)
         hv_diff = real_hv - hv
@@ -85,14 +85,14 @@ for dataset in dataset_list:
     print('hv_diffs:', hv_diffs)
 
     # Evaluate the random search.
-    bo_r = SMBO(multi_objective_func, cs, num_objs=num_objs, max_runs=max_runs,
+    bo_r = SMBO(multi_objective_func, cs, num_objectives=num_objectives, max_runs=max_runs,
                 time_limit_per_trial=60, sample_strategy='random', task_id='mo_random')
     print('Random', '='*30)
     # bo_r.run()
     hv_diffs_r = []
     for i in range(max_runs):
-        config, trial_state, objs, trial_info = bo_r.iterate()
-        print(objs, config)
+        config, trial_state, objectives, trial_info = bo_r.iterate()
+        print(objectives, config)
         hv = Hypervolume(referencePoint).compute(bo_r.get_history().get_pareto_front())
         print('hypervolume =', hv)
         hv_diff = real_hv - hv

@@ -22,7 +22,7 @@ class mqSMBO(BOBase):
             batch_size=4,
             batch_strategy='default',
             num_constraints=0,
-            num_objs=1,
+            num_objectives=1,
             sample_strategy: str = 'bo',
             max_runs=200,
             time_limit_per_trial=180,
@@ -47,9 +47,9 @@ class mqSMBO(BOBase):
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
-        self.FAILED_PERF = [MAXINT] * num_objs
+        self.FAILED_PERF = [MAXINT] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
@@ -64,7 +64,7 @@ class mqSMBO(BOBase):
         _logger_kwargs = {'force_init': False}  # do not init logger in advisor
         if parallel_strategy == 'sync':
             self.config_advisor = SyncBatchAdvisor(config_space,
-                                                   num_objs=num_objs,
+                                                   num_objectives=num_objectives,
                                                    num_constraints=num_constraints,
                                                    batch_size=batch_size,
                                                    batch_strategy=batch_strategy,
@@ -84,7 +84,7 @@ class mqSMBO(BOBase):
                                                    **advisor_kwargs)
         elif parallel_strategy == 'async':
             self.config_advisor = AsyncBatchAdvisor(config_space,
-                                                    num_objs=num_objs,
+                                                    num_objectives=num_objectives,
                                                     num_constraints=num_constraints,
                                                     batch_size=batch_size,
                                                     batch_strategy=batch_strategy,
@@ -127,9 +127,9 @@ class mqSMBO(BOBase):
                     break
                 # Report result.
                 result_num += 1
-                if observation.objs is None:
+                if observation.objectives is None:
                     observation = Observation(
-                        config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                        config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
                         trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
                     )
                 self.config_advisor.update_observation(observation)
@@ -159,9 +159,9 @@ class mqSMBO(BOBase):
                     continue
                 # Report result.
                 result_num += 1
-                if observation.objs is None:
+                if observation.objectives is None:
                     observation = Observation(
-                        config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                        config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
                         trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
                     )
                 self.config_advisor.update_observation(observation)

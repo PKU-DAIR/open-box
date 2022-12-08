@@ -23,7 +23,7 @@ def branin(x):
     s = 10.
     t = 1. / (8. * np.pi)
     ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-    return {'objs': (ret,)}
+    return {'objectives': (ret,)}
 
 
 task_config = {
@@ -111,11 +111,11 @@ def test_runhistory():
     optimizer = optimizer_class(branin, config_space, **task_config_)
 
     # for _id in range(5):
-    #     config, trial_state, objs, trial_info = optimizer.iterate()
+    #     config, trial_state, objectives, trial_info = optimizer.iterate()
     #     item = {'user_id': user_id,
     #             'task_id': task_id,
     #             'config': config.get_dictionary(),
-    #             'result': objs,
+    #             'result': objectives,
     #             'status': trial_state,
     #             'trial_info': trial_info,
     #             'worker_id': 'worker_1',

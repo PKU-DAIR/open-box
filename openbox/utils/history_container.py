@@ -28,7 +28,7 @@ class HistoryContainer(object):
         self.incumbent_value = MAXINT
         self.incumbents = list()
 
-        self.num_objs = 1
+        self.num_objectives = 1
         self.num_constraints = num_constraints
         self.configurations = list()  # all configurations (include successful and failed)
         self.perfs = list()  # all perfs
@@ -52,23 +52,23 @@ class HistoryContainer(object):
         self.update_times.append(time.time() - self.global_start_time)
 
         config = observation.config
-        objs = observation.objs
+        objectives = observation.objectives
         constraints = observation.constraints
         trial_state = observation.trial_state
         elapsed_time = observation.elapsed_time
 
         self.configurations.append(config)
-        if self.num_objs == 1:
-            self.perfs.append(objs[0])
+        if self.num_objectives == 1:
+            self.perfs.append(objectives[0])
         else:
-            self.perfs.append(objs)
+            self.perfs.append(objectives)
         self.constraint_perfs.append(constraints)  # None if no constraint
         self.trial_states.append(trial_state)
         self.elapsed_times.append(elapsed_time)
 
         transform_perf = False
         failed = False
-        if trial_state == SUCCESS and all(perf < MAXINT for perf in objs):
+        if trial_state == SUCCESS and all(perf < MAXINT for perf in objectives):
             if self.num_constraints > 0 and constraints is None:
                 logger.error('Constraint is None in a SUCCESS trial!')
                 failed = True
@@ -80,18 +80,18 @@ class HistoryContainer(object):
                     transform_perf = True
                     feasible = False
 
-                if self.num_objs == 1:
-                    self.successful_perfs.append(objs[0])
+                if self.num_objectives == 1:
+                    self.successful_perfs.append(objectives[0])
                     if feasible:
-                        self.add(config, objs[0])
+                        self.add(config, objectives[0])
                     else:
                         self.add(config, MAXINT)
                 else:
-                    self.successful_perfs.append(objs)
+                    self.successful_perfs.append(objectives)
                     if feasible:
-                        self.add(config, objs)
+                        self.add(config, objectives)
                     else:
-                        self.add(config, [MAXINT] * self.num_objs)
+                        self.add(config, [MAXINT] * self.num_objectives)
 
                 self.perc = np.percentile(self.successful_perfs, self.scale_perc, axis=0)
                 self.min_y = np.min(self.successful_perfs, axis=0).tolist()
@@ -310,7 +310,7 @@ class HistoryContainer(object):
                 for i, hp_name in enumerate(keys):
                     con_importance_dict[hp_name].append(con_feature_importance[i])
 
-            for col_idx in range(self.num_objs):
+            for col_idx in range(self.num_objectives):
                 # Fit a LightGBMRegressor with observations
                 lgbr = LGBMRegressor(n_jobs=1)
                 lgbr.fit(X, Y[:, col_idx])
@@ -347,7 +347,7 @@ class HistoryContainer(object):
             if return_allvalue:  # todo
                 raise NotImplementedError()
 
-            for col_idx in range(self.num_objs):
+            for col_idx in range(self.num_objectives):
                 # create an instance of fanova with data for the random forest and the configSpace
                 f = fANOVA(X=X, Y=Y[:, col_idx], config_space=config_space)
 
@@ -366,11 +366,11 @@ class HistoryContainer(object):
         rows = []
         for param, values in importance_dict.items():
             rows.append([param, *values])
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             field_names = ["Parameter", "Importance"]
             rows.sort(key=lambda x: x[1], reverse=True)
         else:
-            field_names = ["Parameter"] + ["Obj%d Importance" % i for i in range(1, self.num_objs + 1)]
+            field_names = ["Parameter"] + ["Obj%d Importance" % i for i in range(1, self.num_objectives + 1)]
         importance_table = PrettyTable(field_names=field_names, float_format=".6", align="l")
         importance_table.add_rows(rows)
         return importance_table
@@ -390,7 +390,7 @@ class HistoryContainer(object):
                 self.configurations, self.perfs, self.constraint_perfs, self.trial_states, self.elapsed_times,
         )):
             config_dict = config.get_dictionary()
-            _perf = [float(p) for p in perf] if self.num_objs > 1 else float(perf)
+            _perf = [float(p) for p in perf] if self.num_objectives > 1 else float(perf)
             _constraint_perf = [float(c) for c in constraint_perf] if self.num_constraints > 0 else constraint_perf
 
             data_item = dict(
@@ -440,10 +440,10 @@ class HistoryContainer(object):
             elapsed_time = data_item['elapsed_time']
 
             config = get_config_from_dict(config_space, config_dict)
-            objs = perf if self.num_objs > 1 else [perf]
+            objectives = perf if self.num_objectives > 1 else [perf]
 
             observation = Observation(
-                config=config, objs=objs, constraints=constraint_perf, trial_state=trial_state,
+                config=config, objectives=objectives, constraints=constraint_perf, trial_state=trial_state,
                 elapsed_time=elapsed_time)
             self.update_observation(observation)
 
@@ -455,19 +455,19 @@ class MOHistoryContainer(HistoryContainer):
     Multi-Objective History Container
     """
 
-    def __init__(self, task_id, num_objs, num_constraints=0, config_space=None, ref_point=None):
+    def __init__(self, task_id, num_objectives, num_constraints=0, config_space=None, ref_point=None):
         super().__init__(task_id=task_id, num_constraints=num_constraints, config_space=config_space)
         self.pareto = collections.OrderedDict()
-        self.num_objs = num_objs
-        self.mo_incumbent_value = [MAXINT] * self.num_objs
-        self.mo_incumbents = [list() for _ in range(self.num_objs)]
+        self.num_objectives = num_objectives
+        self.mo_incumbent_value = [MAXINT] * self.num_objectives
+        self.mo_incumbents = [list() for _ in range(self.num_objectives)]
         self.ref_point = ref_point
         self.hv_data = list()
 
-        self.max_y = [MAXINT] * self.num_objs
+        self.max_y = [MAXINT] * self.num_objectives
 
     def add(self, config: Configuration, perf: List[Perf]):
-        assert self.num_objs == len(perf)
+        assert self.num_objectives == len(perf)
 
         if config in self.data:
             logger.warning('Repeated configuration detected!')
@@ -485,14 +485,14 @@ class MOHistoryContainer(HistoryContainer):
                 remove_config.append(pareto_config)
         else:
             self.pareto[config] = perf
-            logger.info('Update pareto: config=%s, objs=%s.' % (str(config), str(perf)))
+            logger.info('Update pareto: config=%s, objectives=%s.' % (str(config), str(perf)))
 
         for conf in remove_config:
-            logger.info('Remove from pareto: config=%s, objs=%s.' % (str(conf), str(self.pareto[conf])))
+            logger.info('Remove from pareto: config=%s, objectives=%s.' % (str(conf), str(self.pareto[conf])))
             self.pareto.pop(conf)
 
         # update mo_incumbents
-        for i in range(self.num_objs):
+        for i in range(self.num_objectives):
             if len(self.mo_incumbents[i]) > 0:
                 if perf[i] < self.mo_incumbent_value[i]:
                     self.mo_incumbents[i].clear()
@@ -553,9 +553,9 @@ class MultiStartHistoryContainer(object):
     History container for multistart algorithms.
     """
 
-    def __init__(self, task_id, num_objs=1, num_constraints=0, config_space=None, ref_point=None):
+    def __init__(self, task_id, num_objectives=1, num_constraints=0, config_space=None, ref_point=None):
         self.task_id = task_id
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
         self.history_containers = []
         self.config_space = config_space
@@ -564,11 +564,11 @@ class MultiStartHistoryContainer(object):
         self.restart()
 
     def restart(self):
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             self.current = HistoryContainer(self.task_id, self.num_constraints, self.config_space)
         else:
             self.current = MOHistoryContainer(
-                self.task_id, self.num_objs, self.num_constraints, self.config_space, self.ref_point)
+                self.task_id, self.num_objectives, self.num_constraints, self.config_space, self.ref_point)
         self.history_containers.append(self.current)
 
     def get_configs_for_all_restarts(self):
@@ -580,7 +580,7 @@ class MultiStartHistoryContainer(object):
     def get_incumbents_for_all_restarts(self):
         best_incumbents = []
         best_incumbent_value = float('inf')
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             for hc in self.history_containers:
                 incumbents = hc.get_incumbents()
                 incumbent_value = hc.incumbent_value
@@ -594,7 +594,7 @@ class MultiStartHistoryContainer(object):
             return self.get_pareto_front()
 
     def get_pareto_front(self):
-        assert self.num_objs > 1
+        assert self.num_objectives > 1
         Y = np.vstack([hc.get_pareto_front() for hc in self.history_containers])
         return get_pareto_front(Y).tolist()
 
@@ -643,29 +643,29 @@ class MultiStartHistoryContainer(object):
         return self.current.config_counter == 0
 
     def get_incumbents(self):
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             return self.current.incumbents
         else:
             return self.current.get_pareto()
 
     def get_mo_incumbents(self):
-        assert self.num_objs > 1
+        assert self.num_objectives > 1
         return self.current.mo_incumbents
 
     def get_mo_incumbent_value(self):
-        assert self.num_objs > 1
+        assert self.num_objectives > 1
         return self.current.mo_incumbent_value
 
     def get_pareto(self):
-        assert self.num_objs > 1
+        assert self.num_objectives > 1
         return self.current.get_pareto()
 
     def get_pareto_set(self):
-        assert self.num_objs > 1
+        assert self.num_objectives > 1
         return self.current.get_pareto_set()
 
     def compute_hypervolume(self, ref_point=None):
-        assert self.num_objs > 1
+        assert self.num_objectives > 1
         return self.current.compute_hypervolume(ref_point)
 
     def save_json(self, fn: str = "history_container.json"):

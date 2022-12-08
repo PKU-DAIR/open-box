@@ -14,9 +14,9 @@ def get_problem(problem_str, **kwargs):
         params = problem_str.split('-')
         assert params[0] == 'c2dtlz2'
         if len(params) == 1:
-            return c2dtlz2(dim=3, num_objs=2)
+            return c2dtlz2(dim=3, num_objectives=2)
         elif len(params) == 3:
-            return c2dtlz2(dim=int(params[1]), num_objs=int(params[2]))
+            return c2dtlz2(dim=int(params[1]), num_objectives=int(params[2]))
     elif problem_str == 'cbranincurrin':
         problem = cbranincurrin
     elif problem_str == 'bnh':
@@ -32,14 +32,14 @@ def get_problem(problem_str, **kwargs):
 
 def plot_pf(problem, problem_str, mth, pf, Y_init=None):
     import matplotlib.pyplot as plt
-    assert problem.num_objs in (2, 3)
-    if problem.num_objs == 2:
+    assert problem.num_objectives in (2, 3)
+    if problem.num_objectives == 2:
         plt.scatter(pf[:, 0], pf[:, 1], label=mth)
         if Y_init is not None:
             plt.scatter(Y_init[:, 0], Y_init[:, 1], label='init', marker='x')
         plt.xlabel('Objective 1')
         plt.ylabel('Objective 2')
-    elif problem.num_objs == 3:
+    elif problem.num_objectives == 3:
         ax = plt.axes(projection='3d')
         ax.scatter3D(pf[:, 0], pf[:, 1], pf[:, 2], label=mth)
         if Y_init is not None:
@@ -48,16 +48,16 @@ def plot_pf(problem, problem_str, mth, pf, Y_init=None):
         ax.set_ylabel('Objective 2')
         ax.set_zlabel('Objective 3')
     else:
-        raise ValueError('Cannot plot_pf with problem.num_objs == %d.' % (problem.num_objs,))
+        raise ValueError('Cannot plot_pf with problem.num_objectives == %d.' % (problem.num_objectives,))
     plt.title('Pareto Front of %s' % (problem_str,))
     plt.legend()
     plt.show()
 
 
 class BaseConstrainedMultiObjectiveProblem:
-    def __init__(self, dim, num_objs, num_constraints, problem=None, **kwargs):
+    def __init__(self, dim, num_objectives, num_constraints, problem=None, **kwargs):
         self.dim = dim
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
         if problem is not None:
             self.problem = problem
@@ -96,9 +96,9 @@ class BaseConstrainedMultiObjectiveProblem:
 
 class c2dtlz2(BaseConstrainedMultiObjectiveProblem):
 
-    def __init__(self, dim, num_objs, **kwargs):
-        problem = DTLZ2(dim=dim, num_objs=num_objs, constrained=True)
-        super().__init__(dim=dim, num_objs=num_objs, num_constraints=1, problem=problem, **kwargs)
+    def __init__(self, dim, num_objectives, **kwargs):
+        problem = DTLZ2(dim=dim, num_objectives=num_objectives, constrained=True)
+        super().__init__(dim=dim, num_objectives=num_objectives, num_constraints=1, problem=problem, **kwargs)
         self.lb = 0
         self.ub = 1
         self.bounds = [(self.lb, self.ub)] * self.dim
@@ -124,7 +124,7 @@ class cbranincurrin(BaseConstrainedMultiObjectiveProblem):
 
     def __init__(self, **kwargs):
         problem = BraninCurrin(constrained=True)
-        super().__init__(dim=2, num_objs=2, num_constraints=1, problem=problem, **kwargs)
+        super().__init__(dim=2, num_objectives=2, num_constraints=1, problem=problem, **kwargs)
         self.lb = 1e-10  # fix numeric problem
         self.ub = 1
         self.bounds = [(self.lb, self.ub)] * self.dim
@@ -153,7 +153,7 @@ class bnh(BaseConstrainedMultiObjectiveProblem):
 
     def __init__(self, **kwargs):
         problem = BNH()
-        super().__init__(dim=2, num_objs=2, num_constraints=2, problem=problem, **kwargs)
+        super().__init__(dim=2, num_objectives=2, num_constraints=2, problem=problem, **kwargs)
         self.bounds = [(0.0, 5.0), (0.0, 3.0)]
         self.new_max_hv = 7242.068539049498     # this is approximated using NSGA-II
 
@@ -178,7 +178,7 @@ class srn(BaseConstrainedMultiObjectiveProblem):
 
     def __init__(self, **kwargs):
         problem = SRN()
-        super().__init__(dim=2, num_objs=2, num_constraints=2, problem=problem, **kwargs)
+        super().__init__(dim=2, num_objectives=2, num_constraints=2, problem=problem, **kwargs)
         self.lb = -20.0
         self.ub = 20.0
         self.bounds = [(self.lb, self.ub)] * self.dim
@@ -205,7 +205,7 @@ class constr(BaseConstrainedMultiObjectiveProblem):
 
     def __init__(self, **kwargs):
         problem = CONSTR()
-        super().__init__(dim=2, num_objs=2, num_constraints=2, problem=problem, **kwargs)
+        super().__init__(dim=2, num_objectives=2, num_constraints=2, problem=problem, **kwargs)
         self.bounds = [(0.1, 10.0), (0.0, 5.0)]
         self.new_max_hv = 92.02004226679216     # this is approximated using NSGA-II
 

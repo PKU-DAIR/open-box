@@ -20,7 +20,7 @@ def branin_currin(config):
         px1) + 10
     f2 = (1 - np.exp(-1 / (2 * x2))) * (2300 * x1 ** 3 + 1900 * x1 ** 2 + 2092 * x1 + 60) / (
                 100 * x1 ** 3 + 500 * x1 ** 2 + 4 * x1 + 20)
-    res['objs'] = [f1, f2]
+    res['objectives'] = [f1, f2]
     res['constraints'] = []
     return res
 
@@ -39,7 +39,7 @@ bc_ref_point = [18., 6.]
 bo = SMBO(branin_currin, bc_cs,
           advisor_type='mcadvisor',
           task_id='mcparego',
-          num_objs=2,
+          num_objectives=2,
           acq_type='mcparego',
           ref_point=bc_ref_point,
           max_runs=100, random_state=2)

@@ -20,7 +20,7 @@ def mishra(config: sp.Configuration):
     t3 = (x - y)**2
 
     result = dict()
-    result['objs'] = [t1 + t2 + t3, ]
+    result['objectives'] = [t1 + t2 + t3, ]
     result['constraints'] = [np.sum((X + 5)**2) - 25, ]
     return result
 
@@ -39,7 +39,7 @@ space.add_variables([
 评估性能后，目标函数返回一个 <font color=#FF0000>**dict (Recommended)**</font>
 其中的结果包含：
 
-+ **'objs'**：一个 **要被最小化目标值** 的 **列表/元组**。
++ **'objectives'**：一个 **要被最小化目标值** 的 **列表/元组**。
 在这个例子中，我们只有一个目标，所以这个元组只包含一个值。
 
 + **'constraints**'：一个含有 **约束值** 的 **列表/元组**。
@@ -56,7 +56,7 @@ opt = Optimizer(
     mishra,
     space,
     num_constraints=1,
-    num_objs=1,
+    num_objectives=1,
     surrogate_type='gp',
     acq_optimizer_type='random_scipy',
     max_runs=50,
@@ -69,7 +69,7 @@ history = opt.run()
 这里我们创建一个 <font color=#FF0000>**Optimizer**</font> 实例，并传入目标函数和搜索空间。
 其它的参数是：
 
-+ **num_objs=1** 和 **num_constraints=1** 表示我们的函数返回一个有约束条件的单目标值。
++ **num_objectives=1** 和 **num_constraints=1** 表示我们的函数返回一个有约束条件的单目标值。
 
 + **max_runs=50** 表示优化过程进行50轮（优化目标函数50次）。
 

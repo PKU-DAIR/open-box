@@ -30,18 +30,18 @@ def wrapper(param):
         if timeout_status:
             raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
         else:
-            objs, constraints = get_result(_result)
+            objectives, constraints = get_result(_result)
     except Exception as e:
         if isinstance(e, TimeoutException):
             trial_state = TIMEOUT
         else:
             traceback.print_exc(file=sys.stdout)
             trial_state = FAILED
-        objs = None
+        objectives = None
         constraints = None
     elapsed_time = time.time() - start_time
     return Observation(
-        config=config, objs=objs, constraints=constraints,
+        config=config, objectives=objectives, constraints=constraints,
         trial_state=trial_state, elapsed_time=elapsed_time,
     )
 
@@ -55,7 +55,7 @@ class pSMBO(BOBase):
             batch_size=4,
             batch_strategy='default',
             num_constraints=0,
-            num_objs=1,
+            num_objectives=1,
             sample_strategy: str = 'bo',
             max_runs=200,
             time_limit_per_trial=180,
@@ -77,9 +77,9 @@ class pSMBO(BOBase):
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
 
-        self.num_objs = num_objs
+        self.num_objectives = num_objectives
         self.num_constraints = num_constraints
-        self.FAILED_PERF = [MAXINT] * num_objs
+        self.FAILED_PERF = [MAXINT] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
@@ -93,7 +93,7 @@ class pSMBO(BOBase):
         if parallel_strategy == 'sync':
             if sample_strategy in ['random', 'bo']:
                 self.config_advisor = SyncBatchAdvisor(config_space,
-                                                       num_objs=num_objs,
+                                                       num_objectives=num_objectives,
                                                        num_constraints=num_constraints,
                                                        batch_size=batch_size,
                                                        batch_strategy=batch_strategy,
@@ -112,9 +112,9 @@ class pSMBO(BOBase):
                                                        logger_kwargs=_logger_kwargs,
                                                        **advisor_kwargs)
             elif sample_strategy == 'ea':
-                assert num_objs == 1 and num_constraints == 0
+                assert num_objectives == 1 and num_constraints == 0
                 self.config_advisor = EA_Advisor(config_space,
-                                                 num_objs=num_objs,
+                                                 num_objectives=num_objectives,
                                                  num_constraints=num_constraints,
                                                  optimization_strategy=sample_strategy,
                                                  batch_size=batch_size,
@@ -129,7 +129,7 @@ class pSMBO(BOBase):
             self.advisor_lock = Lock()
             if sample_strategy in ['random', 'bo']:
                 self.config_advisor = AsyncBatchAdvisor(config_space,
-                                                        num_objs=num_objs,
+                                                        num_objectives=num_objectives,
                                                         num_constraints=num_constraints,
                                                         batch_size=batch_size,
                                                         batch_strategy=batch_strategy,
@@ -148,9 +148,9 @@ class pSMBO(BOBase):
                                                         logger_kwargs=_logger_kwargs,
                                                         **advisor_kwargs)
             elif sample_strategy == 'ea':
-                assert num_objs == 1 and num_constraints == 0
+                assert num_objectives == 1 and num_constraints == 0
                 self.config_advisor = EA_Advisor(config_space,
-                                                 num_objs=num_objs,
+                                                 num_objectives=num_objectives,
                                                  num_constraints=num_constraints,
                                                  optimization_strategy=sample_strategy,
                                                  batch_size=batch_size,
@@ -165,9 +165,9 @@ class pSMBO(BOBase):
             raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
 
     def callback(self, observation: Observation):
-        if observation.objs is None:
+        if observation.objectives is None:
             observation = Observation(
-                config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
                 trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
             )
         # Report the result, and remove the config from the running queue.
@@ -212,8 +212,8 @@ class pSMBO(BOBase):
         iter_config = history.configurations[-n:]
         iter_trial_state = history.trial_states[-n:]
         iter_constraints = history.constraint_perfs[-n:] if self.num_constraints > 0 else None
-        iter_objs = history.perfs[-n:]     # caution: one dim if num_objs==1, different from SMBO.iterate()
-        return iter_config, iter_trial_state, iter_constraints, iter_objs
+        iter_objectives = history.perfs[-n:]     # caution: one dim if num_objectives==1, different from SMBO.iterate()
+        return iter_config, iter_trial_state, iter_constraints, iter_objectives
 
     def sync_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
@@ -229,9 +229,9 @@ class pSMBO(BOBase):
                 observations = proc.parallel_execute(params)
                 # Report their results.
                 for idx, observation in enumerate(observations):
-                    if observation.objs is None:
+                    if observation.objectives is None:
                         observation = Observation(
-                            config=observation.config, objs=self.FAILED_PERF, constraints=observation.constraints,
+                            config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
                             trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
                         )
                     self.config_advisor.update_observation(observation)

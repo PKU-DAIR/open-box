@@ -71,9 +71,9 @@ def evaluate(mth, run_i, seed):
     time_list = []
     global_start_time = time.time()
     for i in range(max_runs):
-        config, trial_state, constraints, objs = bo.iterate()
+        config, trial_state, constraints, objectives = bo.iterate()
         global_time = time.time() - global_start_time
-        origin_perf = objs[0]
+        origin_perf = objectives[0]
         if any(c > 0 for c in constraints):
             perf = 9999999.0
         else:

@@ -17,7 +17,7 @@ def BraninCurrin(config: sp.Configuration):
          / (100 * x1 ** 3 + 500 * x1 ** 2 + 4 * x1 + 20)
 
     result = dict()
-    result['objs'] = [f1, f2]
+    result['objectives'] = [f1, f2]
     return result
 
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     opt = Optimizer(
         BraninCurrin,
         space,
-        num_objs=2,
+        num_objectives=2,
         num_constraints=0,
         max_runs=50,
         surrogate_type='gp',

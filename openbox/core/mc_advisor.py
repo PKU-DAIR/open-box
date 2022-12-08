@@ -16,7 +16,7 @@ class MCAdvisor(Advisor):
     def __init__(
             self,
             config_space,
-            num_objs=1,
+            num_objectives=1,
             num_constraints=0,
             mc_times=10,
             initial_trials=3,
@@ -40,7 +40,7 @@ class MCAdvisor(Advisor):
         self.turbo_state = None
 
         super().__init__(config_space,
-                         num_objs=num_objs,
+                         num_objectives=num_objectives,
                          num_constraints=num_constraints,
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
@@ -57,7 +57,7 @@ class MCAdvisor(Advisor):
                          logger_kwargs=logger_kwargs)
 
         if self.use_trust_region:
-            self.history_container = MultiStartHistoryContainer(task_id, self.num_objs, self.num_constraints,
+            self.history_container = MultiStartHistoryContainer(task_id, self.num_objectives, self.num_constraints,
                                                                 config_space=self.config_space, ref_point=ref_point)
 
     def algo_auto_selection(self):
@@ -68,12 +68,12 @@ class MCAdvisor(Advisor):
             info_str += ' surrogate_type: %s.' % self.surrogate_type
 
         if self.acq_type == 'auto':
-            if self.num_objs == 1:  # single objective
+            if self.num_objectives == 1:  # single objective
                 if self.num_constraints == 0:
                     self.acq_type = 'mcei'
                 else:  # with constraints
                     self.acq_type = 'mceic'
-            elif self.num_objs <= 4:  # multi objective (<=4)
+            elif self.num_objectives <= 4:  # multi objective (<=4)
                 if self.num_constraints == 0:
                     self.acq_type = 'mcehvi'
                 else:  # with constraints
@@ -95,9 +95,9 @@ class MCAdvisor(Advisor):
 
     def check_setup(self):
         """
-            check num_objs, num_constraints, acq_type, surrogate_type
+            check num_objectives, num_constraints, acq_type, surrogate_type
         """
-        assert isinstance(self.num_objs, int) and self.num_objs >= 1
+        assert isinstance(self.num_objectives, int) and self.num_objectives >= 1
         assert isinstance(self.num_constraints, int) and self.num_constraints >= 0
 
         if self.surrogate_type is None:
@@ -107,7 +107,7 @@ class MCAdvisor(Advisor):
             self.constraint_surrogate_type = 'gp'
 
         # Single objective
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             if self.num_constraints == 0:
                 assert self.acq_type in ['mcei']
             else:
@@ -125,7 +125,7 @@ class MCAdvisor(Advisor):
                 raise ValueError('Must provide reference point to use EHVI method!')
 
     def setup_bo_basics(self):
-        if self.num_objs == 1:
+        if self.num_objectives == 1:
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
                                                    rng=self.rng,
@@ -135,7 +135,7 @@ class MCAdvisor(Advisor):
                                                     config_space=self.config_space,
                                                     rng=self.rng,
                                                     history_hpo_data=self.history_bo_data)
-                                    for _ in range(self.num_objs)]
+                                    for _ in range(self.num_objectives)]
 
         if self.num_constraints > 0:
             self.constraint_models = [build_surrogate(func_str=self.constraint_surrogate_type,
@@ -184,10 +184,10 @@ class MCAdvisor(Advisor):
                 return self.sample_random_configs(1)[0]
 
             # train surrogate model
-            if self.num_objs == 1:
+            if self.num_objectives == 1:
                 self.surrogate_model.train(X, Y)
             else:  # multi-objectives
-                for i in range(self.num_objs):
+                for i in range(self.num_objectives):
                     self.surrogate_model[i].train(X, Y[:, i])
 
             # train constraint model
@@ -195,7 +195,7 @@ class MCAdvisor(Advisor):
                 self.constraint_models[i].train(X, cY[:, i])
 
             # update acquisition function
-            if self.num_objs == 1:  # MC-EI
+            if self.num_objectives == 1:  # MC-EI
                 incumbent_value = history_container.get_incumbents()[0][1]
                 self.acquisition_function.update(model=self.surrogate_model,
                                                  constraint_models=self.constraint_models,
@@ -205,7 +205,7 @@ class MCAdvisor(Advisor):
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models)
                 elif self.acq_type.startswith('mcehvi'):
-                    partitioning = NondominatedPartitioning(self.num_objs, Y)
+                    partitioning = NondominatedPartitioning(self.num_objectives, Y)
                     cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
@@ -232,8 +232,8 @@ class MCAdvisor(Advisor):
     def update_observation(self, observation: Observation):
         super().update_observation(observation)
         if self.use_trust_region:
-            objs = observation.objs
-            if self.num_objs > 1:
+            objectives = observation.objectives
+            if self.num_objectives > 1:
                 raise NotImplementedError()
             else:
-                self.turbo_state.update(objs[0])
+                self.turbo_state.update(objectives[0])

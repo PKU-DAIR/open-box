@@ -10,7 +10,7 @@ args = parser.parse_args()
 branin = Branin()
 bo = SMBO(branin.evaluate,      # objective function
           branin.config_space,  # config space
-          num_objs=branin.num_objs,  # number of objectives
+          num_objectives=branin.num_objectives,  # number of objectives
           num_constraints=branin.num_constraints,  # number of constraints
           max_runs=50,          # number of optimization rounds
           surrogate_type=args.surrogate,
