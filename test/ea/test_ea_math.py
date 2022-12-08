@@ -27,10 +27,10 @@ space = function.config_space
 if __name__ == "__main__":
     advisors = [RegularizedEAAdvisor(
         config_space = space,
-        task_id = 'default_task_id',
+        task_id = 'OpenBox',
     ), SAEAAdvisor(
         config_space = space,
-        task_id = 'default_task_id',
+        task_id = 'OpenBox',
         ea = RegularizedEAAdvisor
     )]
 

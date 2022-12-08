@@ -5,11 +5,11 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
+from openbox import logger
 from openbox.core.generic_advisor import Advisor
 from openbox.experimental.online.cfo import CFO
 from openbox.experimental.online.base_online_advisor import almost_equal
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer
 from openbox.utils.constants import MAXINT
 from openbox.core.base import Observation
@@ -34,13 +34,12 @@ class BlendSearchAdvisor(abc.ABC):
                  batch_size=1,
                  pure=False,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None):
 
         # System Settings.
         self.rng = check_random_state(random_state)
         self.output_dir = output_dir
-        self.logger = get_logger(self.__class__.__name__)
 
         # Objectives Settings
         self.u = 1.5
@@ -138,7 +137,7 @@ class BlendSearchAdvisor(abc.ABC):
             if config not in excluded_configs:
                 break
             if sample_cnt >= max_sample_cnt:
-                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
+                logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
                 break
         return config
 
@@ -219,7 +218,7 @@ class BlendSearchAdvisor(abc.ABC):
         ret = Configuration(self.config_space, vector=arr)
         if ret in self.all_configs:
             if recu > 100:
-                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % 100)
+                logger.warning('Cannot sample non duplicate configuration after %d iterations.' % 100)
             else:
                 ret = self.next(config_a, recu + 1)
         return ret

@@ -4,8 +4,8 @@ import os
 import abc
 import numpy as np
 
+from openbox import logger
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer, \
     MultiStartHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
@@ -21,34 +21,38 @@ class Advisor(object, metaclass=abc.ABCMeta):
     Basic Advisor Class, which adopts a policy to sample a configuration.
     """
 
-    def __init__(self, config_space,
-                 num_objs=1,
-                 num_constraints=0,
-                 initial_trials=3,
-                 initial_configurations=None,
-                 init_strategy='random_explore_first',
-                 history_bo_data=None,
-                 rand_prob=0.1,
-                 optimization_strategy='bo',
-                 surrogate_type='auto',
-                 acq_type='auto',
-                 acq_optimizer_type='auto',
-                 ref_point=None,
-                 output_dir='logs',
-                 task_id='default_task_id',
-                 random_state=None,
-                 **kwargs):
+    def __init__(
+            self,
+            config_space,
+            num_objs=1,
+            num_constraints=0,
+            initial_trials=3,
+            initial_configurations=None,
+            init_strategy='random_explore_first',
+            history_bo_data=None,
+            rand_prob=0.1,
+            optimization_strategy='bo',
+            surrogate_type='auto',
+            acq_type='auto',
+            acq_optimizer_type='auto',
+            ref_point=None,
+            output_dir='logs',
+            task_id='OpenBox',
+            random_state=None,
+            logger_kwargs: dict = None,
+            **kwargs,
+    ):
 
-        # Create output (logging) directory.
-        # Init logging module.
-        # Random seed generator.
         self.num_objs = num_objs
         self.num_constraints = num_constraints
         self.init_strategy = init_strategy
         self.output_dir = output_dir
         self.task_id = task_id
         self.rng = check_random_state(random_state)
-        self.logger = get_logger(self.__class__.__name__)
+
+        _logger_kwargs = {'name': task_id, 'logdir': output_dir}
+        _logger_kwargs.update(logger_kwargs or {})
+        logger.init(**_logger_kwargs)
 
         # Basic components in Advisor.
         self.rand_prob = rand_prob
@@ -150,7 +154,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         if info_str != '':
             info_str = '=== [BO auto selection] ===' + info_str
-            self.logger.info(info_str)
+            logger.info(info_str)
 
     def alter_model(self, history_container):
         if not self.auto_alter_model:
@@ -162,10 +166,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if num_config_evaluated == 300:
             if self.surrogate_type == 'gp':
                 self.surrogate_type = 'prf'
-                self.logger.info('n_observations=300, change surrogate model from GP to PRF!')
+                logger.info('n_observations=300, change surrogate model from GP to PRF!')
                 if self.acq_optimizer_type == 'random_scipy':
                     self.acq_optimizer_type = 'local_random'
-                    self.logger.info('n_observations=300, change acq optimizer from random_scipy to local_random!')
+                    logger.info('n_observations=300, change acq optimizer from random_scipy to local_random!')
                 self.setup_bo_basics()
 
     def check_setup(self):
@@ -194,7 +198,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 assert self.acq_type in ['ehvi', 'mesmo', 'usemo', 'parego']
                 if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
-                    self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                    logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
                                         'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
             else:  # with constraints
                 assert self.acq_type in ['ehvic', 'mesmoc', 'mesmoc2']
@@ -205,11 +209,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
                         self.constraint_surrogate_type = 'gp'
                 if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
-                    self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                    logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
                                         'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
                 if self.acq_type == 'mesmoc' and self.constraint_surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
-                    self.logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
+                    logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
                                         'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
 
             # Check reference point is provided for EHVI methods
@@ -297,7 +301,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 continue
             valid_configs.append(config)
         if len(valid_configs) != len(initial_configs):
-            self.logger.warning('Only %d/%d valid configurations are generated for initial design strategy: %s. '
+            logger.warning('Only %d/%d valid configurations are generated for initial design strategy: %s. '
                                 'Add more random configurations.'
                                 % (len(valid_configs), len(initial_configs), init_strategy))
             num_random_config = self.init_num - len(valid_configs)
@@ -350,7 +354,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             return [res] if return_list else res
 
         if (not return_list) and self.rng.random() < self.rand_prob:
-            self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+            logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
             res = self.sample_random_configs(1, history_container)[0]
             return [res] if return_list else res
 
@@ -360,7 +364,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         if self.optimization_strategy == 'bo':
             if num_config_successful < max(self.init_num, 1):
-                self.logger.warning('No enough successful initial trials! Sample random configuration.')
+                logger.warning('No enough successful initial trials! Sample random configuration.')
                 res = self.sample_random_configs(1, history_container)[0]
                 return [res] if return_list else res
 
@@ -419,7 +423,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             for config in challengers.challengers:
                 if config not in history_container.configurations:
                     return config
-            self.logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+            logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
                                 'Sample random config.' % (len(challengers.challengers), ))
             return self.sample_random_configs(1, history_container)[0]
         else:
@@ -467,7 +471,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 sample_cnt = 0
                 continue
             if sample_cnt >= max_sample_cnt:
-                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
+                logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
                 configs.append(config)
                 sample_cnt = 0
         return configs

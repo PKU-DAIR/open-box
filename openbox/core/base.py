@@ -1,6 +1,7 @@
 # License: MIT
 
 import sys
+from openbox import logger
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.acquisition_function import *
 from openbox.utils.util_funcs import get_types
@@ -109,9 +110,9 @@ def build_surrogate(func_str='gp', config_space=None, rng=None, history_hpo_data
             return RandomForestWithInstances(types=types, bounds=bounds, seed=seed)
         except ModuleNotFoundError:
             from openbox.surrogate.base.rf_with_instances_sklearn import skRandomForestWithInstances
-            print('[Build Surrogate] Use probabilistic random forest based on scikit-learn. For better performance, '
-                  'please install pyrfr: '
-                  'https://open-box.readthedocs.io/en/latest/installation/install_pyrfr.html')
+            logger.warning('[Build Surrogate] Use probabilistic random forest based on scikit-learn. '
+                           'For better performance, please install pyrfr: '
+                           'https://open-box.readthedocs.io/en/latest/installation/install_pyrfr.html')
             return skRandomForestWithInstances(types=types, bounds=bounds, seed=seed)
 
     elif func_str == 'sk_prf':
@@ -139,7 +140,7 @@ def build_surrogate(func_str='gp', config_space=None, rng=None, history_hpo_data
         return MFGPE(config_space, history_hpo_data, seed,
                      surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
     elif func_str.startswith('tlbo'):
-        print('the current surrogate is', func_str)
+        logger.info('The current TL surrogate is %s' % func_str)
         if 'rgpe' in func_str:
             from openbox.surrogate.tlbo.rgpe import RGPE
             inner_surrogate_type = func_str.split('_')[-1]

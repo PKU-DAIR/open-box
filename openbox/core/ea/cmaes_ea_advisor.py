@@ -4,6 +4,7 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter
 from ConfigSpace.hyperparameters import NumericalHyperparameter, OrdinalHyperparameter
 
+from openbox import logger
 from openbox.core.ea.base_ea_advisor import Individual, pareto_sort
 from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 
@@ -18,7 +19,7 @@ class CMAESEAAdvisor(ModularEAAdvisor):
                  constraint_strategy='discard',
                  batch_size=1,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None,
 
                  required_evaluation_count: Optional[int] = None,
@@ -206,7 +207,7 @@ class CMAESEAAdvisor(ModularEAAdvisor):
             noise = np.random.random(self.cov.shape)
             noise = noise + noise.T
             self.cov += noise * np.average(self.cov) * 0.00001
-            self.logger.warning("Covariance matrix not full rank! Adding a noise to it.")
+            logger.warning("Covariance matrix not full rank! Adding a noise to it.")
 
         self.generation_id += 1
         self.population = list(sub)

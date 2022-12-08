@@ -2,22 +2,19 @@
 # Copyright (c) 2016-2018, Ml4AAD Group (http://www.ml4aad.org/)
 
 from copy import deepcopy
-import logging
 import typing
 import warnings
 
 import emcee
 import numpy as np
-
-from ConfigSpace import ConfigurationSpace
-from openbox.surrogate.base.base_gp import BaseGP
-from openbox.surrogate.base.gp import GaussianProcess
-from openbox.surrogate.base.gp_base_prior import Prior
-
 from skopt.learning.gaussian_process.kernels import Kernel
 from skopt.learning.gaussian_process import GaussianProcessRegressor
 
-logger = logging.getLogger(__name__)
+from ConfigSpace import ConfigurationSpace
+from openbox import logger
+from openbox.surrogate.base.base_gp import BaseGP
+from openbox.surrogate.base.gp import GaussianProcess
+from openbox.surrogate.base.gp_base_prior import Prior
 
 
 class GaussianProcessMCMC(BaseGP):

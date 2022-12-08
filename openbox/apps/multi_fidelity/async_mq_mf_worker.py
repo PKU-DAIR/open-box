@@ -3,6 +3,7 @@
 import sys
 import time
 import traceback
+from openbox import logger
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.core.message_queue.worker_messager import WorkerMessager
@@ -20,8 +21,7 @@ class async_mqmfWorker(object):
     def __init__(self, objective_function,
                  ip="127.0.0.1", port=13579, authkey=b'abc',
                  sleep_time=0.1,
-                 no_time_limit=False,
-                 logger=None):
+                 no_time_limit=False):
         self.objective_function = objective_function
         self.worker_messager = WorkerMessager(ip, port, authkey=authkey)
         self.sleep_time = sleep_time
@@ -31,18 +31,13 @@ class async_mqmfWorker(object):
         else:
             self.time_limit = time_limit
 
-        if logger is not None:
-            self.logging = logger.info
-        else:
-            self.logging = print
-
     def run(self):
         # tell master worker is ready
         init_observation = [None, None, None, None]
         try:
             self.worker_messager.send_message(init_observation)
         except Exception as e:
-            self.logging("Worker send init message error: %s" % str(e))
+            logger.info("Worker send init message error: %s" % str(e))
             return
 
         while True:
@@ -50,13 +45,13 @@ class async_mqmfWorker(object):
             try:
                 msg = self.worker_messager.receive_message()
             except Exception as e:
-                self.logging("Worker receive message error: %s" % str(e))
+                logger.info("Worker receive message error: %s" % str(e))
                 return
             if msg is None:
                 # Wait for configs
                 time.sleep(self.sleep_time)
                 continue
-            self.logging("Worker: get msg: %s. start working." % msg)
+            logger.info("Worker: get msg: %s. start working." % msg)
             config, extra_conf, time_limit_per_trial, n_iteration, trial_id = msg
 
             # Start working
@@ -103,9 +98,9 @@ class async_mqmfWorker(object):
             observation = [return_info, time_taken, trial_id, config]
 
             # Send result
-            self.logging("Worker: perf=%f. time=%.2fs. sending result." % (perf, time_taken))
+            logger.info("Worker: perf=%f. time=%.2fs. sending result." % (perf, time_taken))
             try:
                 self.worker_messager.send_message(observation)
             except Exception as e:
-                self.logging("Worker send message error: %s" % str(e))
+                logger.info("Worker send message error: %s" % str(e))
                 return

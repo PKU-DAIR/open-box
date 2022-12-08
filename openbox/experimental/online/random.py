@@ -14,7 +14,7 @@ class RandomSearch(OnlineAdvisor):
                  x0: Configuration=None,
                  batch_size=1,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None,
                  ):
         super().__init__(config_space=config_space, x0=x0, batch_size=batch_size, output_dir=output_dir,

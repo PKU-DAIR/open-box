@@ -3,10 +3,10 @@
 import time
 import numpy as np
 from math import log, ceil
+from openbox import logger
 from openbox.apps.multi_fidelity.async_mq_base_facade import async_mqBaseFacade
 from openbox.apps.multi_fidelity.utils import WAITING, RUNNING, COMPLETED, PROMOTED
 from openbox.apps.multi_fidelity.utils import sample_configuration
-
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.utils.constants import MAXINT
 
@@ -102,8 +102,8 @@ class async_mqHyperband_v2(async_mqBaseFacade):
 
         self.all_rung_list.sort(key=lambda rung: (-rung['n_iteration'], rung['bracket_id']))    # sort by n_iteration
 
-        self.logger.info('Init brackets: %s.' % str(self.brackets))
-        self.logger.info('Init all_rung_list: %s.' % str(self.all_rung_list))
+        logger.info('Init brackets: %s.' % str(self.brackets))
+        logger.info('Init all_rung_list: %s.' % str(self.all_rung_list))
 
     def create_hb_iter_list(self):
         for s in reversed(range(self.skip_outer_loop, self.s_max + 1)):
@@ -114,7 +114,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
             # construct iteration list
             self.hb_bracket_list.append([r] * n)
         self.hb_iter_list = self.hb_bracket_list[0]
-        self.logger.info('hyperband iteration lists of all brackets: %s. init bracket: %s.'
+        logger.info('hyperband iteration lists of all brackets: %s. init bracket: %s.'
                          % (self.hb_bracket_list, self.hb_iter_list))
 
     def get_job(self):
@@ -134,7 +134,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
                     next_n_iteration = rung['n_iteration']
                     next_extra_conf = extra_conf
                     # update bracket
-                    self.logger.info('Running job in bracket %d rung %d: %s'
+                    logger.info('Running job in bracket %d rung %d: %s'
                                      % (rung['bracket_id'], rung['rung_id'], rung['jobs'][job_id]))
                     rung['jobs'][job_id][0] = RUNNING
                     break
@@ -146,7 +146,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
             next_config, next_n_iteration, next_extra_conf = self.choose_next()
             # update bracket
             bracket_id = self.get_bracket_id(self.brackets, next_n_iteration)
-            self.logger.info('Sample a new config: %s. Add to bracket %d.' % (next_config, bracket_id))
+            logger.info('Sample a new config: %s. Add to bracket %d.' % (next_config, bracket_id))
             new_job = [RUNNING, next_config, MAXINT, next_extra_conf]  # running perf is set to MAXINT
             self.brackets[bracket_id][0]['jobs'].append(new_job)
             self.brackets[bracket_id][0]['configs'].add(next_config)
@@ -182,7 +182,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
         for job_id, job in candidate_jobs:
             job_status, config, perf, extra_conf = job
             if not perf < MAXINT:
-                self.logger.warning('Skip promoting job (bad perf): %s' % job)
+                logger.warning('Skip promoting job (bad perf): %s' % job)
                 continue
             # check if config already exists in upper rungs
             exist = False
@@ -191,7 +191,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
                     exist = True
                     break
             if exist:
-                self.logger.warning('Skip promoting job (duplicate): %s' % job)
+                logger.warning('Skip promoting job (duplicate): %s' % job)
                 continue
 
             # promote (set waiting)
@@ -200,7 +200,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
             next_n_iteration = bracket[rung_id + 1]['n_iteration']
             next_extra_conf = extra_conf
             # update bracket
-            self.logger.info('Promote job in bracket %d rung %d: %s' %
+            logger.info('Promote job in bracket %d rung %d: %s' %
                              (bracket_id, rung_id, bracket[rung_id]['jobs'][job_id]))
             bracket[rung_id]['jobs'][job_id][0] = PROMOTED
             bracket[rung_id]['num_promoted'] += 1
@@ -210,10 +210,10 @@ class async_mqHyperband_v2(async_mqBaseFacade):
             assert len(bracket[rung_id + 1]['jobs']) == len(bracket[rung_id + 1]['configs'])
 
         if n_set_promote != n_should_promote:
-            self.logger.warning('In rung %d, promote: %d, should promote: %d.'
+            logger.warning('In rung %d, promote: %d, should promote: %d.'
                                 % (rung_id, n_set_promote, n_should_promote))
         else:
-            self.logger.info('In rung %d, promote %d configs.' % (rung_id, n_set_promote))
+            logger.info('In rung %d, promote %d configs.' % (rung_id, n_set_promote))
 
     def update_observation(self, config, perf, n_iteration):
         """
@@ -232,7 +232,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
                 _job_status, _config, _perf, _extra_conf = job
                 if _config == config:
                     if _job_status != RUNNING:
-                        self.logger.warning('Job status is not RUNNING when update observation. '
+                        logger.warning('Job status is not RUNNING when update observation. '
                                             'There may exist duplicated configs in different brackets. '
                                             'bracket_id: %d, rung_id: %d, job: %s, observation: %s.'
                                             % (bracket_id, rung_id, job, (config, perf, n_iteration)))
@@ -241,7 +241,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
                     job[2] = perf
                     updated = True
                     updated_bracket_id, updated_rung_id = bracket_id, rung_id
-                    self.logger.info('update observation in bracket %d rung %d.' % (bracket_id, rung_id))
+                    logger.info('update observation in bracket %d rung %d.' % (bracket_id, rung_id))
                     break
             if updated:
                 break
@@ -250,7 +250,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
 
         if int(n_iteration) == self.R:
             if config in self.incumbent_configs:
-                self.logger.warning('Duplicated config in self.incumbent_configs: %s' % config)
+                logger.warning('Duplicated config in self.incumbent_configs: %s' % config)
             else:
                 self.incumbent_configs.append(config)
                 self.incumbent_perfs.append(perf)
@@ -279,7 +279,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
             if self.hb_bracket_id == len(self.hb_bracket_list):
                 self.hb_bracket_id = 0
             self.hb_iter_list = self.hb_bracket_list[self.hb_bracket_id]
-            self.logger.info('iteration list of next bracket: %s' % self.hb_iter_list)
+            logger.info('iteration list of next bracket: %s' % self.hb_iter_list)
         return next_n_iteration
 
     @staticmethod

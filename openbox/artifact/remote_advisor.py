@@ -5,6 +5,7 @@ import json
 import requests
 import hashlib
 
+from openbox import logger
 from openbox.utils.config_space import json as config_json
 from openbox.utils.config_space import Configuration
 from openbox.utils.constants import SUCCESS
@@ -109,11 +110,11 @@ class RemoteAdvisor(object):
                     self.constraint_surrogate_type = 'gp_rbf'
             if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
                 self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
                                     'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
             if self.acq_type == 'mesmoc' and self.constraint_surrogate_type != 'gp_rbf':
                 self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
+                logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
                                     'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
 
         # multi-objective no constraint
@@ -128,7 +129,7 @@ class RemoteAdvisor(object):
                     self.surrogate_type = 'gp'
             if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
                 self.surrogate_type = 'gp_rbf'
-                self.logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
+                logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
                                     'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
 
         # single objective with constraints
@@ -145,7 +146,7 @@ class RemoteAdvisor(object):
                 self.constraint_surrogate_type = 'gp'
             if self.acq_type == 'ts' and self.surrogate_type != 'gp':
                 self.surrogate_type = 'gp'
-                self.logger.warning('Surrogate model has changed to Gaussian Process '
+                logger.warning('Surrogate model has changed to Gaussian Process '
                                     'since TS is used. Surrogate_type should be set to \'gp\'.')
 
     def get_suggestion(self):

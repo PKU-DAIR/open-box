@@ -1,7 +1,6 @@
 # License: 3-clause BSD
 # Copyright (c) 2016-2018, Ml4AAD Group (http://www.ml4aad.org/)
 
-import logging
 import typing
 
 from ConfigSpace import (
@@ -16,6 +15,7 @@ from pyrfr import regression
 from sklearn.model_selection import KFold
 import scipy.stats.distributions as scst
 
+from openbox import logger
 from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
 from openbox.utils.constants import N_TREES
 
@@ -43,7 +43,6 @@ class RandomForestWithInstancesHPO(RandomForestWithInstances):
     types : list
     bounds : list
     rng : np.random.RandomState
-    logger : logging.logger
     """
 
     def __init__(
@@ -121,9 +120,6 @@ class RandomForestWithInstancesHPO(RandomForestWithInstances):
         self._set_hypers(self._get_configuration_space().get_default_configuration())
         self.seed = seed
 
-        self.logger = logging.getLogger(self.__module__ + "." +
-                                        self.__class__.__name__)
-
     def _train(self, X: np.ndarray, y: np.ndarray) -> 'RandomForestWithInstancesHPO':
         """Trains the random forest on X and y.
 
@@ -164,7 +160,7 @@ class RandomForestWithInstancesHPO(RandomForestWithInstances):
                         X_test=X[test_index, :],
                         y_test=y[test_index],
                     )
-                self.logger.debug(error)
+                logger.debug(error)
                 if best_error is None or error < best_error:
                     best_config = configuration
                     best_error = error
@@ -176,7 +172,7 @@ class RandomForestWithInstancesHPO(RandomForestWithInstances):
         )
         self._set_hypers(best_config)
 
-        self.logger.debug("Use %s" % str(self.rf_opts))
+        logger.debug("Use %s" % str(self.rf_opts))
         self.rf = regression.binary_rss_forest()
         self.rf.options = self.rf_opts
         data = self._init_data_container(self.X, self.y)

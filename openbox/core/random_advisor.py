@@ -21,8 +21,9 @@ class RandomAdvisor(Advisor):
                  acq_optimizer_type='local_random',
                  ref_point=None,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None,
+                 logger_kwargs: dict = None,
                  **kwargs):
 
         super().__init__(
@@ -32,7 +33,7 @@ class RandomAdvisor(Advisor):
             rand_prob=1, optimization_strategy='random',
             surrogate_type=surrogate_type, acq_type=acq_type, acq_optimizer_type=acq_optimizer_type,
             ref_point=ref_point, output_dir=output_dir, task_id=task_id, random_state=random_state,
-            **kwargs,
+            logger_kwargs=logger_kwargs, **kwargs,
         )   # todo: do not derive from BO advisor
 
     def get_suggestion(self, history_container=None):

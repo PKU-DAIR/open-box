@@ -2,6 +2,7 @@
 
 import numpy as np
 
+from openbox import logger
 from openbox.core.base import build_acq_func, build_optimizer, build_surrogate, Observation
 from openbox.core.generic_advisor import Advisor
 from openbox.utils.config_space.util import convert_configurations_to_array
@@ -12,23 +13,27 @@ from openbox.utils.util_funcs import get_types
 
 
 class MCAdvisor(Advisor):
-    def __init__(self, config_space,
-                 num_objs=1,
-                 num_constraints=0,
-                 mc_times=10,
-                 initial_trials=3,
-                 initial_configurations=None,
-                 init_strategy='random_explore_first',
-                 history_bo_data=None,
-                 optimization_strategy='bo',
-                 surrogate_type='auto',
-                 acq_type='auto',
-                 acq_optimizer_type='auto',
-                 use_trust_region=False,
-                 ref_point=None,
-                 output_dir='logs',
-                 task_id='default_task_id',
-                 random_state=None):
+    def __init__(
+            self,
+            config_space,
+            num_objs=1,
+            num_constraints=0,
+            mc_times=10,
+            initial_trials=3,
+            initial_configurations=None,
+            init_strategy='random_explore_first',
+            history_bo_data=None,
+            optimization_strategy='bo',
+            surrogate_type='auto',
+            acq_type='auto',
+            acq_optimizer_type='auto',
+            use_trust_region=False,
+            ref_point=None,
+            output_dir='logs',
+            task_id='OpenBox',
+            random_state=None,
+            logger_kwargs: dict = None,
+    ):
 
         self.mc_times = mc_times
         self.use_trust_region = use_trust_region
@@ -48,7 +53,8 @@ class MCAdvisor(Advisor):
                          ref_point=ref_point,
                          output_dir=output_dir,
                          task_id=task_id,
-                         random_state=random_state)
+                         random_state=random_state,
+                         logger_kwargs=logger_kwargs)
 
         if self.use_trust_region:
             self.history_container = MultiStartHistoryContainer(task_id, self.num_objs, self.num_constraints,
@@ -85,7 +91,7 @@ class MCAdvisor(Advisor):
 
         if info_str != '':
             info_str = '=== [BO auto selection] ===' + info_str
-            self.logger.info(info_str)
+            logger.info(info_str)
 
     def check_setup(self):
         """
@@ -157,8 +163,7 @@ class MCAdvisor(Advisor):
         # Check if turbo needs to be restarted
         if self.use_trust_region and self.turbo_state.restart_triggered:
             history_container.restart()
-            print('-'*30)
-            print('Restart!')
+            logger.info('Turbo Restart!')
 
         num_config_evaluated = len(history_container.configurations)
         num_config_successful = len(history_container.successful_perfs)
@@ -175,7 +180,7 @@ class MCAdvisor(Advisor):
 
         if self.optimization_strategy == 'bo':
             if num_config_successful < max(self.init_num, 1):
-                self.logger.warning('No enough successful initial trials! Sample random configuration.')
+                logger.warning('No enough successful initial trials! Sample random configuration.')
                 return self.sample_random_configs(1)[0]
 
             # train surrogate model

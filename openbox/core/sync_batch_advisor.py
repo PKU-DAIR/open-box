@@ -3,6 +3,7 @@
 import copy
 import numpy as np
 
+from openbox import logger
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.generic_advisor import Advisor
@@ -10,24 +11,28 @@ from openbox.core.base import Observation
 
 
 class SyncBatchAdvisor(Advisor):
-    def __init__(self, config_space,
-                 num_objs=1,
-                 num_constraints=0,
-                 batch_size=4,
-                 batch_strategy='default',
-                 initial_trials=3,
-                 initial_configurations=None,
-                 init_strategy='random_explore_first',
-                 history_bo_data=None,
-                 rand_prob=0.1,
-                 optimization_strategy='bo',
-                 surrogate_type='auto',
-                 acq_type='auto',
-                 acq_optimizer_type='auto',
-                 ref_point=None,
-                 output_dir='logs',
-                 task_id='default_task_id',
-                 random_state=None):
+    def __init__(
+            self,
+            config_space,
+            num_objs=1,
+            num_constraints=0,
+            batch_size=4,
+            batch_strategy='default',
+            initial_trials=3,
+            initial_configurations=None,
+            init_strategy='random_explore_first',
+            history_bo_data=None,
+            rand_prob=0.1,
+            optimization_strategy='bo',
+            surrogate_type='auto',
+            acq_type='auto',
+            acq_optimizer_type='auto',
+            ref_point=None,
+            output_dir='logs',
+            task_id='OpenBox',
+            random_state=None,
+            logger_kwargs: dict = None,
+    ):
 
         self.batch_size = batch_size
         self.batch_strategy = batch_strategy
@@ -46,7 +51,8 @@ class SyncBatchAdvisor(Advisor):
                          ref_point=ref_point,
                          output_dir=output_dir,
                          task_id=task_id,
-                         random_state=random_state)
+                         random_state=random_state,
+                         logger_kwargs=logger_kwargs)
 
     def check_setup(self):
         super().check_setup()
@@ -87,7 +93,7 @@ class SyncBatchAdvisor(Advisor):
             return self.sample_random_configs(batch_size, history_container)
 
         if num_config_successful < max(self.init_num, 1):
-            self.logger.warning('No enough successful initial trials! Sample random configurations.')
+            logger.warning('No enough successful initial trials! Sample random configurations.')
             return self.sample_random_configs(batch_size, history_container)
 
         X = convert_configurations_to_array(history_container.configurations)
@@ -122,7 +128,7 @@ class SyncBatchAdvisor(Advisor):
             for i in range(batch_size):
                 if self.rng.random() < self.rand_prob:
                     # sample random configuration proportionally
-                    self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+                    logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
                     cur_config = self.sample_random_configs(1, history_container,
                                                             excluded_configs=batch_configs_list)[0]
                 else:
@@ -141,7 +147,7 @@ class SyncBatchAdvisor(Advisor):
             for i in range(batch_size):
                 if self.rng.random() < self.rand_prob:
                     # sample random configuration proportionally
-                    self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+                    logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
                     cur_config = self.sample_random_configs(1, history_container,
                                                             excluded_configs=batch_configs_list)[0]
                 else:
@@ -160,7 +166,7 @@ class SyncBatchAdvisor(Advisor):
                             cur_config = config
                             break
                     if cur_config is None:
-                        self.logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+                        logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
                                             'Sample random config.' % (len(candidates),))
                         cur_config = self.sample_random_configs(1, history_container,
                                                                 excluded_configs=batch_configs_list)[0]
@@ -171,13 +177,13 @@ class SyncBatchAdvisor(Advisor):
             idx = 0
             while len(batch_configs_list) < batch_size:
                 if idx >= len(candidates):
-                    self.logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+                    logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
                                         'Sample random config.' % (len(candidates),))
                     cur_config = self.sample_random_configs(1, history_container,
                                                             excluded_configs=batch_configs_list)[0]
                 elif self.rng.random() < self.rand_prob:
                     # sample random configuration proportionally
-                    self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+                    logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
                     cur_config = self.sample_random_configs(1, history_container,
                                                             excluded_configs=batch_configs_list)[0]
                 else:

@@ -4,7 +4,7 @@ import time
 import os
 import numpy as np
 import pickle as pkl
-from openbox.utils.logging_utils import get_logger, setup_logger
+from openbox import logger
 from openbox.core.message_queue.master_messager import MasterMessager
 
 PLOT = False
@@ -28,15 +28,17 @@ class mqBaseFacade(object):
                  max_queue_len=300,
                  ip='',
                  port=13579,
-                 authkey=b'abc',):
+                 authkey=b'abc',
+                 logger_kwargs: dict = None,
+                 ):
         self.log_directory = log_directory
-        if not os.path.exists(self.log_directory):
-            os.makedirs(self.log_directory)
+        os.makedirs(self.log_directory, exist_ok=True)
         self.data_directory = data_directory
-        if not os.path.exists(self.data_directory):
-            os.makedirs(self.data_directory)
+        os.makedirs(self.data_directory, exist_ok=True)
 
-        self.logger = self._get_logger(method_name)
+        _logger_kwargs = {'name': method_name, 'logdir': log_directory}
+        _logger_kwargs.update(logger_kwargs or {})
+        logger.init(**_logger_kwargs)
 
         self.objective_func = objective_func
         self.trial_statistics = []
@@ -113,7 +115,7 @@ class mqBaseFacade(object):
             msg = [config, extra_conf, self.time_limit_per_trial, n_iteration, self.global_trial_counter]
             self.master_messager.send_message(msg)
             self.global_trial_counter += 1
-        self.logger.info('Master: %d configs sent.' % (len(conf_list)))
+        logger.info('Master: %d configs sent.' % (len(conf_list)))
         # Get batch results from workerQueue.
         result_num = 0
         result_needed = len(conf_list)
@@ -123,14 +125,14 @@ class mqBaseFacade(object):
             observation = self.master_messager.receive_message()    # return_info, time_taken, trial_id, config
             if observation is None:
                 # Wait for workers.
-                # self.logger.info("Master: wait for worker results. sleep 1s.")
+                # logger.info("Master: wait for worker results. sleep 1s.")
                 time.sleep(1)
                 continue
             # Report result.
             result_num += 1
             global_time = time.time() - self.global_start_time
             self.trial_statistics.append((observation, global_time))
-            self.logger.info('Master: Get the [%d] result, observation is %s.' % (result_num, str(observation)))
+            logger.info('Master: Get the [%d] result, observation is %s.' % (result_num, str(observation)))
             if result_num == result_needed:
                 break
 
@@ -188,8 +190,3 @@ class mqBaseFacade(object):
         #     plt.ylabel('Validation error')
         #     plt.savefig("data/%s.png" % self.method_name)
         return
-
-    def _get_logger(self, name):
-        logger_name = name
-        setup_logger(os.path.join(self.log_directory, '%s.log' % str(logger_name)), None)
-        return get_logger(self.__class__.__name__)

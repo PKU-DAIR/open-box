@@ -1,6 +1,5 @@
 # License: MIT
 
-import logging
 import typing
 
 import numpy as np
@@ -16,6 +15,7 @@ except ModuleNotFoundError:
     from sklearn.ensemble._base import _partition_estimators
     old_sk_version = False
 
+from openbox import logger
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.constants import N_TREES
 
@@ -48,7 +48,6 @@ class skRandomForestWithInstances(AbstractModel):
     types : np.ndarray
     bounds : list
     rng : np.random.RandomState
-    logger : logging.logger
     """
 
     def __init__(self, types: np.ndarray,
@@ -110,9 +109,6 @@ class skRandomForestWithInstances(AbstractModel):
             <n_jobs>` for more details.
         """
         super().__init__(types, bounds, **kwargs)
-
-        self.logger = logging.getLogger(self.__module__ + "." +
-                                        self.__class__.__name__)
 
         self.log_y = log_y
         if self.log_y:

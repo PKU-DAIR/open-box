@@ -1,6 +1,7 @@
 # License: MIT
 
 import numpy as np
+from openbox import logger
 
 
 class TurboState(object):
@@ -36,13 +37,11 @@ class TurboState(object):
         if self.success_counter == self.success_tolerance:  # Expand trust region
             self.length = np.min([2.0 * self.length, self.length_max])
             self.success_counter = 0
-            print('-'*30)
-            print('Expand!')
+            logger.info('Expand trust region!')
         elif self.failure_counter == self.failure_tolerance:  # Shrink trust region
             self.length /= 2.0
             self.success_counter = 0
-            print('-'*30)
-            print('Shrink!')
+            logger.info('Shrink trust region!')
 
         self.best_value = np.min([self.best_value, y_next])
         if self.length < self.length_min:

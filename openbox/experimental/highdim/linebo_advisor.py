@@ -59,7 +59,7 @@ class LineBOAdvisor:
     def __init__(self, config_space: ConfigurationSpace,
                  num_objs=1,
                  num_constraints=0,
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None,
 
                  surrogate: str = 'gp',

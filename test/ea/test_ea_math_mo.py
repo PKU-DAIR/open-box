@@ -25,11 +25,11 @@ if __name__ == "__main__":
     advisors = [RegularizedEAAdvisor(
         config_space = space,
         num_objs = 2,
-        task_id = 'default_task_id',
+        task_id = 'OpenBox',
     ), SAEAAdvisor(
         config_space = space,
         num_objs = 2,
-        task_id = 'default_task_id',
+        task_id = 'OpenBox',
         ea = RegularizedEAAdvisor,
         ref_point = (150, 150)
     )]

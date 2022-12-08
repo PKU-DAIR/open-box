@@ -1,7 +1,7 @@
 # License: MIT
 
 import numpy as np
-import traceback
+from openbox import logger
 from openbox import Optimizer, sp
 from openbox.utils.constants import SUCCESS
 
@@ -15,7 +15,7 @@ def branin(config):
 
 
 def run_test():
-    print('===== Test Start =====')
+    logger.info('===== Test Start =====')
     # Define Search Space
     space = sp.Space()
     x1 = sp.Real("x1", -5, 10, default_value=0)
@@ -34,14 +34,13 @@ def run_test():
         )
         history = opt.run()
     except Exception:
-        print(traceback.format_exc())
-        print('===== Exception in run_test()! Please check. =====')
+        logger.exception('===== Exception in run_test()! Please check. =====')
     else:
         cnt = history.trial_states.count(SUCCESS)
         if cnt == max_runs:
-            print('===== Congratulations! All trials succeeded. =====')
+            logger.info('===== Congratulations! All trials succeeded. =====')
         else:
-            print('===== %d/%d trials failed! Please check. =====' % (max_runs-cnt, max_runs))
+            logger.info('===== %d/%d trials failed! Please check. =====' % (max_runs-cnt, max_runs))
 
 
 if __name__ == '__main__':

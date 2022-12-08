@@ -5,10 +5,11 @@ import time
 import traceback
 from typing import List
 from collections import OrderedDict
+from multiprocessing import Lock
 
+from openbox import logger
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.core.computation.parallel_process import ParallelEvaluation
-from multiprocessing import Lock
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import get_result
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
@@ -46,28 +47,32 @@ def wrapper(param):
 
 
 class pSMBO(BOBase):
-    def __init__(self, objective_function, config_space,
-                 parallel_strategy='async',
-                 batch_size=4,
-                 batch_strategy='default',
-                 num_constraints=0,
-                 num_objs=1,
-                 sample_strategy: str = 'bo',
-                 max_runs=200,
-                 time_limit_per_trial=180,
-                 surrogate_type='auto',
-                 acq_type='auto',
-                 acq_optimizer_type='auto',
-                 initial_runs=3,
-                 init_strategy='random_explore_first',
-                 initial_configurations=None,
-                 ref_point=None,
-                 history_bo_data: List[OrderedDict] = None,
-                 logging_dir='logs',
-                 task_id='default_task_id',
-                 random_state=None,
-                 advisor_kwargs: dict = None,
-                 ):
+    def __init__(
+            self,
+            objective_function,
+            config_space,
+            parallel_strategy='async',
+            batch_size=4,
+            batch_strategy='default',
+            num_constraints=0,
+            num_objs=1,
+            sample_strategy: str = 'bo',
+            max_runs=200,
+            time_limit_per_trial=180,
+            surrogate_type='auto',
+            acq_type='auto',
+            acq_optimizer_type='auto',
+            initial_runs=3,
+            init_strategy='random_explore_first',
+            initial_configurations=None,
+            ref_point=None,
+            history_bo_data: List[OrderedDict] = None,
+            logging_dir='logs',
+            task_id='OpenBox',
+            random_state=None,
+            advisor_kwargs: dict = None,
+            logger_kwargs: dict = None,
+    ):
 
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
@@ -78,12 +83,13 @@ class pSMBO(BOBase):
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
-                         history_bo_data=history_bo_data)
+                         history_bo_data=history_bo_data, logger_kwargs=logger_kwargs)
 
         self.parallel_strategy = parallel_strategy
         self.batch_size = batch_size
 
         advisor_kwargs = advisor_kwargs or {}
+        _logger_kwargs = {'force_init': False}  # do not init logger in advisor
         if parallel_strategy == 'sync':
             if sample_strategy in ['random', 'bo']:
                 self.config_advisor = SyncBatchAdvisor(config_space,
@@ -103,6 +109,7 @@ class pSMBO(BOBase):
                                                        task_id=task_id,
                                                        output_dir=logging_dir,
                                                        random_state=random_state,
+                                                       logger_kwargs=_logger_kwargs,
                                                        **advisor_kwargs)
             elif sample_strategy == 'ea':
                 assert num_objs == 1 and num_constraints == 0
@@ -114,6 +121,7 @@ class pSMBO(BOBase):
                                                  task_id=task_id,
                                                  output_dir=logging_dir,
                                                  random_state=random_state,
+                                                 logger_kwargs=_logger_kwargs,
                                                  **advisor_kwargs)
             else:
                 raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
@@ -137,6 +145,7 @@ class pSMBO(BOBase):
                                                         task_id=task_id,
                                                         output_dir=logging_dir,
                                                         random_state=random_state,
+                                                        logger_kwargs=_logger_kwargs,
                                                         **advisor_kwargs)
             elif sample_strategy == 'ea':
                 assert num_objs == 1 and num_constraints == 0
@@ -148,6 +157,7 @@ class pSMBO(BOBase):
                                                  task_id=task_id,
                                                  output_dir=logging_dir,
                                                  random_state=random_state,
+                                                 logger_kwargs=_logger_kwargs,
                                                  **advisor_kwargs)
             else:
                 raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
@@ -164,7 +174,7 @@ class pSMBO(BOBase):
         with self.advisor_lock:
             # Parent process: collect the result and increment id.
             self.config_advisor.update_observation(observation)
-            self.logger.info('Update observation %d: %s.' % (self.iteration_id + 1, str(observation)))
+            logger.info('Update observation %d: %s.' % (self.iteration_id + 1, str(observation)))
             self.iteration_id += 1  # must increment id after updating
 
     # TODO: Wrong logic. Need to wait before return?
@@ -213,7 +223,7 @@ class pSMBO(BOBase):
             batch_id = 0
             while batch_id < batch_num:
                 configs = self.config_advisor.get_suggestions()
-                self.logger.info('Running on %d configs in the %d-th batch.' % (len(configs), batch_id))
+                logger.info('Running on %d configs in the %d-th batch.' % (len(configs), batch_id))
                 params = [(self.objective_function, config, self.time_limit_per_trial) for config in configs]
                 # Wait all workers to complete their corresponding jobs.
                 observations = proc.parallel_execute(params)
@@ -225,7 +235,7 @@ class pSMBO(BOBase):
                             trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
                         )
                     self.config_advisor.update_observation(observation)
-                    self.logger.info('In the %d-th batch [%d/%d], observation: %s.'
+                    logger.info('In the %d-th batch [%d/%d], observation: %s.'
                                      % (batch_id, idx+1, len(configs), observation))
                 batch_id += 1
 

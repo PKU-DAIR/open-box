@@ -1,13 +1,13 @@
 # License: 3-clause BSD
 # Copyright (c) 2016-2018, Ml4AAD Group (http://www.ml4aad.org/)
 
-import logging
 import typing
 
 import numpy as np
 from pyrfr import regression
 
-from openbox.surrogate.base.base_model import  AbstractModel
+from openbox import logger
+from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.constants import N_TREES
 
 
@@ -29,7 +29,6 @@ class RandomForestWithInstances(AbstractModel):
     types : np.ndarray
     bounds : list
     rng : np.random.RandomState
-    logger : logging.logger
     """
 
     def __init__(self, types: np.ndarray,
@@ -109,9 +108,6 @@ class RandomForestWithInstances(AbstractModel):
                        n_points_per_tree, ratio_features, min_samples_split,
                        min_samples_leaf, max_depth, eps_purity, seed]
         self.seed = seed
-
-        self.logger = logging.getLogger(self.__module__ + "." +
-                                        self.__class__.__name__)
 
     def _train(self, X: np.ndarray, y: np.ndarray):
         """Trains the random forest on X and y.

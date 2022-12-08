@@ -6,13 +6,13 @@ import typing
 import numpy as np
 from typing import List
 
+from openbox import logger
 from openbox.utils.util_funcs import get_types
 from openbox.core.base import build_surrogate
 from openbox.utils.constants import VERY_SMALL_NUMBER
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.transform import zero_mean_unit_var_normalization, zero_one_normalization
-from openbox.utils.logging_utils import get_logger
 
 
 class BaseTLSurrogate(object):
@@ -48,7 +48,6 @@ class BaseTLSurrogate(object):
         self.meta_feature_imputer = None
 
         self.target_weight = list()
-        self.logger = get_logger(self.__class__.__name__)
 
     @abc.abstractmethod
     def train(self, X: np.ndarray, y: np.ndarray):
@@ -60,14 +59,13 @@ class BaseTLSurrogate(object):
 
     def build_source_surrogates(self, normalize):
         if self.source_hpo_data is None:
-            self.logger.warning('No history BO data provided, resort to naive BO optimizer without TL.')
+            logger.warning('No history BO data provided, resort to naive BO optimizer without TL.')
             return
 
-        self.logger.info('Start to train base surrogates.')
+        logger.info('Start to train base surrogates.')
         start_time = time.time()
         self.source_surrogates = list()
         for hpo_evaluation_data in self.source_hpo_data:
-            print('.', end='')
             model = build_surrogate(self.surrogate_type, self.config_space,
                                     np.random.RandomState(self.random_seed))
             _X, _y = list(), list()
@@ -95,7 +93,7 @@ class BaseTLSurrogate(object):
             self.eta_list.append(np.min(y))
             model.train(X, y)
             self.source_surrogates.append(model)
-        self.logger.info('Building base surrogates took %.3fs.' % (time.time() - start_time))
+        logger.info('Building base surrogates took %.3fs.' % (time.time() - start_time))
 
     def build_single_surrogate(self, X: np.ndarray, y: np.array, normalize):
         assert normalize in ['standardize', 'scale', 'none']

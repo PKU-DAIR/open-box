@@ -5,8 +5,8 @@ from typing import Union, Dict, List, Optional
 
 from ConfigSpace import ConfigurationSpace, Configuration
 
+from openbox import logger
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
@@ -26,14 +26,13 @@ class EAAdvisor(abc.ABC):
                  optimization_strategy='ea',
                  batch_size=1,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None):
 
         # System Settings.
 
         self.rng = check_random_state(random_state)
         self.output_dir = output_dir
-        self.logger = get_logger(self.__class__.__name__)
 
         # Objectives Settings
         self.num_objs = num_objs
@@ -102,7 +101,7 @@ class EAAdvisor(abc.ABC):
             if config not in excluded_configs:
                 break
             if sample_cnt >= max_sample_cnt:
-                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
+                logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
                 break
         return config
 

@@ -66,7 +66,7 @@ BATCH_SIZE = 5
 
 # We need to re-initialize the advisor every time we start a new run.
 # So these are functions that provides advisors.
-ADVISORS = [(lambda sp: BlendSearchAdvisor(globalsearch = Advisor, config_space = sp, task_id = 'default_task_id'),
+ADVISORS = [(lambda sp: BlendSearchAdvisor(globalsearch = Advisor, config_space = sp, task_id = 'OpenBox'),
              'BlendSearch'),
             (lambda sp: Advisor(config_space = sp), 'SMBO'),
             (lambda sp: SyncBatchAdvisor(config_space = sp, batch_size = BATCH_SIZE), 'BatchBO')]

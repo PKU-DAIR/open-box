@@ -2,9 +2,9 @@
 
 import numpy as np
 import time
+from openbox import logger
 from openbox.apps.multi_fidelity.mq_base_facade import mqBaseFacade
 from openbox.apps.multi_fidelity.utils import sample_configurations
-
 from openbox.utils.config_space import ConfigurationSpace
 
 
@@ -43,16 +43,16 @@ class mqRandomSearch(mqBaseFacade):
     def run(self):
         try:
             for iter in range(1, 1 + self.num_iter):
-                self.logger.info('-' * 50)
-                self.logger.info("Random Search algorithm: %d/%d iteration starts" % (iter, self.num_iter))
+                logger.info('-' * 50)
+                logger.info("Random Search algorithm: %d/%d iteration starts" % (iter, self.num_iter))
                 start_time = time.time()
                 self.iterate()
                 time_elapsed = (time.time() - start_time) / 60
-                self.logger.info("iteration took %.2f min." % time_elapsed)
+                logger.info("iteration took %.2f min." % time_elapsed)
                 self.save_intemediate_statistics()
         except Exception as e:
             print(e)
-            self.logger.error(str(e))
+            logger.error(str(e))
             # clear the immediate result.
             # self.remove_immediate_model()
 

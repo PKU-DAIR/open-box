@@ -1,11 +1,11 @@
 # License: MIT
 
 import abc
-import numpy as np
 import random
+import numpy as np
 
+from openbox import logger
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.logging_utils import get_logger
 from openbox.utils.history_container import HistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
@@ -17,31 +17,36 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
     Evolutionary Algorithm Advisor
     """
 
-    def __init__(self, config_space,
-                 num_objs=1,
-                 num_constraints=0,
-                 population_size=30,
-                 subset_size=20,
-                 epsilon=0.2,
-                 strategy='worst',  # 'worst', 'oldest'
-                 optimization_strategy='ea',
-                 batch_size=1,
-                 output_dir='logs',
-                 task_id='default_task_id',
-                 random_state=None):
+    def __init__(
+            self,
+            config_space,
+            num_objs=1,
+            num_constraints=0,
+            population_size=30,
+            subset_size=20,
+            epsilon=0.2,
+            strategy='worst',  # 'worst', 'oldest'
+            optimization_strategy='ea',
+            batch_size=1,
+            output_dir='logs',
+            task_id='OpenBox',
+            random_state=None,
+            logger_kwargs: dict = None,
+    ):
 
-        # Create output (logging) directory.
-        # Init logging module.
-        # Random seed generator.
         self.num_objs = num_objs
         self.num_constraints = num_constraints
         assert self.num_objs == 1 and self.num_constraints == 0
         self.output_dir = output_dir
+        self.task_id = task_id
         self.rng = check_random_state(random_state)
         self.config_space = config_space
         self.config_space_seed = self.rng.randint(MAXINT)
         self.config_space.seed(self.config_space_seed)
-        self.logger = get_logger(self.__class__.__name__)
+
+        _logger_kwargs = {'name': task_id, 'logdir': output_dir}
+        _logger_kwargs.update(logger_kwargs or {})
+        logger.init(**_logger_kwargs)
 
         # Init parallel settings
         self.batch_size = batch_size
@@ -160,7 +165,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
             if config not in excluded_configs:
                 break
             if sample_cnt >= max_sample_cnt:
-                self.logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
+                logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
                 break
         return config
 

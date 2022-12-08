@@ -4,7 +4,6 @@
 https://github.com/automl/fanova/blob/master/fanova/visualizer.py
 """
 import itertools as it
-import logging
 import os
 import pickle
 import re
@@ -15,6 +14,8 @@ from ConfigSpace.hyperparameters import Hyperparameter, CategoricalHyperparamete
     NumericalHyperparameter
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
+
+from openbox import logger
 
 
 class Visualizer(object):
@@ -35,7 +36,6 @@ class Visualizer(object):
             raise FileNotFoundError("Directory %s doesn't exist." % directory)
         self.directory = directory
         self._y_label = y_label
-        self.logger = logging.getLogger(self.__module__ + '.' + self.__class__.__name__)
 
     def create_all_plots(self, three_d=True, **kwargs):
         """
@@ -52,7 +52,7 @@ class Visualizer(object):
             param_name = self.cs_params[param_idx].name
             plt.close()
             outfile_name = os.path.join(self.directory, param_name.replace(os.sep, "_") + ".png")
-            self.logger.info("creating %s" % outfile_name)
+            logger.info("creating %s" % outfile_name)
 
             self.plot_marginal(param_idx, show=False, **kwargs)
             plt.savefig(outfile_name)
@@ -66,7 +66,7 @@ class Visualizer(object):
             param_names = str(param_names)
             param_names = re.sub('[!,@#\'\n$\[\]]', '', param_names)
             outfile_name = os.path.join(self.directory, str(param_names).replace(" ", "_") + ".png")
-            self.logger.info("creating %s" % outfile_name)
+            logger.info("creating %s" % outfile_name)
             self.plot_pairwise_marginal(combi, three_d=three_d, **kwargs)
             plt.savefig(outfile_name)
 
@@ -235,13 +235,13 @@ class Visualizer(object):
         else:
             interact_dir = os.path.join(self.directory, 'interactive_plots')
             if not os.path.exists(interact_dir):
-                self.logger.info('creating %s' % interact_dir)
+                logger.info('creating %s' % interact_dir)
                 os.makedirs(interact_dir)
             try:
                 pickle.dump(fig, open(interact_dir + '/%s_%s.fig.pkl' % (param_names[0], param_names[1]), 'wb'))
             except AttributeError as err:
-                self.logger.debug(err, exc_info=True)
-                self.logger.info("Pickling the interactive pairwise-marginal plot (%s) raised an exception. Resume "
+                logger.debug(err, exc_info=True)
+                logger.info("Pickling the interactive pairwise-marginal plot (%s) raised an exception. Resume "
                                  "without pickling. ", str(param_names))
 
         return plt
@@ -272,10 +272,10 @@ class Visualizer(object):
                 grid = np.logspace(log_lower, log_upper, resolution, endpoint=True, base=base)
 
                 if abs(grid[0] - lower_bound) > 0.00001:
-                    self.logger.warning("Check the grid's (lower) accuracy for %s (plotted vs theoretical: %s vs %s)"
+                    logger.warning("Check the grid's (lower) accuracy for %s (plotted vs theoretical: %s vs %s)"
                                         % (p.name, grid[0], lower_bound))
                 if abs(grid[-1] - upper_bound) > 0.00001:
-                    self.logger.warning("Check the grid's (upper) accuracy for %s (plotted vs theoretical: %s vs %s)"
+                    logger.warning("Check the grid's (upper) accuracy for %s (plotted vs theoretical: %s vs %s)"
                                         % (p.name, grid[-1], upper_bound))
 
             else:
@@ -339,7 +339,7 @@ class Visualizer(object):
             # PLOT
             if log_scale:
                 if np.diff(grid).std() > 0.000001:
-                    self.logger.info("It might be better to plot this parameter '%s' in log-scale.", param_name)
+                    logger.info("It might be better to plot this parameter '%s' in log-scale.", param_name)
                 plt.semilogx(grid, mean, 'b', label='predicted %s' % self._y_label)
             else:
                 plt.plot(grid, mean, 'b', label='predicted %s' % self._y_label)
@@ -431,7 +431,7 @@ class Visualizer(object):
             params, param_names, param_indices = self._get_parameter([param1, param2])
             param_names_str = re.sub('[!,@#\'\n$\[\]]', '', str(param_names))
             outfile_name = os.path.join(self.directory, str(param_names_str).replace(" ", "_") + ".png")
-            self.logger.info("creating %s" % outfile_name)
+            logger.info("creating %s" % outfile_name)
             self.plot_pairwise_marginal((param1, param2), show=False, three_d=three_d, resolution=resolution)
             plt.savefig(outfile_name)
 

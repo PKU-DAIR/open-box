@@ -4,7 +4,6 @@
 https://github.com/automl/fanova/blob/master/fanova/fanova.py
 """
 import itertools as it
-import logging
 from collections import OrderedDict
 
 import ConfigSpace
@@ -14,6 +13,8 @@ import pyrfr.regression as reg
 import pyrfr.util
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, UniformFloatHyperparameter, \
     NumericalHyperparameter, Constant, OrdinalHyperparameter
+
+from openbox import logger
 
 
 class fANOVA(object):
@@ -57,14 +58,11 @@ class fANOVA(object):
                  "Generalized Functional ANOVA Diagnostics for High Dimensional
                  Functions of Dependent Variables" by Hooker.)
         """
-        logging.basicConfig(level=logging.INFO)
-        self.logger = logging.getLogger(self.__module__ + '.' + self.__class__.__name__)
-
         pcs = [(np.nan, np.nan)] * X.shape[1]
 
         # Convert pd.DataFrame to np.array
         if isinstance(X, pd.DataFrame):
-            self.logger.debug("Detected pandas dataframes, converting to floats...")
+            logger.debug("Detected pandas dataframes, converting to floats...")
             if config_space is not None:
                 # Check if column names match parameter names
                 bad_input = set(X.columns) - set(config_space.get_hyperparameter_names())
@@ -75,7 +73,7 @@ class fANOVA(object):
             X = X.to_numpy()
         elif config_space is not None:
             # There is a config_space but no way to check if the np.array'ed data in X is in the correct order...
-            # self.logger.warning("Note that fANOVA expects data to be ordered like the return of ConfigSpace's "
+            # logger.warning("Note that fANOVA expects data to be ordered like the return of ConfigSpace's "
             #                     "'get_hyperparameters'-method. We recommend to use labeled pandas dataframes to "
             #                     "avoid any problems.")
             pass
@@ -124,9 +122,9 @@ class fANOVA(object):
                 raise TypeError('Unsupported Hyperparameter: %s' % type(self.cs_params[i]))
 
         if not np.issubdtype(X.dtype, np.float64):
-            logging.warning('low level library expects X argument to be float')
+            logger.warning('low level library expects X argument to be float')
         if not np.issubdtype(Y.dtype, np.float64):
-            logging.warning('low level library expects Y argument to be float')
+            logger.warning('low level library expects Y argument to be float')
 
         # initialize all types as 0
         types = np.zeros(len(self.cs_params), dtype=np.uint)
@@ -173,7 +171,7 @@ class fANOVA(object):
                 data.set_bounds_of_feature(i, mn, mx)
 
         for i in range(len(Y)):
-            self.logger.debug("process datapoint: %s", str(X[i].tolist()))
+            logger.debug("process datapoint: %s", str(X[i].tolist()))
             data.add_data_point(X[i].tolist(), Y[i])
 
         forest.fit(data, rng)
@@ -295,7 +293,7 @@ class fANOVA(object):
             for i, (m, s) in enumerate(zip(prod_midpoints, prod_sizes)):
                 sample[list(dimensions)] = list(m)
                 ls = self.the_forest.marginal_prediction_stat_of_tree(tree_idx, sample.tolist())
-                # self.logger.debug("%s, %s", (sample, ls.mean()))
+                # logger.debug("%s, %s", (sample, ls.mean()))
                 if not np.isnan(ls.mean()):
                     stat.push(ls.mean(), np.prod(np.array(s)) * ls.sum_of_weights())
 

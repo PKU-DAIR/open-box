@@ -7,10 +7,11 @@ from math import log, ceil
 from sklearn.model_selection import KFold
 from scipy.optimize import minimize
 
+from openbox import logger
 from openbox.apps.multi_fidelity.mq_base_facade import mqBaseFacade
 from openbox.apps.multi_fidelity.utils import sample_configurations, expand_configurations
 from openbox.apps.multi_fidelity.utils import minmax_normalization, std_normalization
-from openbox.surrogate.base.weighted_rf_ensemble import WeightedRandomForestCluster
+from openbox.surrogate.base.rf_ensemble import RandomForestEnsemble
 
 from openbox.utils.util_funcs import get_types
 from openbox.utils.config_space import ConfigurationSpace
@@ -72,11 +73,11 @@ class mqMFES(mqBaseFacade):
             init_weight = [0.]
             init_weight.extend([1. / self.s_max] * self.s_max)
         assert len(init_weight) == (self.s_max + 1)
-        self.logger.info('Weight method & flag: %s-%s' % (self.weight_method, str(self.update_enable)))
-        self.logger.info("Initial weight is: %s" % init_weight[:self.s_max + 1])
+        logger.info('Weight method & flag: %s-%s' % (self.weight_method, str(self.update_enable)))
+        logger.info("Initial weight is: %s" % init_weight[:self.s_max + 1])
         types, bounds = get_types(config_space)
 
-        self.weighted_surrogate = WeightedRandomForestCluster(
+        self.weighted_surrogate = RandomForestEnsemble(
             types, bounds, self.s_max, self.eta, init_weight, self.fusion_method
         )
         self.acquisition_function = EI(model=self.weighted_surrogate)
@@ -132,7 +133,7 @@ class mqMFES(mqBaseFacade):
             start_time = time.time()
             T = self.choose_next(n)
             time_elapsed = time.time() - start_time
-            self.logger.info("[%s] Choosing next configurations took %.2f sec." % (self.method_name, time_elapsed))
+            logger.info("[%s] Choosing next configurations took %.2f sec." % (self.method_name, time_elapsed))
 
             extra_info = None
             last_run_num = None
@@ -150,7 +151,7 @@ class mqMFES(mqBaseFacade):
                     n_iter -= last_run_num
                 last_run_num = n_iteration
 
-                self.logger.info("%s: %d configurations x %d iterations each" %
+                logger.info("%s: %d configurations x %d iterations each" %
                                  (self.method_name, int(n_configs), int(n_iteration)))
 
                 ret_val, early_stops = self.run_in_parallel(T, n_iter, extra_info)
@@ -197,17 +198,17 @@ class mqMFES(mqBaseFacade):
     def run(self, skip_last=0):
         try:
             for iter in range(1, 1 + self.num_iter):
-                self.logger.info('-' * 50)
-                self.logger.info("%s algorithm: %d/%d iteration starts" % (self.method_name, iter, self.num_iter))
+                logger.info('-' * 50)
+                logger.info("%s algorithm: %d/%d iteration starts" % (self.method_name, iter, self.num_iter))
                 start_time = time.time()
                 self.iterate(skip_last=skip_last)
                 time_elapsed = (time.time() - start_time) / 60
-                self.logger.info("%d/%d-Iteration took %.2f min." % (iter, self.num_iter, time_elapsed))
+                logger.info("%d/%d-Iteration took %.2f min." % (iter, self.num_iter, time_elapsed))
                 self.iterate_id += 1
                 self.save_intemediate_statistics()
         except Exception as e:
             print(e)
-            self.logger.error(str(e))
+            logger.error(str(e))
             # Clean the immediate results.
             # self.remove_immediate_model()
 
@@ -378,7 +379,7 @@ class mqMFES(mqBaseFacade):
                 old_weights.append(_weight)
             new_weights = old_weights.copy()
 
-        self.logger.info('[%s] %d-th Updating weights: %s' % (
+        logger.info('[%s] %d-th Updating weights: %s' % (
             self.weight_method, self.weight_changed_cnt, str(new_weights)))
 
         # Assign the weight to each basic surrogate.
@@ -392,7 +393,7 @@ class mqMFES(mqBaseFacade):
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         np.save(os.path.join(dir_path, file_name), np.asarray(self.hist_weights))
-        self.logger.info('update_weight() cost %.2fs. new weights are saved to %s'
+        logger.info('update_weight() cost %.2fs. new weights are saved to %s'
                          % (time.time()-start_time, os.path.join(dir_path, file_name)))
 
     def get_incumbent(self, num_inc=1):

@@ -5,7 +5,7 @@ import os
 import traceback
 import numpy as np
 import pickle as pkl
-from openbox.utils.logging_utils import get_logger, setup_logger
+from openbox import logger
 from openbox.core.message_queue.master_messager import MasterMessager
 
 PLOT = False
@@ -30,15 +30,17 @@ class async_mqBaseFacade(object):
                  ip='',
                  port=13579,
                  authkey=b'abc',
-                 sleep_time=0.1,):
+                 sleep_time=0.1,
+                 logger_kwargs: dict = None,
+                 ):
         self.log_directory = log_directory
-        if not os.path.exists(self.log_directory):
-            os.makedirs(self.log_directory)
+        os.makedirs(self.log_directory, exist_ok=True)
         self.data_directory = data_directory
-        if not os.path.exists(self.data_directory):
-            os.makedirs(self.data_directory)
+        os.makedirs(self.data_directory, exist_ok=True)
 
-        self.logger = self._get_logger(method_name)
+        _logger_kwargs = {'name': method_name, 'logdir': log_directory}
+        _logger_kwargs.update(logger_kwargs or {})
+        logger.init(**_logger_kwargs)
 
         self.objective_func = objective_func
         self.trial_statistics = list()
@@ -95,7 +97,7 @@ class async_mqBaseFacade(object):
             worker_num = 0
             while True:
                 if self.runtime_limit is not None and time.time() - self.global_start_time > self.runtime_limit:
-                    self.logger.info('RUNTIME BUDGET is RUNNING OUT.')
+                    logger.info('RUNTIME BUDGET is RUNNING OUT.')
                     return
 
                 # Get observation from worker
@@ -109,16 +111,16 @@ class async_mqBaseFacade(object):
                 # worker init
                 if config is None:
                     worker_num += 1
-                    self.logger.info("Worker %d init." % (worker_num, ))
+                    logger.info("Worker %d init." % (worker_num, ))
                 # update observation
                 else:
                     global_time = time.time() - self.global_start_time
-                    self.logger.info('Master get observation: %s. Global time=%.2fs.' % (str(observation), global_time))
+                    logger.info('Master get observation: %s. Global time=%.2fs.' % (str(observation), global_time))
                     n_iteration = return_info['n_iteration']
                     perf = return_info['loss']
                     t = time.time()
                     self.update_observation(config, perf, n_iteration)
-                    self.logger.info('update_observation() cost %.2fs.' % (time.time() - t,))
+                    logger.info('update_observation() cost %.2fs.' % (time.time() - t,))
                     self.recorder.append({'trial_id': trial_id, 'time_consumed': time_taken,
                                           'configuration': config, 'n_iteration': n_iteration,
                                           'return_info': return_info, 'global_time': global_time})
@@ -128,16 +130,16 @@ class async_mqBaseFacade(object):
                 # Send new job
                 t = time.time()
                 config, n_iteration, extra_conf = self.get_job()
-                self.logger.info('get_job() cost %.2fs.' % (time.time()-t, ))
+                logger.info('get_job() cost %.2fs.' % (time.time()-t, ))
                 msg = [config, extra_conf, self.time_limit_per_trial, n_iteration, self.global_trial_counter]
                 self.master_messager.send_message(msg)
                 self.global_trial_counter += 1
-                self.logger.info('Master send job: %s.' % (msg,))
+                logger.info('Master send job: %s.' % (msg,))
 
         except Exception as e:
             print(e)
             print(traceback.format_exc())
-            self.logger.error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
     def get_job(self):
         raise NotImplementedError
@@ -152,7 +154,7 @@ class async_mqBaseFacade(object):
         if file_name.endswith('.pkl'):
             file_name = file_name[:-4]
         self.save_intermediate_record_path = os.path.join(dir_path, file_name)
-        self.logger.info('set save_intermediate_record to True. path: %s.' % (self.save_intermediate_record_path,))
+        logger.info('set save_intermediate_record to True. path: %s.' % (self.save_intermediate_record_path,))
 
     def save_intermediate_statistics(self):
         if self.save_intermediate_record:
@@ -161,9 +163,4 @@ class async_mqBaseFacade(object):
             with open(path, 'wb') as f:
                 pkl.dump(self.recorder, f)
             global_time = time.time() - self.global_start_time
-            self.logger.info('Intermediate record %s saved! global_time=%.2fs.' % (path, global_time))
-
-    def _get_logger(self, name):
-        logger_name = name
-        setup_logger(os.path.join(self.log_directory, '%s.log' % str(logger_name)), None)
-        return get_logger(self.__class__.__name__)
+            logger.info('Intermediate record %s saved! global_time=%.2fs.' % (path, global_time))

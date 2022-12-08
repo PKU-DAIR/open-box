@@ -4,6 +4,7 @@ import numpy as np
 from typing import List
 from collections import OrderedDict
 from sklearn.model_selection import KFold
+from openbox import logger
 from openbox.surrogate.tlbo.base import BaseTLSurrogate
 
 _scale_method = 'standardize'
@@ -79,9 +80,9 @@ class MFGPE(BaseTLSurrogate):
         if snapshot_weight:
             self.snapshot_w = self.w
             weight_str = ','.join([('%.2f' % item) for item in self.snapshot_w])
-            self.logger.info('In iter-%d' % self.iteration_id)
+            logger.info('In iter-%d' % self.iteration_id)
             self.target_weight.append(self.snapshot_w[-1])
-            self.logger.info('Weight: ' + str(weight_str))
+            logger.info('Weight: ' + str(weight_str))
             self.iteration_id += 1
             self.hist_ws.append(self.snapshot_w)
 

@@ -7,6 +7,7 @@ import math
 from typing import List
 from collections import OrderedDict
 from tqdm import tqdm
+from openbox import logger
 from openbox.optimizer.base import BOBase
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
@@ -98,28 +99,32 @@ class SMBO(BOBase):
     random_state : int
         Random seed for RNG.
     """
-    def __init__(self, objective_function: callable, config_space,
-                 num_constraints=0,
-                 num_objs=1,
-                 sample_strategy: str = 'bo',
-                 max_runs=200,
-                 runtime_limit=None,
-                 time_limit_per_trial=180,
-                 advisor_type='default',
-                 surrogate_type='auto',
-                 acq_type='auto',
-                 acq_optimizer_type='auto',
-                 initial_runs=3,
-                 init_strategy='random_explore_first',
-                 initial_configurations=None,
-                 ref_point=None,
-                 history_bo_data: List[OrderedDict] = None,
-                 logging_dir='logs',
-                 task_id='default_task_id',
-                 visualization='none',
-                 random_state=None,
-                 advisor_kwargs: dict = None,
-                 **kwargs):
+    def __init__(
+            self,
+            objective_function: callable,
+            config_space,
+            num_constraints=0,
+            num_objs=1,
+            sample_strategy: str = 'bo',
+            max_runs=200,
+            runtime_limit=None,
+            time_limit_per_trial=180,
+            advisor_type='default',
+            surrogate_type='auto',
+            acq_type='auto',
+            acq_optimizer_type='auto',
+            initial_runs=3,
+            init_strategy='random_explore_first',
+            initial_configurations=None,
+            ref_point=None,
+            history_bo_data: List[OrderedDict] = None,
+            logging_dir='logs',
+            task_id='OpenBox',
+            visualization='none',
+            random_state=None,
+            logger_kwargs: dict = None,
+            advisor_kwargs: dict = None,
+    ):
 
         if task_id is None:
             raise ValueError('Task id is not SPECIFIED. Please input task id first.')
@@ -130,10 +135,12 @@ class SMBO(BOBase):
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          runtime_limit=runtime_limit, sample_strategy=sample_strategy,
-                         time_limit_per_trial=time_limit_per_trial, history_bo_data=history_bo_data)
+                         time_limit_per_trial=time_limit_per_trial, history_bo_data=history_bo_data,
+                         logger_kwargs=logger_kwargs)
 
         self.advisor_type = advisor_type
         advisor_kwargs = advisor_kwargs or {}
+        _logger_kwargs = {'force_init': False}  # do not init logger in advisor
         if advisor_type == 'default':
             from openbox.core.generic_advisor import Advisor
             self.config_advisor = Advisor(config_space,
@@ -151,6 +158,7 @@ class SMBO(BOBase):
                                           task_id=task_id,
                                           output_dir=logging_dir,
                                           random_state=random_state,
+                                          logger_kwargs=_logger_kwargs,
                                           **advisor_kwargs)
         elif advisor_type == 'mcadvisor':
             from openbox.core.mc_advisor import MCAdvisor
@@ -169,12 +177,13 @@ class SMBO(BOBase):
                                             task_id=task_id,
                                             output_dir=logging_dir,
                                             random_state=random_state,
+                                            logger_kwargs=_logger_kwargs,
                                             **advisor_kwargs)
         elif advisor_type == 'tpe':
             from openbox.core.tpe_advisor import TPE_Advisor
             assert num_objs == 1 and num_constraints == 0
             self.config_advisor = TPE_Advisor(config_space, task_id=task_id, random_state=random_state,
-                                              **advisor_kwargs)
+                                              logger_kwargs=_logger_kwargs, **advisor_kwargs)
         elif advisor_type == 'ea':
             from openbox.core.ea_advisor import EA_Advisor
             assert num_objs == 1 and num_constraints == 0
@@ -186,6 +195,7 @@ class SMBO(BOBase):
                                              task_id=task_id,
                                              output_dir=logging_dir,
                                              random_state=random_state,
+                                             logger_kwargs=_logger_kwargs,
                                              **advisor_kwargs)
         elif advisor_type == 'random':
             from openbox.core.random_advisor import RandomAdvisor
@@ -203,6 +213,7 @@ class SMBO(BOBase):
                                                 task_id=task_id,
                                                 output_dir=logging_dir,
                                                 random_state=random_state,
+                                                logger_kwargs=_logger_kwargs,
                                                 **advisor_kwargs)
         else:
             raise ValueError('Invalid advisor type!')
@@ -213,7 +224,7 @@ class SMBO(BOBase):
     def run(self):
         for _ in tqdm(range(self.iteration_id, self.max_iterations)):
             if self.budget_left < 0:
-                self.logger.info('Time %f elapsed!' % self.runtime_limit)
+                logger.info('Time %f elapsed!' % self.runtime_limit)
                 break
             start_time = time.time()
             self.iterate(budget_left=self.budget_left)
@@ -247,10 +258,10 @@ class SMBO(BOBase):
             except Exception as e:
                 # parse result of failed trial
                 if isinstance(e, TimeoutException):
-                    self.logger.warning(str(e))
+                    logger.warning(str(e))
                     trial_state = TIMEOUT
                 else:
-                    self.logger.warning('Exception when calling objective function: %s' % str(e))
+                    logger.warning('Exception when calling objective function: %s' % str(e))
                     trial_state = FAILED
                 objs = self.FAILED_PERF
                 constraints = None
@@ -267,7 +278,7 @@ class SMBO(BOBase):
             else:
                 self.config_advisor.update_observation(observation)
         else:
-            self.logger.info('This configuration has been evaluated! Skip it: %s' % config)
+            logger.info('This configuration has been evaluated! Skip it: %s' % config)
             history = self.get_history()
             config_idx = history.configurations.index(config)
             trial_state = history.trial_states[config_idx]
@@ -278,12 +289,12 @@ class SMBO(BOBase):
 
         self.iteration_id += 1
         self.visualizer.update()
-        # Logging.
+        # Logging
         if self.num_constraints > 0:
-            self.logger.info('Iteration %d, objective value: %s. constraints: %s.'
+            logger.info('Iteration %d, objective value: %s. constraints: %s.'
                              % (self.iteration_id, objs, constraints))
         else:
-            self.logger.info('Iteration %d, objective value: %s.' % (self.iteration_id, objs))
+            logger.info('Iteration %d, objective value: %s.' % (self.iteration_id, objs))
 
         # Visualization.
         # for idx, obj in enumerate(objs):

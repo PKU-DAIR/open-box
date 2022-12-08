@@ -3,9 +3,9 @@
 import time
 import numpy as np
 from math import log, ceil
+from openbox import logger
 from openbox.apps.multi_fidelity.mq_base_facade import mqBaseFacade
 from openbox.apps.multi_fidelity.utils import sample_configurations
-
 from openbox.utils.config_space import ConfigurationSpace
 
 
@@ -69,7 +69,7 @@ class mqHyperband(mqBaseFacade):
                     n_iter -= last_run_num
                 last_run_num = n_iteration
 
-                self.logger.info("%s: %d configurations x %d iterations each"
+                logger.info("%s: %d configurations x %d iterations each"
                                  % (self.method_name, int(n_configs), int(n_iteration)))
 
                 ret_val, early_stops = self.run_in_parallel(T, n_iter, extra_info)
@@ -103,19 +103,19 @@ class mqHyperband(mqBaseFacade):
     def run(self, skip_last=0):
         try:
             for iter in range(1, 1 + self.num_iter):
-                self.logger.info('-' * 50)
-                self.logger.info("%s algorithm: %d/%d iteration starts" % (self.method_name, iter, self.num_iter))
+                logger.info('-' * 50)
+                logger.info("%s algorithm: %d/%d iteration starts" % (self.method_name, iter, self.num_iter))
                 start_time = time.time()
                 self.iterate(skip_last=skip_last)
                 time_elapsed = (time.time() - start_time) / 60
-                self.logger.info("Iteration took %.2f min." % time_elapsed)
+                logger.info("Iteration took %.2f min." % time_elapsed)
                 self.save_intemediate_statistics()
             for i, obj in enumerate(self.incumbent_perfs):
-                self.logger.info(
+                logger.info(
                     '%d-th config: %s, obj: %f.' % (i + 1, str(self.incumbent_configs[i]), self.incumbent_perfs[i]))
         except Exception as e:
             print(e)
-            self.logger.error(str(e))
+            logger.error(str(e))
             # Clean the immediate results.
             # self.remove_immediate_model()
 

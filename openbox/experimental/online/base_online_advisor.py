@@ -23,7 +23,7 @@ class OnlineAdvisor(abc.ABC):
                  num_objs=1,
                  batch_size=1,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None):
         self.config_space = config_space
         self.x0 = x0

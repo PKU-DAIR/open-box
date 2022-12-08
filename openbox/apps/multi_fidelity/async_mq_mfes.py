@@ -7,6 +7,7 @@ from math import log, ceil
 from sklearn.model_selection import KFold
 from scipy.optimize import minimize
 
+from openbox import logger
 from openbox.apps.multi_fidelity.async_mq_hb import async_mqHyperband
 from openbox.apps.multi_fidelity.utils import RUNNING, COMPLETED, PROMOTED
 from openbox.apps.multi_fidelity.utils import sample_configuration
@@ -67,7 +68,7 @@ class async_mqMFES(async_mqHyperband):
         if init_weight is None:
             init_weight = [1. / self.s_max] * self.s_max + [0.]
             assert len(init_weight) == (self.s_max + 1)
-        self.logger.info("Initialize weight to %s" % init_weight[:self.s_max + 1])
+        logger.info("Initialize weight to %s" % init_weight[:self.s_max + 1])
         types, bounds = get_types(config_space)
 
         if not self.use_bohb_strategy:
@@ -180,7 +181,7 @@ class async_mqMFES(async_mqHyperband):
                         next_config = config
                         break
                 if next_config is None:
-                    self.logger.warning('Cannot get a non duplicate configuration from bo candidates. '
+                    logger.warning('Cannot get a non duplicate configuration from bo candidates. '
                                         'Sample a random one.')
                     next_config = sample_configuration(self.config_space, excluded_configs=excluded_configs)
 
@@ -308,7 +309,7 @@ class async_mqMFES(async_mqHyperband):
                 old_weights.append(_weight)
             new_weights = old_weights.copy()
 
-        self.logger.info('[%s] %d-th Updating weights: %s' % (
+        logger.info('[%s] %d-th Updating weights: %s' % (
             self.weight_method, self.weight_changed_cnt, str(new_weights)))
 
         # Assign the weight to each basic surrogate.
@@ -322,7 +323,7 @@ class async_mqMFES(async_mqHyperband):
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         np.save(os.path.join(dir_path, file_name), np.asarray(self.hist_weights))
-        self.logger.info('update_weight() cost %.2fs. new weights are saved to %s'
+        logger.info('update_weight() cost %.2fs. new weights are saved to %s'
                          % (time.time() - start_time, os.path.join(dir_path, file_name)))
 
     def get_weights(self):

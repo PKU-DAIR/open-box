@@ -6,6 +6,7 @@ import math
 import copy
 from typing import List, Union
 import numpy as np
+from openbox import logger
 from openbox.utils.history_container import HistoryContainer
 from openbox.visualization.base_visualizer import BaseVisualizer
 from openbox.surrogate.base.base_model import AbstractModel
@@ -305,7 +306,7 @@ class HTMLVisualizer(BaseVisualizer):
         # configuration number, obj/cons number
         N, num_objs = Y_all.shape
         if X_all.shape[0] != N or N == 0:
-            print("No equal!")
+            logger.error('Invalid data shape!')
             return None, None
 
         # 10-fold validation
@@ -410,5 +411,4 @@ class HTMLVisualizer(BaseVisualizer):
         with open(self.html_path, "w") as f:
             f.write(html_text)
 
-        # todo: use logger
-        print('[HTMLVisualizer] Please open the html file to view visualization result: %s' % self.html_path)
+        logger.info('[HTMLVisualizer] Please open the html file to view visualization result: %s' % self.html_path)

@@ -1,6 +1,7 @@
+import time
+from openbox import logger
 from openbox.optimizer.message_queue_smbo import mqSMBO
 from openbox.core.base import Observation
-import time
 
 
 class mqSMBO_modified(mqSMBO):
@@ -19,7 +20,7 @@ class mqSMBO_modified(mqSMBO):
                 config_num += 1
                 config = self.config_advisor.get_suggestion()
                 msg = [config, self.time_limit_per_trial]
-                self.logger.info("Master: Add config %d." % config_num)
+                logger.info("Master: Add config %d." % config_num)
                 self.master_messager.send_message(msg)
 
             # Get results from workerQueue.
@@ -27,7 +28,7 @@ class mqSMBO_modified(mqSMBO):
                 observation = self.master_messager.receive_message()
                 if observation is None:
                     # Wait for workers.
-                    # self.logger.info("Master: wait for worker results. sleep 1s.")
+                    # logger.info("Master: wait for worker results. sleep 1s.")
                     time.sleep(self.sleep_time)
                     break
                 # Report result.
@@ -38,7 +39,7 @@ class mqSMBO_modified(mqSMBO):
                         trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
                     )
                 self.config_advisor.update_observation(observation)
-                self.logger.info('Master: Get %d observation: %s' % (result_num, str(observation)))
+                logger.info('Master: Get %d observation: %s' % (result_num, str(observation)))
 
                 global_time = time.time() - self.global_start_time
                 self.config_list.append(observation.config)
@@ -60,7 +61,7 @@ class mqSMBO_modified(mqSMBO):
             for config in configs:
                 msg = [config, self.time_limit_per_trial]
                 self.master_messager.send_message(msg)
-            self.logger.info('Master: %d-th batch. %d configs sent.' % (batch_id, len(configs)))
+            logger.info('Master: %d-th batch. %d configs sent.' % (batch_id, len(configs)))
             # Get batch results from workerQueue.
             result_num = 0
             result_needed = len(configs)
@@ -68,7 +69,7 @@ class mqSMBO_modified(mqSMBO):
                 observation = self.master_messager.receive_message()
                 if observation is None:
                     # Wait for workers.
-                    # self.logger.info("Master: wait for worker results. sleep 1s.")
+                    # logger.info("Master: wait for worker results. sleep 1s.")
                     time.sleep(self.sleep_time)
                     continue
                 # Report result.
@@ -79,7 +80,7 @@ class mqSMBO_modified(mqSMBO):
                         trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
                     )
                 self.config_advisor.update_observation(observation)
-                self.logger.info('Master: In the %d-th batch [%d], observation is: %s'
+                logger.info('Master: In the %d-th batch [%d], observation is: %s'
                                  % (batch_id, result_num, str(observation)))
 
                 global_time = time.time() - self.global_start_time

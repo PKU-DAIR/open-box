@@ -1,9 +1,9 @@
 # License: MIT
 
 from math import ceil
+from openbox import logger
 from openbox.apps.multi_fidelity.utils import sample_configuration
 from openbox.apps.multi_fidelity.async_mq_sh import async_mqSuccessiveHalving
-
 from openbox.utils.config_space import ConfigurationSpace
 
 
@@ -45,7 +45,7 @@ class async_mqHyperband(async_mqSuccessiveHalving):
             # construct iteration list
             self.hb_bracket_list.append([r] * n)
         self.hb_iter_list = self.hb_bracket_list[0]
-        self.logger.info('hyperband iteration lists of all brackets: %s. init bracket: %s.'
+        logger.info('hyperband iteration lists of all brackets: %s. init bracket: %s.'
                          % (self.hb_bracket_list, self.hb_iter_list))
 
     def choose_next(self):
@@ -69,5 +69,5 @@ class async_mqHyperband(async_mqSuccessiveHalving):
             if self.hb_bracket_id == len(self.hb_bracket_list):
                 self.hb_bracket_id = 0
             self.hb_iter_list = self.hb_bracket_list[self.hb_bracket_id]
-            self.logger.info('iteration list of next bracket: %s' % self.hb_iter_list)
+            logger.info('iteration list of next bracket: %s' % self.hb_iter_list)
         return next_n_iteration

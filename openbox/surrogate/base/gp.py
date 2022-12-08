@@ -1,21 +1,18 @@
 # License: 3-clause BSD
 # Copyright (c) 2016-2018, Ml4AAD Group (http://www.ml4aad.org/)
 
-import logging
 import typing
 
 import numpy as np
 from scipy import optimize
-
 from ConfigSpace import ConfigurationSpace
-from openbox.surrogate.base.base_gp import BaseGP
-from openbox.surrogate.base.gp_base_prior import Prior
-from openbox.utils.constants import VERY_SMALL_NUMBER
-
 from skopt.learning.gaussian_process.kernels import Kernel
 from skopt.learning.gaussian_process import GaussianProcessRegressor
 
-logger = logging.getLogger(__name__)
+from openbox import logger
+from openbox.surrogate.base.base_gp import BaseGP
+from openbox.surrogate.base.gp_base_prior import Prior
+from openbox.utils.constants import VERY_SMALL_NUMBER
 
 
 class GaussianProcess(BaseGP):
@@ -132,7 +129,7 @@ class GaussianProcess(BaseGP):
                 break
             except np.linalg.LinAlgError as e:
                 if i == n_tries - 1:
-                    print('Fail to fit GP after 10 tries!')  # todo: check raise
+                    logger.warning('Fail to fit GP after 10 tries!')  # todo: check raise
                     # raise e
                 # Assume that the last entry of theta is the noise
                 theta = np.exp(self.kernel.theta)

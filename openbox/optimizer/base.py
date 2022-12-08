@@ -6,26 +6,34 @@ import time
 import numpy as np
 from typing import List
 from collections import OrderedDict
+from openbox import logger
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.logging_utils import setup_logger, get_logger
 from openbox.utils.history_container import HistoryContainer
 
 
 class BOBase(object, metaclass=abc.ABCMeta):
-    def __init__(self, objective_function, config_space, task_id='task_id', output_dir='logs/',
-                 random_state=None, initial_runs=3, max_runs=50, runtime_limit=None,
-                 sample_strategy='bo',
-                 history_bo_data: List[OrderedDict] = None,
-                 time_limit_per_trial=600):
+    def __init__(
+            self,
+            objective_function,
+            config_space,
+            task_id='OpenBox',
+            output_dir='logs/',
+            random_state=None,
+            initial_runs=3,
+            max_runs=50,
+            runtime_limit=None,
+            sample_strategy='bo',
+            history_bo_data: List[OrderedDict] = None,
+            time_limit_per_trial=600,
+            logger_kwargs: dict = None,
+    ):
         self.output_dir = output_dir
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+        os.makedirs(self.output_dir, exist_ok=True)
 
         self.task_id = task_id
-        _time_stamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))
-        _logger_id = '%s' % task_id
-        self.logger_name = None
-        self.logger = self._get_logger(_logger_id)
+        _logger_kwargs = {'name': task_id, 'logdir': output_dir}
+        _logger_kwargs.update(logger_kwargs or {})
+        logger.init(**_logger_kwargs)
         self.rng = check_random_state(random_state)
 
         self.config_space = config_space
@@ -53,9 +61,3 @@ class BOBase(object, metaclass=abc.ABCMeta):
     def get_incumbent(self):
         assert self.config_advisor is not None
         return self.config_advisor.history_container.get_incumbents()
-
-    def _get_logger(self, name):
-        logger_name = 'OpenBox-%s' % name
-        self.logger_name = os.path.join(self.output_dir, '%s.log' % str(logger_name))
-        setup_logger(self.logger_name)
-        return get_logger(logger_name)

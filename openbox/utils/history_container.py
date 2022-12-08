@@ -7,9 +7,9 @@ import collections
 from typing import List, Union
 import numpy as np
 from ConfigSpace import CategoricalHyperparameter
+from openbox import logger
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import Configuration, ConfigurationSpace
-from openbox.utils.logging_utils import get_logger
 from openbox.utils.multi_objective import Hypervolume, get_pareto_front
 from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values, get_config_numerical_values
 from openbox.core.base import Observation
@@ -27,7 +27,6 @@ class HistoryContainer(object):
         self.config_counter = 0
         self.incumbent_value = MAXINT
         self.incumbents = list()
-        self.logger = get_logger(self.__class__.__name__)
 
         self.num_objs = 1
         self.num_constraints = num_constraints
@@ -71,7 +70,7 @@ class HistoryContainer(object):
         failed = False
         if trial_state == SUCCESS and all(perf < MAXINT for perf in objs):
             if self.num_constraints > 0 and constraints is None:
-                self.logger.error('Constraint is None in a SUCCESS trial!')
+                logger.error('Constraint is None in a SUCCESS trial!')
                 failed = True
                 transform_perf = True
             else:
@@ -111,7 +110,7 @@ class HistoryContainer(object):
 
     def add(self, config: Configuration, perf: Perf):
         if config in self.data:
-            self.logger.warning('Repeated configuration detected!')
+            logger.warning('Repeated configuration detected!')
             return
 
         self.data[config] = perf
@@ -174,7 +173,7 @@ class HistoryContainer(object):
 
         max_incumbents = 5
         if len(incumbents) > max_incumbents:
-            self.logger.info(
+            logger.info(
                 'Too many incumbents in history. Only show %d/%d of them.' % (max_incumbents, len(incumbents)))
             incumbents = incumbents[:max_incumbents]
 
@@ -239,7 +238,7 @@ class HistoryContainer(object):
         try:
             import hiplot as hip
         except ModuleNotFoundError:
-            self.logger.error("Please run 'pip install hiplot'. "
+            logger.error("Please run 'pip install hiplot'. "
                               "HiPlot requires Python 3.6 or newer.")
             raise
         # HiPlot documentation: https://facebookresearch.github.io/hiplot/
@@ -287,8 +286,9 @@ class HistoryContainer(object):
 
             for hp in config_space.get_hyperparameters():
                 if isinstance(hp, CategoricalHyperparameter):
-                    print("SHAP can not support categorical hyperparameters well. To analyze a space with categorical "
-                          "hyperparameters, we recommend setting the method to fanova.")
+                    logger.warning("SHAP can not support categorical hyperparameters well. "
+                                   "To analyze a space with categorical hyperparameters, "
+                                   "we recommend setting the method to fanova.")
 
             constraint_num = np.array(self.constraint_perfs)
             obj_shape_value = []
@@ -337,7 +337,7 @@ class HistoryContainer(object):
                 import pyrfr.regression as reg
                 import pyrfr.util
             except ModuleNotFoundError:
-                self.logger.error(
+                logger.error(
                     'To use get_importance(), please install pyrfr: '
                     'https://open-box.readthedocs.io/en/latest/installation/install_pyrfr.html'
                 )
@@ -405,7 +405,7 @@ class HistoryContainer(object):
 
         with open(fn, 'w') as fp:
             json.dump({'data': data}, fp, indent=2)
-        self.logger.info('Save history to %s' % fn)
+        logger.info('Save history to %s' % fn)
 
     def load_history_from_json(self, fn: str = "history_container.json", config_space: ConfigurationSpace = None):
         """Load history in json representation from disk.
@@ -426,7 +426,7 @@ class HistoryContainer(object):
             with open(fn, 'r') as fp:
                 all_data = json.load(fp)
         except Exception as e:
-            self.logger.warning(
+            logger.warning(
                 'Encountered exception %s while reading history from %s. '
                 'Not adding any runs!', e, fn,
             )
@@ -447,7 +447,7 @@ class HistoryContainer(object):
                 elapsed_time=elapsed_time)
             self.update_observation(observation)
 
-        self.logger.info('Load history from %s. len = %d.' % (fn, len(all_data['data'])))
+        logger.info('Load history from %s. len = %d.' % (fn, len(all_data['data'])))
 
 
 class MOHistoryContainer(HistoryContainer):
@@ -470,7 +470,7 @@ class MOHistoryContainer(HistoryContainer):
         assert self.num_objs == len(perf)
 
         if config in self.data:
-            self.logger.warning('Repeated configuration detected!')
+            logger.warning('Repeated configuration detected!')
             return
 
         self.data[config] = perf
@@ -485,10 +485,10 @@ class MOHistoryContainer(HistoryContainer):
                 remove_config.append(pareto_config)
         else:
             self.pareto[config] = perf
-            self.logger.info('Update pareto: config=%s, objs=%s.' % (str(config), str(perf)))
+            logger.info('Update pareto: config=%s, objs=%s.' % (str(config), str(perf)))
 
         for conf in remove_config:
-            self.logger.info('Remove from pareto: config=%s, objs=%s.' % (str(conf), str(self.pareto[conf])))
+            logger.info('Remove from pareto: config=%s, objs=%s.' % (str(conf), str(self.pareto[conf])))
             self.pareto.pop(conf)
 
         # update mo_incumbents

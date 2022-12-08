@@ -24,15 +24,15 @@ x0 = space.sample_configuration()
 if __name__ == "__main__":
     advisors = [FLOW2(
         config_space=space,
-        task_id='default_task_id',
+        task_id='OpenBox',
         x0=x0
     ), CFO(
         config_space=space,
-        task_id='default_task_id',
+        task_id='OpenBox',
         x0=x0
     ),BlendSearchAdvisor(
         config_space=space,
-        task_id='default_task_id',
+        task_id='OpenBox',
     )]
 
     res = function(space.sample_configuration())

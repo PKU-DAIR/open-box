@@ -7,13 +7,13 @@
 # encoding=utf8
 
 import abc
-import logging
 from typing import List, Union
 
 import numpy as np
 from scipy.stats import norm
 import math
 
+from openbox import logger
 from openbox.utils.config_space import Configuration
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.surrogate.base.base_model import AbstractModel
@@ -26,7 +26,6 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
     Attributes
     ----------
     model
-    logger
     """
 
     def __str__(self):
@@ -41,8 +40,6 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
             Models the objective function.
         """
         self.model = model
-        self.logger = logging.getLogger(
-            self.__module__ + "." + self.__class__.__name__)
 
     def update(self, **kwargs):
         """Update the acquisition functions values.
@@ -174,7 +171,7 @@ class EI(AbstractAcquisitionFunction):
             # using a RF, std should be never exactly 0.0
             # Avoid zero division by setting all zeros in s to one.
             # Consider the corresponding results in f to be zero.
-            self.logger.warning("Predicted std is 0.0 for at least one sample.")
+            logger.warning("Predicted std is 0.0 for at least one sample.")
             s_copy = np.copy(s)
             s[s_copy == 0.0] = 1.0
             f = calculate_f()
@@ -309,7 +306,7 @@ class EIPS(EI):
             # using a RF, std should be never exactly 0.0
             # Avoid zero division by setting all zeros in s to one.
             # Consider the corresponding results in f to be zero.
-            self.logger.warning("Predicted std is 0.0 for at least one sample.")
+            logger.warning("Predicted std is 0.0 for at least one sample.")
             s_copy = np.copy(s)
             s[s_copy == 0.0] = 1.0
             f = calculate_f()
@@ -386,7 +383,7 @@ class LogEI(AbstractAcquisitionFunction):
             # using a RF, std should be never exactly 0.0
             # Avoid zero division by setting all zeros in s to one.
             # Consider the corresponding results in f to be zero.
-            self.logger.warning("Predicted std is 0.0 for at least one sample.")
+            logger.warning("Predicted std is 0.0 for at least one sample.")
             std_copy = np.copy(std)
             std[std_copy == 0.0] = 1.0
             log_ei = calculate_log_ei()
@@ -621,6 +618,6 @@ class Uncertainty(AbstractAcquisitionFunction):
         beta = 2 * np.log((X.shape[1] * self.num_data ** 2) / self.par)
         uncertainty = np.sqrt(beta) * std
         if np.any(np.isnan(uncertainty)):
-            self.logger.warning('Uncertainty has nan-value. Set to 0.')
+            logger.warning('Uncertainty has nan-value. Set to 0.')
             uncertainty[np.isnan(uncertainty)] = 0
         return uncertainty

@@ -35,7 +35,7 @@ if __name__ == "__main__":
     advisors = [
     BlendSearchAdvisor(
         config_space=space,
-        task_id='default_task_id'
+        task_id='OpenBox'
     )]
 
     axes = None

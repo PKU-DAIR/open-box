@@ -3,6 +3,7 @@
 import copy
 import numpy as np
 
+from openbox import logger
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
@@ -10,24 +11,28 @@ from openbox.core.generic_advisor import Advisor
 
 
 class AsyncBatchAdvisor(Advisor):
-    def __init__(self, config_space,
-                 num_objs=1,
-                 num_constraints=0,
-                 batch_size=4,
-                 batch_strategy='default',
-                 initial_trials=3,
-                 initial_configurations=None,
-                 init_strategy='random_explore_first',
-                 history_bo_data=None,
-                 rand_prob=0.1,
-                 optimization_strategy='bo',
-                 surrogate_type='auto',
-                 acq_type='auto',
-                 acq_optimizer_type='auto',
-                 ref_point=None,
-                 output_dir='logs',
-                 task_id='default_task_id',
-                 random_state=None):
+    def __init__(
+            self,
+            config_space,
+            num_objs=1,
+            num_constraints=0,
+            batch_size=4,
+            batch_strategy='default',
+            initial_trials=3,
+            initial_configurations=None,
+            init_strategy='random_explore_first',
+            history_bo_data=None,
+            rand_prob=0.1,
+            optimization_strategy='bo',
+            surrogate_type='auto',
+            acq_type='auto',
+            acq_optimizer_type='auto',
+            ref_point=None,
+            output_dir='logs',
+            task_id='OpenBox',
+            random_state=None,
+            logger_kwargs: dict = None,
+    ):
 
         self.batch_size = batch_size
         self.batch_strategy = batch_strategy
@@ -48,7 +53,8 @@ class AsyncBatchAdvisor(Advisor):
                          ref_point=ref_point,
                          output_dir=output_dir,
                          task_id=task_id,
-                         random_state=random_state)
+                         random_state=random_state,
+                         logger_kwargs=logger_kwargs)
 
     def check_setup(self):
         super().check_setup()
@@ -66,7 +72,7 @@ class AsyncBatchAdvisor(Advisor):
             self.acq_type = 'lpei'
 
     def get_suggestion(self, history_container=None):
-        self.logger.info('#Call get_suggestion. len of running configs = %d.' % len(self.running_configs))
+        logger.info('#Call get_suggestion. len of running configs = %d.' % len(self.running_configs))
         config = self._get_suggestion(history_container)
         self.running_configs.append(config)
         return config
@@ -89,7 +95,7 @@ class AsyncBatchAdvisor(Advisor):
 
         # sample random configuration proportionally
         if self.rng.random() < self.rand_prob:
-            self.logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+            logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
             return self.sample_random_configs(1, history_container,
                                               excluded_configs=self.running_configs)[0]
 
@@ -135,7 +141,7 @@ class AsyncBatchAdvisor(Advisor):
                 if config not in self.running_configs and config not in history_container.configurations:
                     return config
 
-            self.logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+            logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
                                 'Sample random config.' % (len(candidates),))
             return self.sample_random_configs(1, history_container,
                                               excluded_configs=self.running_configs)[0]

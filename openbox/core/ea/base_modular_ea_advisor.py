@@ -15,7 +15,7 @@ class ModularEAAdvisor(EAAdvisor):
                  optimization_strategy='ea',
                  batch_size=1,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None,
 
                  required_evaluation_count: Optional[int] = None,

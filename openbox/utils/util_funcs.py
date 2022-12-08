@@ -1,13 +1,14 @@
 # License: MIT
 
 import typing
-import logging
 import numbers
 import numpy as np
+import numpy.random.mtrand
 
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter, Constant, \
     OrdinalHyperparameter
+from openbox import logger
 from openbox.utils.constants import MAXINT
 
 
@@ -113,7 +114,6 @@ def check_random_state(seed):
 def get_rng(
         rng: typing.Optional[typing.Union[int, np.random.RandomState]] = None,
         run_id: typing.Optional[int] = None,
-        logger: typing.Optional[logging.Logger] = None,
 ) -> typing.Tuple[int, np.random.RandomState]:
     """
     Initialize random number generator and set run_id
@@ -128,7 +128,6 @@ def get_rng(
     ----------
     rng : np.random.RandomState|int|None
     run_id : int, optional
-    logger: logging.Logger, optional
 
     Returns
     -------
@@ -136,8 +135,6 @@ def get_rng(
     np.random.RandomState
 
     """
-    if logger is None:
-        logger = logging.getLogger('GetRNG')
     # initialize random number generator
     if rng is not None and not isinstance(rng, (int, np.random.RandomState)):
         raise TypeError('Argument rng accepts only arguments of type None, int or np.random.RandomState, '

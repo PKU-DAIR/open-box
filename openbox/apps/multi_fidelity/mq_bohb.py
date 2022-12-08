@@ -1,5 +1,6 @@
 # License: MIT
 
+from openbox import logger
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor, SUCCESS
 from openbox.apps.multi_fidelity.mq_hb import mqHyperband
@@ -36,6 +37,7 @@ class mqBOHB(mqHyperband):
         self.rand_prob = rand_prob
         self.bo_init_num = bo_init_num
         # using median_imputation batch_strategy implemented in OpenBox to generate BO suggestions
+        _logger_kwargs = {'force_init': False}  # do not init logger in advisor
         self.config_advisor = SyncBatchAdvisor(config_space,
                                                num_objs=1,
                                                num_constraints=0,
@@ -50,23 +52,24 @@ class mqBOHB(mqHyperband):
                                                task_id=self.method_name,
                                                output_dir=self.log_directory,
                                                random_state=random_state,
+                                               logger_kwargs=_logger_kwargs,
                                                )
         self.config_advisor.optimizer.rand_prob = 0.0
 
     def choose_next(self, num_config):
         # Sample n configurations according to BOHB strategy.
-        self.logger.info('Sample %d configs in choose_next. rand_prob is %f.' % (num_config, self.rand_prob))
+        logger.info('Sample %d configs in choose_next. rand_prob is %f.' % (num_config, self.rand_prob))
 
         # get bo configs
         # update batchsize each round. random ratio is fixed.
         self.config_advisor.batch_size = num_config - int(num_config * self.rand_prob)
         bo_configs = self.config_advisor.get_suggestions()
         bo_configs = bo_configs[:num_config]  # may exceed num_config in initial random sampling
-        self.logger.info('len bo configs = %d.' % len(bo_configs))
+        logger.info('len bo configs = %d.' % len(bo_configs))
 
         # sample random configs
         configs = expand_configurations(bo_configs, self.config_space, num_config)
-        self.logger.info('len total configs = %d.' % len(configs))
+        logger.info('len total configs = %d.' % len(configs))
         assert len(configs) == num_config
         return configs
 
@@ -83,8 +86,8 @@ class mqBOHB(mqHyperband):
                 trial_state=SUCCESS, elapsed_time=None,
             )
             self.config_advisor.update_observation(observation)
-            self.logger.info('update observation: config=%s, perf=%f' % (str(config), perf))
-        self.logger.info('%d observations updated. %d incumbent configs total.' % (len(T), len(self.incumbent_configs)))
+            logger.info('update observation: config=%s, perf=%f' % (str(config), perf))
+        logger.info('%d observations updated. %d incumbent configs total.' % (len(T), len(self.incumbent_configs)))
 
     def update_incumbent_after_reduce(self, T, incumbent_loss):
         return

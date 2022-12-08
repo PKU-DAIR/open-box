@@ -13,7 +13,7 @@ class FLOW2(OnlineAdvisor):
                  x0: Configuration=None,
                  batch_size=1,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None,
 
                  inc_threshould = 20,

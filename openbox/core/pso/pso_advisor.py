@@ -1,19 +1,12 @@
-import abc
-
 import random
-
 from typing import *
-
 import numpy as np
+from ConfigSpace import ConfigurationSpace, Configuration
+from openbox import logger
 from openbox.core.pso.base_pso_advisor import Individual
 from openbox.core.pso.base_pso_advisor import BasePSOAdvisor
-from openbox.utils.util_funcs import check_random_state
-from openbox.utils.logging_utils import get_logger
-from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
-
-from ConfigSpace import ConfigurationSpace, Configuration
 
 
 class PSOAdvisor(BasePSOAdvisor):
@@ -23,7 +16,7 @@ class PSOAdvisor(BasePSOAdvisor):
                  population_size = 30,
                  batch_size = 1,
                  output_dir = 'logs',
-                 task_id = 'default_task_id',
+                 task_id = 'OpenBox',
                  random_state = None,
                  max_iter = None,
 

@@ -6,7 +6,6 @@
 # Author: Aaron Klein, Marius Lindauer
 
 import abc
-import logging
 import time
 import warnings
 from typing import Iterable, List, Union, Tuple, Optional
@@ -14,6 +13,7 @@ import random
 import scipy.optimize
 import numpy as np
 
+from openbox import logger
 from openbox.acquisition_function.acquisition import AbstractAcquisitionFunction
 from openbox.utils.config_space import get_one_exchange_neighbourhood, \
     Configuration, ConfigurationSpace
@@ -44,14 +44,11 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
             config_space: ConfigurationSpace,
             rng: Union[bool, np.random.RandomState] = None
     ):
-        self.logger = logging.getLogger(
-            self.__module__ + "." + self.__class__.__name__
-        )
         self.acquisition_function = acquisition_function
         self.config_space = config_space
 
         if rng is None:
-            self.logger.debug('no rng given, using default seed of 1')
+            logger.debug('no rng given, using default seed of 1')
             self.rng = np.random.RandomState(seed=1)
         else:
             self.rng = rng
@@ -330,7 +327,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
             local_search_steps += 1
             if local_search_steps % 1000 == 0:
-                self.logger.warning(
+                logger.warning(
                     "Local search took already %d iterations. Is it maybe "
                     "stuck in a infinite loop?", local_search_steps
                 )
@@ -351,7 +348,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
                 time_n.append(time.time() - s_time)
 
                 if acq_val > acq_val_incumbent:
-                    self.logger.debug("Switch to one of the neighbors")
+                    # logger.debug("Switch to one of the neighbors")
                     incumbent = neighbor
                     acq_val_incumbent = acq_val
                     changed_inc = True
@@ -362,7 +359,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
                      local_search_steps == self.max_steps):
                 if len(time_n) == 0:
                     time_n.append(0.0)
-                self.logger.debug("Local search took %d steps and looked at %d "
+                logger.debug("Local search took %d steps and looked at %d "
                                   "configurations. Computing the acquisition "
                                   "value for one configuration took %f seconds"
                                   " on average.",
@@ -540,7 +537,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
                 + next_configs_by_local_search
         )
         next_configs_by_acq_value.sort(reverse=True, key=lambda x: x[0])
-        self.logger.debug(
+        logger.debug(
             "First 10 acq func (origin) values of selected configurations: %s",
             str([[_[0], _[1].origin] for _ in next_configs_by_acq_value[:10]])
         )
@@ -621,7 +618,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
                                              bounds=self.bounds,
                                              **self.scipy_config)
         if not result.success:
-            self.logger.debug('Scipy optimizer failed. Info:\n%s' % (result,))
+            logger.debug('Scipy optimizer failed. Info:\n%s' % (result,))
         try:
             x = np.clip(result.x, 0.0, 1.0)  # fix numerical problem in L-BFGS-B
             config = Configuration(self.config_space, vector=x)
@@ -632,7 +629,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
             pass
 
         if not acq_configs:  # empty
-            self.logger.warning('Scipy optimizer failed. Return empty config list. Info:\n%s' % (result,))
+            logger.warning('Scipy optimizer failed. Return empty config list. Info:\n%s' % (result,))
 
         challengers = ChallengerList([config for _, config in acq_configs],
                                      self.config_space,
@@ -708,7 +705,7 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
             acq_configs.extend(zip(scipy_acqs, scipy_configs))
             success_count += 1
         if success_count == 0:
-            self.logger.warning('None of Scipy optimizations are successful in RandomScipyOptimizer.')
+            logger.warning('None of Scipy optimizations are successful in RandomScipyOptimizer.')
 
         # shuffle for random tie-break
         self.rng.shuffle(acq_configs)
@@ -775,7 +772,7 @@ class ScipyGlobalOptimizer(AcquisitionFunctionMaximizer):
         result = scipy.optimize.differential_evolution(func=negative_acquisition,
                                                        bounds=self.bounds)
         if not result.success:
-            self.logger.debug('Scipy differential evolution optimizer failed. Info:\n%s' % (result,))
+            logger.debug('Scipy differential evolution optimizer failed. Info:\n%s' % (result,))
         try:
             config = Configuration(self.config_space, vector=result.x)
             acq = self.acquisition_function(result.x, convert=False)
@@ -784,7 +781,7 @@ class ScipyGlobalOptimizer(AcquisitionFunctionMaximizer):
             pass
 
         if not acq_configs:  # empty
-            self.logger.warning('Scipy differential evolution optimizer failed. Return empty config list. Info:\n%s' % (result,))
+            logger.warning('Scipy differential evolution optimizer failed. Return empty config list. Info:\n%s' % (result,))
 
         challengers = ChallengerList([config for _, config in acq_configs],
                                      self.config_space,
@@ -882,7 +879,7 @@ class StagedBatchScipyOptimizer(AcquisitionFunctionMaximizer):
 
         # return result.x even failed. may because 'STOP: TOTAL NO. of ITERATIONS REACHED LIMIT'
         # if not result.success:
-        #     self.logger.warning('Scipy minimizer %s failed in this round: %s.' % (self.method, result))
+        #     logger.warning('Scipy minimizer %s failed in this round: %s.' % (self.method, result))
         #     return None
 
         #print(result.x.reshape(shapeX))    # todo remove

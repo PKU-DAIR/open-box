@@ -3,6 +3,8 @@
 
 from .pkginfo import version as __version__, package_name
 
+from .utils import color_logger as logger
+
 from .utils import space
 from .utils import space as sp
 
@@ -30,6 +32,7 @@ from .utils.test_install import run_test
 
 __all__ = [
     "__version__", "__package__", "package_name",
+    "logger",
     "sp", "space",
     "Optimizer", "ParallelOptimizer", "DistributedOptimizer", "DistributedWorker",
     "NSGAOptimizer",

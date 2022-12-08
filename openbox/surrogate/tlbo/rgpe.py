@@ -1,6 +1,7 @@
 # License: MIT
 
 import numpy as np
+from openbox import logger
 from openbox.surrogate.tlbo.base import BaseTLSurrogate
 
 
@@ -132,15 +133,15 @@ class RGPE(BaseTLSurrogate):
             else:
                 self.w[:-1] = np.array(self.w[:-1])/np.sum(self.w[:-1])
 
-        self.logger.info('=' * 20)
+        logger.info('=' * 20)
         w = self.w.copy()
         for id in range(self.K):
             if self.ignored_flag[id]:
                 w[id] = 0.
         weight_str = ','.join([('%.2f' % item) for item in w])
-        self.logger.info('In iter-%d' % self.iteration_id)
+        logger.info('In iter-%d' % self.iteration_id)
         self.target_weight.append(w[-1])
-        self.logger.info(weight_str)
+        logger.info(weight_str)
         self.hist_ws.append(w)
         self.iteration_id += 1
 

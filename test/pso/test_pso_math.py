@@ -72,47 +72,47 @@ if __name__ == "__main__":
         advisors = [PSOAdvisor(
             config_space = space,
             w_stg = 'default',
-            task_id = 'default_task_id',
+            task_id = 'OpenBox',
         )]
     elif TEST_MOD == 1:
         advisors = [PSOAdvisor(
             config_space = space,
             w_stg = 'default',
-            task_id = 'default_task_id',
+            task_id = 'OpenBox',
         ),
             PSOAdvisor(
                 config_space = space,
                 w_stg = 'dec',
                 max_iter = MAX_RUNS,
-                task_id = 'default_task_id',
+                task_id = 'OpenBox',
             ),
             PSOAdvisor(
                 config_space = space,
                 w_stg = 'rand',
                 max_iter = MAX_RUNS,
-                task_id = 'default_task_id',
+                task_id = 'OpenBox',
             )]
     elif TEST_MOD == 2:
         advisors = [RegularizedEAAdvisor(
             config_space = space,
-            task_id = 'default_task_id',
+            task_id = 'OpenBox',
         ),
             PSOAdvisor(
                 config_space = space,
                 w_stg = 'default',
-                task_id = 'default_task_id',
+                task_id = 'OpenBox',
             ),
             PSOAdvisor(
                 config_space = space,
                 w_stg = 'dec',
                 max_iter = MAX_RUNS,
-                task_id = 'default_task_id',
+                task_id = 'OpenBox',
             ),
             PSOAdvisor(
                 config_space = space,
                 w_stg = 'rand',
                 max_iter = MAX_RUNS,
-                task_id = 'default_task_id',
+                task_id = 'OpenBox',
             )]
 
     res = function(space.sample_configuration())

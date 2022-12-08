@@ -3,10 +3,10 @@
 import time
 import numpy as np
 from math import log, ceil
+from openbox import logger
 from openbox.apps.multi_fidelity.async_mq_base_facade import async_mqBaseFacade
 from openbox.apps.multi_fidelity.utils import WAITING, RUNNING, COMPLETED, PROMOTED
 from openbox.apps.multi_fidelity.utils import sample_configuration
-
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.utils.constants import MAXINT
 
@@ -76,7 +76,7 @@ class async_mqSuccessiveHalving_v2(async_mqBaseFacade):
                 num_promoted=0,
             )
             self.bracket.append(rung)
-        self.logger.info('Init bracket: %s.' % str(self.bracket))
+        logger.info('Init bracket: %s.' % str(self.bracket))
 
     def get_job(self):
         """
@@ -95,7 +95,7 @@ class async_mqSuccessiveHalving_v2(async_mqBaseFacade):
                     next_n_iteration = self.bracket[rung_id]['n_iteration']
                     next_extra_conf = extra_conf
                     # update bracket
-                    self.logger.info('Running job in rung %d: %s' % (rung_id, self.bracket[rung_id]['jobs'][job_id]))
+                    logger.info('Running job in rung %d: %s' % (rung_id, self.bracket[rung_id]['jobs'][job_id]))
                     self.bracket[rung_id]['jobs'][job_id][0] = RUNNING
                     break
             if next_config is not None:
@@ -106,7 +106,7 @@ class async_mqSuccessiveHalving_v2(async_mqBaseFacade):
             next_config, next_n_iteration, next_extra_conf = self.choose_next()
             # update bracket
             rung_id = self.get_rung_id(self.bracket, next_n_iteration)
-            self.logger.info('Sample a new config: %s. Add to rung %d.' % (next_config, rung_id))
+            logger.info('Sample a new config: %s. Add to rung %d.' % (next_config, rung_id))
             new_job = [RUNNING, next_config, MAXINT, next_extra_conf]   # running perf is set to MAXINT
             self.bracket[rung_id]['jobs'].append(new_job)
             self.bracket[rung_id]['configs'].add(next_config)
@@ -141,7 +141,7 @@ class async_mqSuccessiveHalving_v2(async_mqBaseFacade):
         for job_id, job in candidate_jobs:
             job_status, config, perf, extra_conf = job
             if not perf < MAXINT:
-                self.logger.warning('Skip promoting job (bad perf): %s' % job)
+                logger.warning('Skip promoting job (bad perf): %s' % job)
                 continue
             # check if config already exists in upper rungs
             exist = False
@@ -150,7 +150,7 @@ class async_mqSuccessiveHalving_v2(async_mqBaseFacade):
                     exist = True
                     break
             if exist:
-                self.logger.warning('Skip promoting job (duplicate): %s' % job)
+                logger.warning('Skip promoting job (duplicate): %s' % job)
                 continue
 
             # promote (set waiting)
@@ -159,7 +159,7 @@ class async_mqSuccessiveHalving_v2(async_mqBaseFacade):
             next_n_iteration = self.bracket[rung_id + 1]['n_iteration']
             next_extra_conf = extra_conf
             # update bracket
-            self.logger.info('Promote job in rung %d: %s' % (rung_id, self.bracket[rung_id]['jobs'][job_id]))
+            logger.info('Promote job in rung %d: %s' % (rung_id, self.bracket[rung_id]['jobs'][job_id]))
             self.bracket[rung_id]['jobs'][job_id][0] = PROMOTED
             self.bracket[rung_id]['num_promoted'] += 1
             new_job = [WAITING, next_config, MAXINT, next_extra_conf]  # running perf is set to MAXINT
@@ -168,10 +168,10 @@ class async_mqSuccessiveHalving_v2(async_mqBaseFacade):
             assert len(self.bracket[rung_id + 1]['jobs']) == len(self.bracket[rung_id + 1]['configs'])
 
         if n_set_promote != n_should_promote:
-            self.logger.warning('In rung %d, promote: %d, should promote: %d.'
+            logger.warning('In rung %d, promote: %d, should promote: %d.'
                                 % (rung_id, n_set_promote, n_should_promote))
         else:
-            self.logger.info('In rung %d, promote %d configs.' % (rung_id, n_set_promote))
+            logger.info('In rung %d, promote %d configs.' % (rung_id, n_set_promote))
 
     def update_observation(self, config, perf, n_iteration):
         """

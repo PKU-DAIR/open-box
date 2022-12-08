@@ -23,7 +23,7 @@ class SAEAAdvisor(ModularEAAdvisor):
                  optimization_strategy='ea',
                  batch_size=10,
                  output_dir='logs',
-                 task_id='default_task_id',
+                 task_id='OpenBox',
                  random_state=None,
 
                  required_evaluation_count: Optional[int] = 20,
