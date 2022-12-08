@@ -73,9 +73,20 @@ def get_result(result):
     if result is None:
         raise ValueError('result is None!')
     elif isinstance(result, dict):  # recommended usage
-        objectives = result['objectives']
+        objectives = result.get('objectives')
+        objs = result.get('objs')  # todo: deprecated
+        if objectives is not None and objs is not None:
+            raise ValueError('"Objectives" and "objs" are both provided! Please only provide "objectives".')
+        elif objectives is None and objs is None:
+            raise ValueError('No "objectives" is provided!')
+        elif objectives is None:
+            objectives = objs
+            logger.warning('Provide "objs" in result is deprecated and will be removed in future versions! '
+                           'Please use "objectives" instead.')
+
         if isinstance(objectives, number_typing_list):
             objectives = [objectives, ]
+            logger.warning('Provide a list of objectives instead of a single value is recommended!')
         constraints = result.get('constraints', None)
     elif isinstance(result, number_typing_list):
         objectives = [result, ]
@@ -83,6 +94,8 @@ def get_result(result):
     else:
         objectives = result
         constraints = None
+        logger.warning('Provide a single list in result is not recommended! '
+                       'Please provide a dict with keys "objectives" and "constraints".')
 
     if objectives is None:
         raise ValueError('objectives is None!')
