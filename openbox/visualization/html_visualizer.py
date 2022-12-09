@@ -94,7 +94,7 @@ class HTMLVisualizer(BaseVisualizer):
             import lightgbm
         except ModuleNotFoundError as e:
             raise ModuleNotFoundError(
-                'Please install shap and lightgbm to use importance analysis. '
+                'Please install shap and lightgbm to use SHAP feature importance analysis. '
                 'Run "pip install shap lightgbm"!'
             ) from e
 
@@ -241,34 +241,42 @@ class HTMLVisualizer(BaseVisualizer):
 
     def generate_importance_data(self, method='shap'):
         if method != 'shap':  # todo: add other methods, such as fanova
-            raise NotImplementedError('Only support shap importance method now.')
+            raise NotImplementedError('HTMLVisualizer only supports shap importance method currently!')
 
-        history_dict = self.history_container.get_importance(method=method, return_allvalue=True)
-        importance_dict = history_dict['importance_dict']
-        con_importance_dict = history_dict['con_importance_dict']
+        importance_dict = self.history_container.get_importance(method=method, return_dict=True)
+        if importance_dict is None or importance_dict == {}:
+            return None
+
+        objective_importance = importance_dict['objective_importance']
+        constraint_importance = importance_dict['constraint_importance']
+        X = self.history_container.get_numerical_config_array()
+        parameters = self.history_container.get_config_space().get_hyperparameter_names()
+
+        objective_shap_values = np.asarray(importance_dict['objective_shap_values']).tolist()
+        constraint_shap_values = np.asarray(importance_dict['constraint_shap_values']).tolist()
+
         importance = {
-            'X': list(history_dict['X']),
-            'x': list(importance_dict.keys()),
+            'X': X.tolist(),
+            'x': list(parameters),
             'data': dict(),
             'con_data': dict(),
-            'obj_shap_value': history_dict['obj_shap_value'],
-            'con_shap_value': history_dict['con_shap_value'],
-            # 'con_importance_dict':history_dict['con_importance_dict']
+            'obj_shap_value': objective_shap_values,
+            'con_shap_value': constraint_shap_values,
         }
 
-        for key, value in con_importance_dict.items():
-            for i in range(len(value)):
-                y_name = 'con-value-' + str(i + 1)
-                if y_name not in importance['con_data']:
-                    importance['con_data'][y_name] = list()
-                importance['con_data'][y_name].append(value[i])
-
-        for key, value in importance_dict.items():
+        for key, value in objective_importance.items():
             for i in range(len(value)):
                 y_name = 'opt-value-' + str(i + 1)
                 if y_name not in importance['data']:
                     importance['data'][y_name] = list()
                 importance['data'][y_name].append(value[i])
+
+        for key, value in constraint_importance.items():
+            for i in range(len(value)):
+                y_name = 'con-value-' + str(i + 1)
+                if y_name not in importance['con_data']:
+                    importance['con_data'][y_name] = list()
+                importance['con_data'][y_name].append(value[i])
 
         return importance
 

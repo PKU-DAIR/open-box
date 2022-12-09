@@ -5,8 +5,9 @@ import time
 import json
 import collections
 from typing import List, Union
+from functools import partial
 import numpy as np
-from ConfigSpace import CategoricalHyperparameter
+from ConfigSpace import CategoricalHyperparameter, OrdinalHyperparameter
 from openbox import logger
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import Configuration, ConfigurationSpace
@@ -14,6 +15,7 @@ from openbox.utils.multi_objective import Hypervolume, get_pareto_front
 from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values, get_config_numerical_values
 from openbox.core.base import Observation
 from openbox.utils.transform import get_transform_function
+from openbox.utils.config_space.util import convert_configurations_to_array
 
 Perf = collections.namedtuple(
     'perf', ['cost', 'time', 'status', 'additional_info'])
@@ -126,6 +128,45 @@ class HistoryContainer(object):
             self.incumbent_value = perf
             self.incumbents.append((config, perf))
 
+    def get_config_space(self):
+        if hasattr(self, 'config_space') and self.config_space is not None:
+            return self.config_space
+        elif len(self) > 0:
+            config_space = self.configurations[0].configuration_space
+            return config_space
+        else:
+            raise ValueError('No config_space is set and no observation is recorded!')
+
+    def get_converted_config_array(self):
+        """
+        Get the converted configuration array. Typically used for surrogate model training.
+
+        Integer and float hyperparameters are scaled to [0, 1].
+        Categorical and ordinal hyperparameters are transformed to index.
+
+        Returns
+        -------
+        X: np.ndarray
+            Converted configuration array. Shape: (n_configs, n_dims)
+        """
+        X = convert_configurations_to_array(self.configurations)
+        return X
+
+    def get_numerical_config_array(self):
+        """
+        Get the numerical configuration array.
+
+        Integer and float hyperparameters are not scaled.
+        Categorical and ordinal hyperparameters are transformed to index.
+
+        Returns
+        -------
+        X: np.ndarray
+            Numerical configuration array. Shape: (n_configs, n_dims)
+        """
+        X = np.array([get_config_numerical_values(config) for config in self.configurations])
+        return X
+
     def get_transformed_perfs(self, transform=None):
         # set perf of failed trials to current max
         transformed_perfs = self.perfs.copy()
@@ -160,7 +201,7 @@ class HistoryContainer(object):
         return list(self.data.keys())
 
     def empty(self):
-        return self.config_counter == 0
+        return len(self) == 0
 
     def get_incumbents(self):
         return self.incumbents
@@ -203,6 +244,9 @@ class HistoryContainer(object):
         return self.get_str()
 
     __repr__ = __str__
+
+    def __len__(self):
+        return len(self.configurations)
 
     def plot_convergence(
             self,
@@ -265,115 +309,96 @@ class HistoryContainer(object):
         visualizer.visualize(show_importance=show_importance, verify_surrogate=verify_surrogate)
         return visualizer
 
-    def get_importance(self, method='fanova', config_space=None, return_dict=False, return_allvalue=False):
+    def get_importance(self, method='fanova', return_dict=False):
+        """
+        Feature importance analysis.
+
+        Parameters
+        ----------
+        method : ['fanova', 'shap']
+            Method to compute feature importance.
+        return_dict : bool
+            Whether to return a dict of feature importance.
+
+        Returns
+        -------
+        importance : dict or prettytable.PrettyTable
+            If return_dict=True, return a dict of feature importance.
+            If return_dict=False, return a prettytable.PrettyTable of feature importance.
+                The table can be printed directly.
+        """
         from prettytable import PrettyTable
+        from openbox.utils.feature_importance import get_fanova_importance, get_shap_importance
 
-        X = np.array([get_config_numerical_values(config) for config in self.configurations])
-        Y = np.array(self.get_transformed_perfs(transform=None))
-        if len(Y.shape) == 1:
-            Y = np.reshape(Y, (len(Y), 1))
-        if config_space is None:
-            config_space = self.config_space
-        if config_space is None:
-            raise ValueError('Please provide config_space to show parameter importance!')
-        keys = config_space.get_hyperparameter_names()
-        importance_dict = {key: [] for key in keys}
-        con_importance_dict = {key: [] for key in keys}
+        if len(self) == 0:
+            logger.error('No observations in history! Please run optimization process.')
+            return dict() if return_dict else None
 
-        if method == 'shap':
-            import shap
-            from lightgbm import LGBMRegressor
+        config_space = self.configurations[0].configuration_space
+        parameters = list(config_space.get_hyperparameter_names())
 
-            for hp in config_space.get_hyperparameters():
-                if isinstance(hp, CategoricalHyperparameter):
-                    logger.warning("SHAP can not support categorical hyperparameters well. "
-                                   "To analyze a space with categorical hyperparameters, "
-                                   "we recommend setting the method to fanova.")
-
-            constraint_num = np.array(self.constraint_perfs)
-            obj_shape_value = []
-            con_shape_value = []
-
-            for col_idx in range(self.num_constraints):
-                # Fit a LightGBMRegressor with observations
-                lgbr = LGBMRegressor(n_jobs=1)
-                lgbr.fit(X, constraint_num[:, col_idx])
-                explainer = shap.TreeExplainer(lgbr)
-                shap_values = explainer.shap_values(X)
-                if type(shap_values) == type(X):
-                    con_shape_value.append(shap_values.tolist())
-                else:
-                    con_shape_value.append(shap_values)
-                con_feature_importance = np.mean(np.abs(shap_values), axis=0)
-
-                keys = [hp.name for hp in config_space.get_hyperparameters()]
-                for i, hp_name in enumerate(keys):
-                    con_importance_dict[hp_name].append(con_feature_importance[i])
-
-            for col_idx in range(self.num_objectives):
-                # Fit a LightGBMRegressor with observations
-                lgbr = LGBMRegressor(n_jobs=1)
-                lgbr.fit(X, Y[:, col_idx])
-                explainer = shap.TreeExplainer(lgbr)
-                shap_values = explainer.shap_values(X)
-                if type(shap_values) == type(X):
-                    obj_shape_value.append(shap_values.tolist())
-                else:
-                    obj_shape_value.append(shap_values)
-                feature_importance = np.mean(np.abs(shap_values), axis=0)
-
-                keys = [hp.name for hp in config_space.get_hyperparameters()]
-                for i, hp_name in enumerate(keys):
-                    importance_dict[hp_name].append(feature_importance[i])
-            
-            if return_allvalue:
-                return dict({'X': X.tolist(),
-                    'obj_shap_value':obj_shape_value, 'importance_dict':importance_dict,
-                    'con_shap_value':con_shape_value, 'con_importance_dict':con_importance_dict
-                })
-
-        elif method == 'fanova':
-            try:
-                import pyrfr.regression as reg
-                import pyrfr.util
-            except ModuleNotFoundError:
-                logger.error(
-                    'To use get_importance(), please install pyrfr: '
-                    'https://open-box.readthedocs.io/en/latest/installation/install_pyrfr.html'
-                )
-                raise
-            from openbox.utils.fanova import fANOVA
-
-            if return_allvalue:  # todo
-                raise NotImplementedError()
-
-            for col_idx in range(self.num_objectives):
-                # create an instance of fanova with data for the random forest and the configSpace
-                f = fANOVA(X=X, Y=Y[:, col_idx], config_space=config_space)
-
-                # marginal for first parameter
-                for key in keys:
-                    p_list = (key,)
-                    res = f.quantify_importance(p_list)
-                    individual_importance = res[(key,)]['individual importance']
-                    importance_dict[key].append(individual_importance)
+        if method == 'fanova':
+            importance_func = partial(get_fanova_importance, config_space=config_space)
+        elif method == 'shap':
+            # todo: try different hyperparameter in lgb
+            importance_func = get_shap_importance
+            if any([isinstance(hp, (CategoricalHyperparameter, OrdinalHyperparameter))
+                    for hp in config_space.get_hyperparameters()]):
+                logger.warning("SHAP can not support categorical/ordinal hyperparameters well. "
+                               "To analyze a space with categorical/ordinal hyperparameters, "
+                               "we recommend setting the method to fanova.")
         else:
-            raise ValueError("Invalid method for feature importance. Valid choices: 'shap' or 'fanova'.")
+            raise ValueError("Invalid method for feature importance: %s" % method)
+
+        X = self.get_numerical_config_array()
+        Y = self.get_transformed_perfs(transform=None)
+        Y = Y.reshape(-1, self.num_objectives)
+        cY = self.get_transformed_constraint_perfs(transform='bilog')
+
+        importance_dict = {
+            'objective_importance': {param: [] for param in parameters},
+            'constraint_importance': {param: [] for param in parameters},
+        }
+        if method == 'shap':
+            importance_dict['objective_shap_values'] = []
+            importance_dict['constraint_shap_values'] = []
+
+        for i in range(self.num_objectives):
+            feature_importance = importance_func(X, Y[:, i])
+            if method == 'shap':
+                feature_importance, shap_values = feature_importance
+                importance_dict['objective_shap_values'].append(shap_values)
+
+            for param, importance in zip(parameters, feature_importance):
+                importance_dict['objective_importance'][param].append(importance)
+
+        for i in range(self.num_constraints):
+            feature_importance = importance_func(X, cY[:, i])
+            if method == 'shap':
+                feature_importance, shap_values = feature_importance
+                importance_dict['constraint_shap_values'].append(shap_values)
+
+            for param, importance in zip(parameters, feature_importance):
+                importance_dict['constraint_importance'][param].append(importance)
 
         if return_dict:
             return importance_dict
 
+        # plot table
         rows = []
-        for param, values in importance_dict.items():
-            rows.append([param, *values])
-        if self.num_objectives == 1:
+        for param in parameters:
+            row = [param, *importance_dict['objective_importance'][param],
+                   *importance_dict['constraint_importance'][param]]
+            rows.append(row)
+        if self.num_objectives == 1 and self.num_constraints == 0:
             field_names = ["Parameter", "Importance"]
             rows.sort(key=lambda x: x[1], reverse=True)
         else:
-            field_names = ["Parameter"] + ["Obj%d Importance" % i for i in range(1, self.num_objectives + 1)]
+            field_names = ["Parameter"] + ["Obj%d Importance" % i for i in range(1, self.num_objectives + 1)] + \
+                          ["Cons%d Importance" % i for i in range(1, self.num_constraints + 1)]
         importance_table = PrettyTable(field_names=field_names, float_format=".6", align="l")
         importance_table.add_rows(rows)
-        return importance_table
+        return importance_table  # the table can be printed directly
 
     def save_json(self, fn: str = "history_container.json"):
         """
