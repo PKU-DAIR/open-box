@@ -4,10 +4,11 @@ import sys
 from openbox import logger
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.acquisition_function import *
-from openbox.utils.util_funcs import get_types
+from openbox.utils.util_funcs import get_types, deprecate_kwarg
 
 
 class Observation(object):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config, objectives, constraints=None, trial_state=SUCCESS, elapsed_time=None):
         self.config = config
         self.objectives = objectives

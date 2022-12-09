@@ -11,7 +11,7 @@ from openbox import logger
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.core.computation.parallel_process import ParallelEvaluation
 from openbox.utils.limit import time_limit, TimeoutException
-from openbox.utils.util_funcs import get_result
+from openbox.utils.util_funcs import get_result, deprecate_kwarg
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.core.ea_advisor import EA_Advisor
@@ -47,15 +47,16 @@ def wrapper(param):
 
 
 class pSMBO(BOBase):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
             objective_function,
             config_space,
+            num_objectives=1,
+            num_constraints=0,
             parallel_strategy='async',
             batch_size=4,
             batch_strategy='default',
-            num_constraints=0,
-            num_objectives=1,
             sample_strategy: str = 'bo',
             max_runs=200,
             time_limit_per_trial=180,

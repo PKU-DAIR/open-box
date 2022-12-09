@@ -8,7 +8,7 @@ from openbox.core.base import build_acq_func, build_surrogate, Observation, buil
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
 from openbox.utils.history_container import HistoryContainer
-from openbox.utils.util_funcs import check_random_state, get_types
+from openbox.utils.util_funcs import check_random_state, get_types, deprecate_kwarg
 
 
 class LinearMappedModel(AbstractModel):
@@ -56,6 +56,7 @@ class LinearMappedModel(AbstractModel):
 
 class LineBOAdvisor:
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config_space: ConfigurationSpace,
                  num_objectives=1,
                  num_constraints=0,

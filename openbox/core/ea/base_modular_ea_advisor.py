@@ -4,10 +4,12 @@ from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox.core.ea.base_ea_advisor import EAAdvisor, Individual, as_individual
 from openbox.core.base import Observation
+from openbox.utils.util_funcs import deprecate_kwarg
 
 
 class ModularEAAdvisor(EAAdvisor):
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config_space: ConfigurationSpace,
                  num_objectives=1,
                  num_constraints=0,

@@ -8,6 +8,7 @@ from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 from openbox.utils.constants import MAXINT
 from openbox.utils.config_space import get_one_exchange_neighbourhood
 from openbox.core.ea.base_ea_advisor import Individual, pareto_sort
+from openbox.utils.util_funcs import deprecate_kwarg
 
 
 class RegularizedEAAdvisor(ModularEAAdvisor):
@@ -15,6 +16,7 @@ class RegularizedEAAdvisor(ModularEAAdvisor):
     Evolutionary Algorithm Advisor
     """
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self,
 
                  config_space,

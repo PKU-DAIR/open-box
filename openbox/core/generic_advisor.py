@@ -5,7 +5,7 @@ import abc
 import numpy as np
 
 from openbox import logger
-from openbox.utils.util_funcs import check_random_state
+from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer, \
     MultiStartHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
@@ -21,6 +21,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
     Basic Advisor Class, which adopts a policy to sample a configuration.
     """
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
             config_space,

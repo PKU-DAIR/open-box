@@ -6,7 +6,7 @@ from typing import Union, Dict, List, Optional
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox import logger
-from openbox.utils.util_funcs import check_random_state
+from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
@@ -19,6 +19,7 @@ class EAAdvisor(abc.ABC):
     This is an abstract class. Define a subclass of this to implement an advisor.
     """
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config_space: ConfigurationSpace,
                  num_objectives=1,
                  num_constraints=0,

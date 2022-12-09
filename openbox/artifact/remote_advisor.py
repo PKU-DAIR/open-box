@@ -9,14 +9,16 @@ from openbox import logger
 from openbox.utils.config_space import json as config_json
 from openbox.utils.config_space import Configuration
 from openbox.utils.constants import SUCCESS
+from openbox.utils.util_funcs import deprecate_kwarg
 
 
 class RemoteAdvisor(object):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config_space,
                  server_ip, port, email, password,
                  task_name='task',
-                 num_constraints=0,
                  num_objectives=1,
+                 num_constraints=0,
                  sample_strategy: str = 'bo',
                  surrogate_type=None,
                  acq_type=None,

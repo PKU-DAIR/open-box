@@ -7,10 +7,12 @@ from ConfigSpace.hyperparameters import NumericalHyperparameter, OrdinalHyperpar
 from openbox import logger
 from openbox.core.ea.base_ea_advisor import Individual, pareto_sort
 from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
+from openbox.utils.util_funcs import deprecate_kwarg
 
 
 class CMAESEAAdvisor(ModularEAAdvisor):
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config_space: ConfigurationSpace,
                  num_objectives=1,
                  num_constraints=0,

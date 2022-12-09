@@ -11,6 +11,7 @@ from openbox.optimizer.nsga_base import NSGABase
 from openbox.utils.constants import MAXINT
 from openbox.utils.platypus_utils import get_variator, set_problem_types, objective_wrapper
 from openbox.utils.config_space import Configuration
+from openbox.utils.util_funcs import deprecate_kwarg
 from platypus import Problem, NSGAII
 from platypus import nondominated as _nondominated
 
@@ -20,12 +21,13 @@ from platypus import nondominated as _nondominated
 
 
 class NSGAOptimizer(NSGABase):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
             objective_function: callable,
             config_space,
-            num_constraints=0,
             num_objectives=1,
+            num_constraints=0,
             max_runs=2500,
             algorithm='nsgaii',
             logging_dir='logs',

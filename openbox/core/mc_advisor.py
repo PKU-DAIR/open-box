@@ -9,10 +9,11 @@ from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.history_container import MultiStartHistoryContainer
 from openbox.utils.multi_objective import NondominatedPartitioning
 from openbox.utils.trust_region import TurboState
-from openbox.utils.util_funcs import get_types
+from openbox.utils.util_funcs import get_types, deprecate_kwarg
 
 
 class MCAdvisor(Advisor):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
             config_space,

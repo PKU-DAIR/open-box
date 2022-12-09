@@ -9,9 +9,11 @@ from openbox.core.ea.base_ea_advisor import EAAdvisor
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
 from openbox.core.base import Observation
+from openbox.utils.util_funcs import deprecate_kwarg
 
 
 class NSGA2EAdvisor(EAAdvisor):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self,
 
                  config_space,

@@ -2,6 +2,7 @@
 
 from openbox.core.base import Observation
 from openbox.core.generic_advisor import Advisor
+from openbox.utils.util_funcs import deprecate_kwarg
 
 
 class RandomAdvisor(Advisor):
@@ -9,6 +10,7 @@ class RandomAdvisor(Advisor):
     Random Advisor Class, which adopts the random policy to sample a configuration.
     """
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config_space,
                  num_objectives=1,
                  num_constraints=0,

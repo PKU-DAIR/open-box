@@ -2,6 +2,7 @@
 
 import typing
 import numbers
+import functools
 import numpy as np
 import numpy.random.mtrand
 
@@ -179,3 +180,26 @@ def get_rng(
         raise ValueError('This should not happen! Please contact the developers! Arguments: rng=%s of type %s and '
                          'run_id=% of type %s' % (rng, type(rng), run_id, type(run_id)))
     return run_id, rng
+
+
+def deprecate_kwarg(old_name, new_name, removed_version='a future version'):
+    """
+    Returns a decorator to deprecate a keyword argument in a function.
+    """
+    assert old_name != new_name
+
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapped_func(*args, **kwargs):
+            if old_name in kwargs and new_name in kwargs:
+                raise TypeError(
+                    'Keyword argument "%s" is deprecated and will be removed in %s. '
+                    'Cannot use both kwargs "%s" and "%s"!' % (old_name, removed_version, old_name, new_name))
+
+            if old_name in kwargs:
+                logger.warning('Keyword argument "%s" is deprecated and will be removed in %s. '
+                               'Please use "%s" instead.' % (old_name, removed_version, new_name))
+                kwargs[new_name] = kwargs.pop(old_name)
+            return func(*args, **kwargs)
+        return wrapped_func
+    return decorator

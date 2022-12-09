@@ -11,7 +11,7 @@ from openbox import logger
 from openbox.optimizer.base import BOBase
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
-from openbox.utils.util_funcs import get_result
+from openbox.utils.util_funcs import get_result, deprecate_kwarg
 from openbox.core.base import Observation
 from openbox.visualization import build_visualizer
 
@@ -28,10 +28,10 @@ class SMBO(BOBase):
         Objective function to optimize.
     config_space : openbox.space.Space
         Configuration space.
-    num_constraints : int
-        Number of constraints in objective function.
     num_objectives : int
         Number of objectives in objective function.
+    num_constraints : int
+        Number of constraints in objective function.
     max_runs : int
         Number of optimization iterations.
     runtime_limit : int or float, optional
@@ -99,12 +99,13 @@ class SMBO(BOBase):
     random_state : int
         Random seed for RNG.
     """
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
             objective_function: callable,
             config_space,
-            num_constraints=0,
             num_objectives=1,
+            num_constraints=0,
             sample_strategy: str = 'bo',
             max_runs=200,
             runtime_limit=None,

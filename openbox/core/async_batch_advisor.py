@@ -8,9 +8,11 @@ from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.core.base import Observation
 from openbox.core.generic_advisor import Advisor
+from openbox.utils.util_funcs import deprecate_kwarg
 
 
 class AsyncBatchAdvisor(Advisor):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
             config_space,

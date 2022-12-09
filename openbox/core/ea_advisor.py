@@ -5,7 +5,7 @@ import random
 import numpy as np
 
 from openbox import logger
-from openbox.utils.util_funcs import check_random_state
+from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 from openbox.utils.history_container import HistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
@@ -17,6 +17,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
     Evolutionary Algorithm Advisor
     """
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
             config_space,

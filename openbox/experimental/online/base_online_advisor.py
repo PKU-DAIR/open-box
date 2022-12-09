@@ -7,7 +7,7 @@ from ConfigSpace.hyperparameters import NumericalHyperparameter
 
 from openbox.core.base import Observation
 from openbox.utils.history_container import HistoryContainer
-from openbox.utils.util_funcs import check_random_state
+from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 
 
 def almost_equal(config1: Configuration, config2: Configuration, delta: float = 1e-4):
@@ -17,6 +17,7 @@ def almost_equal(config1: Configuration, config2: Configuration, delta: float = 
 
 
 class OnlineAdvisor(abc.ABC):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self,
                  config_space: ConfigurationSpace,
                  x0: Configuration,

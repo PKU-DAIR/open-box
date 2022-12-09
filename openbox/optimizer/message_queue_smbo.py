@@ -11,9 +11,11 @@ from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.optimizer.base import BOBase
 from openbox.core.message_queue.master_messager import MasterMessager
 from openbox.core.base import Observation
+from openbox.utils.util_funcs import deprecate_kwarg
 
 
 class mqSMBO(BOBase):
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
             objective_function,
@@ -21,8 +23,8 @@ class mqSMBO(BOBase):
             parallel_strategy='async',
             batch_size=4,
             batch_strategy='default',
-            num_constraints=0,
             num_objectives=1,
+            num_constraints=0,
             sample_strategy: str = 'bo',
             max_runs=200,
             time_limit_per_trial=180,

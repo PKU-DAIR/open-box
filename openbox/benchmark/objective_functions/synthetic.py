@@ -7,7 +7,7 @@ from scipy.special import gamma
 
 from openbox.utils.config_space import ConfigurationSpace, Configuration, \
     UniformFloatHyperparameter, UniformIntegerHyperparameter
-from openbox.utils.util_funcs import check_random_state
+from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 
 
 class BaseTestProblem(object):
@@ -15,6 +15,7 @@ class BaseTestProblem(object):
     Base class for synthetic test problems.
     """
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config_space: ConfigurationSpace,
                  noise_std=0,
                  num_objectives=1,
@@ -341,6 +342,7 @@ class DTLZ(BaseTestProblem):
     See [Deb2005dtlz]_ for more details on DTLZ.
     """
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, dim, num_objectives=2, num_constraints=0, noise_std=0, random_state=None):
         if dim <= num_objectives:
             raise ValueError(
@@ -375,6 +377,7 @@ class DTLZ1(DTLZ):
 
     _ref_val = 400.0
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, dim, num_objectives=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
@@ -420,6 +423,7 @@ class DTLZ2(DTLZ):
     _ref_val = 1.1
     _r = 0.2
 
+    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, dim=12, num_objectives=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
