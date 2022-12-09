@@ -289,16 +289,12 @@ class SMBO(BOBase):
                 objectives = (objectives,)
 
         self.iteration_id += 1
-        self.visualizer.update()
         # Logging
         if self.num_constraints > 0:
-            logger.info('Iteration %d, objective value: %s. constraints: %s.'
+            logger.info('Iter %d, objectives: %s. constraints: %s.'
                              % (self.iteration_id, objectives, constraints))
         else:
-            logger.info('Iteration %d, objective value: %s.' % (self.iteration_id, objectives))
+            logger.info('Iter %d, objectives: %s.' % (self.iteration_id, objectives))
 
-        # Visualization.
-        # for idx, obj in enumerate(objectives):
-        #     if obj < self.FAILED_PERF[idx]:
-        #         self.writer.add_scalar('data/objective-%d' % (idx + 1), obj, self.iteration_id)
+        self.visualizer.update()
         return config, trial_state, constraints, objectives

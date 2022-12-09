@@ -82,6 +82,9 @@ class HTMLVisualizer(BaseVisualizer):
             verify_surrogate = False if not self.advanced_analysis else (iter_id >= max_iter)
         self.save_visualization_data(update_importance=update_importance, verify_surrogate=verify_surrogate)
 
+        if iter_id == max_iter:
+            logger.info('Please open the html file to view visualization result: %s' % self.html_path)
+
     def visualize(self, show_importance=False, verify_surrogate=False):
         if show_importance:
             self.check_dependency()
@@ -99,28 +102,31 @@ class HTMLVisualizer(BaseVisualizer):
             ) from e
 
     def save_visualization_data(self, update_importance=False, verify_surrogate=False):
-        # basic data
-        draw_data = self.generate_basic_data()
+        try:
+            # basic data
+            draw_data = self.generate_basic_data()
 
-        # advanced data
-        # importance data
-        importance = self._cache_advanced_data.get('importance')
-        if update_importance:
-            importance = self.generate_importance_data(method='shap')
-            self._cache_advanced_data['importance'] = importance
-        draw_data['importance_data'] = importance
-        # verify surrogate data
-        if verify_surrogate:
-            pre_label_data, grade_data, cons_pre_label_data = self.generate_verify_surrogate_data()
-            draw_data['pre_label_data'] = pre_label_data
-            draw_data['grade_data'] = grade_data
-            draw_data['cons_pre_label_data'] = cons_pre_label_data
+            # advanced data
+            # importance data
+            importance = self._cache_advanced_data.get('importance')
+            if update_importance:
+                importance = self.generate_importance_data(method='shap')
+                self._cache_advanced_data['importance'] = importance
+            draw_data['importance_data'] = importance
+            # verify surrogate data
+            if verify_surrogate:
+                pre_label_data, grade_data, cons_pre_label_data = self.generate_verify_surrogate_data()
+                draw_data['pre_label_data'] = pre_label_data
+                draw_data['grade_data'] = grade_data
+                draw_data['cons_pre_label_data'] = cons_pre_label_data
 
-        # save data to json file
-        with open(self.json_path, 'w') as fp:
-            fp.write('var info=')
-            json.dump({'data': draw_data}, fp, indent=2)
-            fp.write(';')
+            # save data to json file
+            with open(self.json_path, 'w') as fp:
+                fp.write('var info=')
+                json.dump({'data': draw_data}, fp, indent=2)
+                fp.write(';')
+        except Exception:
+            logger.exception('Failed to save visualization data!')
 
     def generate_basic_data(self):
         his_con = self.history_container
@@ -240,73 +246,82 @@ class HTMLVisualizer(BaseVisualizer):
         return draw_data
 
     def generate_importance_data(self, method='shap'):
-        if method != 'shap':  # todo: add other methods, such as fanova
-            raise NotImplementedError('HTMLVisualizer only supports shap importance method currently!')
+        try:
+            if method != 'shap':  # todo: add other methods, such as fanova
+                raise NotImplementedError('HTMLVisualizer only supports shap importance method currently!')
 
-        importance_dict = self.history_container.get_importance(method=method, return_dict=True)
-        if importance_dict is None or importance_dict == {}:
+            importance_dict = self.history_container.get_importance(method=method, return_dict=True)
+            if importance_dict is None or importance_dict == {}:
+                return None
+
+            objective_importance = importance_dict['objective_importance']
+            constraint_importance = importance_dict['constraint_importance']
+            X = self.history_container.get_numerical_config_array()
+            parameters = self.history_container.get_config_space().get_hyperparameter_names()
+
+            objective_shap_values = np.asarray(importance_dict['objective_shap_values']).tolist()
+            constraint_shap_values = np.asarray(importance_dict['constraint_shap_values']).tolist()
+
+            importance = {
+                'X': X.tolist(),
+                'x': list(parameters),
+                'data': dict(),
+                'con_data': dict(),
+                'obj_shap_value': objective_shap_values,
+                'con_shap_value': constraint_shap_values,
+            }
+
+            for key, value in objective_importance.items():
+                for i in range(len(value)):
+                    y_name = 'opt-value-' + str(i + 1)
+                    if y_name not in importance['data']:
+                        importance['data'][y_name] = list()
+                    importance['data'][y_name].append(value[i])
+
+            for key, value in constraint_importance.items():
+                for i in range(len(value)):
+                    y_name = 'con-value-' + str(i + 1)
+                    if y_name not in importance['con_data']:
+                        importance['con_data'][y_name] = list()
+                    importance['con_data'][y_name].append(value[i])
+
+            return importance
+        except Exception:
+            logger.exception('Exception in generating importance data!')
             return None
 
-        objective_importance = importance_dict['objective_importance']
-        constraint_importance = importance_dict['constraint_importance']
-        X = self.history_container.get_numerical_config_array()
-        parameters = self.history_container.get_config_space().get_hyperparameter_names()
-
-        objective_shap_values = np.asarray(importance_dict['objective_shap_values']).tolist()
-        constraint_shap_values = np.asarray(importance_dict['constraint_shap_values']).tolist()
-
-        importance = {
-            'X': X.tolist(),
-            'x': list(parameters),
-            'data': dict(),
-            'con_data': dict(),
-            'obj_shap_value': objective_shap_values,
-            'con_shap_value': constraint_shap_values,
-        }
-
-        for key, value in objective_importance.items():
-            for i in range(len(value)):
-                y_name = 'opt-value-' + str(i + 1)
-                if y_name not in importance['data']:
-                    importance['data'][y_name] = list()
-                importance['data'][y_name].append(value[i])
-
-        for key, value in constraint_importance.items():
-            for i in range(len(value)):
-                y_name = 'con-value-' + str(i + 1)
-                if y_name not in importance['con_data']:
-                    importance['con_data'][y_name] = list()
-                importance['con_data'][y_name].append(value[i])
-
-        return importance
-
     def generate_verify_surrogate_data(self):
-        his_con = self.history_container
+        try:
+            logger.info('Verify surrogate model...')
+            his_con = self.history_container
 
-        from openbox.utils.config_space.util import convert_configurations_to_array
-        # prepare object surrogate model data
-        X_all = convert_configurations_to_array(his_con.configurations)
-        Y_all = his_con.get_transformed_perfs(transform=None)
-        if his_con.num_objectives == 1:
-            Y_all = Y_all.reshape(-1, 1)
+            from openbox.utils.config_space.util import convert_configurations_to_array
+            # prepare object surrogate model data
+            X_all = convert_configurations_to_array(his_con.configurations)
+            Y_all = his_con.get_transformed_perfs(transform=None)
+            if his_con.num_objectives == 1:
+                Y_all = Y_all.reshape(-1, 1)
 
-        if his_con.num_objectives == 1:
-            models = [copy.deepcopy(self.surrogate_model)]
-        else:
-            models = copy.deepcopy(self.surrogate_model)
-        pre_label_data, grade_data = self.verify_surrogate(X_all, Y_all, models)
+            if his_con.num_objectives == 1:  # todo: prf does not support copy. use build surrogate instead.
+                models = [copy.deepcopy(self.surrogate_model)]
+            else:
+                models = copy.deepcopy(self.surrogate_model)
+            pre_label_data, grade_data = self.verify_surrogate(X_all, Y_all, models)
 
-        if self.history_container.num_constraints == 0:
-            return pre_label_data, grade_data, None
+            if self.history_container.num_constraints == 0:
+                return pre_label_data, grade_data, None
 
-        # prepare constraint surrogate model data
-        cons_X_all = convert_configurations_to_array(his_con.configurations)
-        cons_Y_all = his_con.get_transformed_constraint_perfs(transform='bilog')
-        cons_models = copy.deepcopy(self.constraint_models)
+            # prepare constraint surrogate model data
+            cons_X_all = convert_configurations_to_array(his_con.configurations)
+            cons_Y_all = his_con.get_transformed_constraint_perfs(transform='bilog')
+            cons_models = copy.deepcopy(self.constraint_models)
 
-        cons_pre_label_data, _ = self.verify_surrogate(cons_X_all, cons_Y_all, cons_models)
+            cons_pre_label_data, _ = self.verify_surrogate(cons_X_all, cons_Y_all, cons_models)
 
-        return pre_label_data, grade_data, cons_pre_label_data
+            return pre_label_data, grade_data, cons_pre_label_data
+        except Exception:
+            logger.exception('Exception in generating verify surrogate data!')
+            return None, None, None
 
     def verify_surrogate(self, X_all, Y_all, models):
         assert models is not None
@@ -314,7 +329,7 @@ class HTMLVisualizer(BaseVisualizer):
         # configuration number, obj/cons number
         N, num_objectives = Y_all.shape
         if X_all.shape[0] != N or N == 0:
-            logger.error('Invalid data shape!')
+            logger.error('Invalid data shape for verify_surrogate!')
             return None, None
 
         # 10-fold validation
@@ -364,59 +379,63 @@ class HTMLVisualizer(BaseVisualizer):
         return pre_label_data, grade_data
 
     def generate_html(self):
-        # todo: move static html files to assets/
-        # static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
-        static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../artifact/user_board/static')
-        visual_static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
-        template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/visual_template.html')
+        try:
+            # todo: move static html files to assets/
+            # static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
+            static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../artifact/user_board/static')
+            visual_static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
+            template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/visual_template.html')
 
-        with open(template_path, 'r', encoding='utf-8') as f:
-            html_text = f.read()
+            with open(template_path, 'r', encoding='utf-8') as f:
+                html_text = f.read()
 
-        link1_path = os.path.join(static_path, 'vendor/bootstrap/css/bootstrap.min.css')
-        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/vendor/bootstrap/css/bootstrap.min.css\">",
-                           "<link rel=\"stylesheet\" href=" + repr(link1_path) + ">", html_text)
+            link1_path = os.path.join(static_path, 'vendor/bootstrap/css/bootstrap.min.css')
+            html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/vendor/bootstrap/css/bootstrap.min.css\">",
+                               "<link rel=\"stylesheet\" href=" + repr(link1_path) + ">", html_text)
 
-        link2_path = os.path.join(static_path, 'css/style.default.css')
-        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/style.default.css\" id=\"theme-stylesheet\">",
-                           "<link rel=\"stylesheet\" href=" + repr(link2_path) + " id=\"theme-stylesheet\">", html_text)
+            link2_path = os.path.join(static_path, 'css/style.default.css')
+            html_text = re.sub(
+                "<link rel=\"stylesheet\" href=\"../static/css/style.default.css\" id=\"theme-stylesheet\">",
+                "<link rel=\"stylesheet\" href=" + repr(link2_path) + " id=\"theme-stylesheet\">", html_text)
 
-        link3_path = os.path.join(static_path, 'css/custom.css')
-        html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/custom.css\">",
-                           "<link rel=\"stylesheet\" href=" + repr(link3_path) + ">", html_text)
+            link3_path = os.path.join(static_path, 'css/custom.css')
+            html_text = re.sub("<link rel=\"stylesheet\" href=\"../static/css/custom.css\">",
+                               "<link rel=\"stylesheet\" href=" + repr(link3_path) + ">", html_text)
 
-        html_text = re.sub("<script type=\"text/javascript\" src='json_path'></script>",
-                           "<script type=\"text/javascript\" src=" + repr(self.json_path) + "></script>", html_text)
+            html_text = re.sub("<script type=\"text/javascript\" src='json_path'></script>",
+                               "<script type=\"text/javascript\" src=" + repr(self.json_path) + "></script>", html_text)
 
-        script1_path = os.path.join(static_path, 'vendor/jquery/jquery.min.js')
-        html_text = re.sub("<script src=\"../static/vendor/jquery/jquery.min.js\"></script>",
-                           "<script src=" + repr(script1_path) + "></script>", html_text)
+            script1_path = os.path.join(static_path, 'vendor/jquery/jquery.min.js')
+            html_text = re.sub("<script src=\"../static/vendor/jquery/jquery.min.js\"></script>",
+                               "<script src=" + repr(script1_path) + "></script>", html_text)
 
-        script2_path = os.path.join(static_path, 'vendor/bootstrap/js/bootstrap.bundle.min.js')
-        html_text = re.sub("<script src=\"../static/vendor/bootstrap/js/bootstrap.bundle.min.js\"></script>",
-                           "<script src=" + repr(script2_path) + "></script>", html_text)
+            script2_path = os.path.join(static_path, 'vendor/bootstrap/js/bootstrap.bundle.min.js')
+            html_text = re.sub("<script src=\"../static/vendor/bootstrap/js/bootstrap.bundle.min.js\"></script>",
+                               "<script src=" + repr(script2_path) + "></script>", html_text)
 
-        script3_path = os.path.join(static_path, 'vendor/jquery.cookie/jquery.cookie.js')
-        html_text = re.sub("<script src=\"../static/vendor/jquery.cookie/jquery.cookie.js\"></script>",
-                           "<script src=" + repr(script3_path) + "></script>", html_text)
+            script3_path = os.path.join(static_path, 'vendor/jquery.cookie/jquery.cookie.js')
+            html_text = re.sub("<script src=\"../static/vendor/jquery.cookie/jquery.cookie.js\"></script>",
+                               "<script src=" + repr(script3_path) + "></script>", html_text)
 
-        script4_path = os.path.join(static_path, 'vendor/datatables/js/datatables.js')
-        html_text = re.sub("<script src=\"../static/vendor/datatables/js/datatables.js\"></script>",
-                           "<script src=" + repr(script4_path) + "></script>", html_text)
+            script4_path = os.path.join(static_path, 'vendor/datatables/js/datatables.js')
+            html_text = re.sub("<script src=\"../static/vendor/datatables/js/datatables.js\"></script>",
+                               "<script src=" + repr(script4_path) + "></script>", html_text)
 
-        script5_path = os.path.join(visual_static_path, 'js/echarts.min.js')
-        html_text = re.sub("<script src=\"../static/js/echarts.min.js\"></script>",
-                           "<script src=" + repr(script5_path) + "></script>", html_text)
+            script5_path = os.path.join(visual_static_path, 'js/echarts.min.js')
+            html_text = re.sub("<script src=\"../static/js/echarts.min.js\"></script>",
+                               "<script src=" + repr(script5_path) + "></script>", html_text)
 
-        script6_path = os.path.join(static_path, 'js/common.js')
-        html_text = re.sub("<script src=\"../static/js/common.js\"></script>",
-                           "<script src=" + repr(script6_path) + "></script>", html_text)
+            script6_path = os.path.join(static_path, 'js/common.js')
+            html_text = re.sub("<script src=\"../static/js/common.js\"></script>",
+                               "<script src=" + repr(script6_path) + "></script>", html_text)
 
-        script7_path = os.path.join(visual_static_path, 'js/echarts-gl.min.js')
-        html_text = re.sub("<script src=\"../static/js/echarts-gl.min.js\"></script>",
-                           "<script src=" + repr(script7_path) + "></script>", html_text)
+            script7_path = os.path.join(visual_static_path, 'js/echarts-gl.min.js')
+            html_text = re.sub("<script src=\"../static/js/echarts-gl.min.js\"></script>",
+                               "<script src=" + repr(script7_path) + "></script>", html_text)
 
-        with open(self.html_path, "w") as f:
-            f.write(html_text)
+            with open(self.html_path, "w") as f:
+                f.write(html_text)
 
-        logger.info('[HTMLVisualizer] Please open the html file to view visualization result: %s' % self.html_path)
+            logger.info('Please open the html file to view visualization result: %s' % self.html_path)
+        except Exception:
+            logger.exception('Failed to generate html file!')
