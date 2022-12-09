@@ -5,7 +5,7 @@ from openbox.utils.config_space import ConfigurationSpace
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor, SUCCESS
 from openbox.apps.multi_fidelity.mq_hb import mqHyperband
 from openbox.apps.multi_fidelity.utils import sample_configurations, expand_configurations
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 
 
 class mqBOHB(mqHyperband):

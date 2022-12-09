@@ -1,6 +1,6 @@
 from ConfigSpace import ConfigurationSpace, Configuration
 
-from openbox import Observation
+from openbox.utils.history_container import Observation
 from openbox.experimental.online.base_online_advisor import OnlineAdvisor
 
 

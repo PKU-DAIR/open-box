@@ -10,9 +10,8 @@ from openbox.core.generic_advisor import Advisor
 from openbox.experimental.online.cfo import CFO
 from openbox.experimental.online.base_online_advisor import almost_equal
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.history_container import HistoryContainer
+from openbox.utils.history_container import Observation, HistoryContainer
 from openbox.utils.constants import MAXINT
-from openbox.core.base import Observation
 
 
 class SearchPiece:

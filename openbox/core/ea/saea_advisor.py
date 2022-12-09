@@ -6,13 +6,14 @@ from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.acquisition_function import AbstractAcquisitionFunction
-from openbox.core.base import build_acq_func, build_surrogate, Observation
+from openbox.core.base import build_acq_func, build_surrogate
 from openbox.core.ea.base_ea_advisor import Individual
 from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
 from openbox.utils.multi_objective import NondominatedPartitioning, get_chebyshev_scalarization
 from openbox.utils.util_funcs import deprecate_kwarg
+from openbox.utils.history_container import Observation
 
 
 class SAEAAdvisor(ModularEAAdvisor):

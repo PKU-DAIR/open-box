@@ -6,14 +6,13 @@ import numpy as np
 
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
-from openbox.utils.history_container import HistoryContainer, MOHistoryContainer, \
+from openbox.utils.history_container import Observation, HistoryContainer, MOHistoryContainer, \
     MultiStartHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.core.base import build_acq_func, build_optimizer, build_surrogate
-from openbox.core.base import Observation
 
 
 class Advisor(object, metaclass=abc.ABCMeta):

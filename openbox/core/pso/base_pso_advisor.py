@@ -5,9 +5,8 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
-from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
+from openbox.utils.history_container import Observation, HistoryContainer, MOHistoryContainer
 from openbox.utils.constants import MAXINT, SUCCESS
-from openbox.core.base import Observation
 
 
 class BasePSOAdvisor(abc.ABC):

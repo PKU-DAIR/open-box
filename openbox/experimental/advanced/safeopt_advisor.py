@@ -5,10 +5,10 @@ from typing import Callable, List, Union, Tuple
 import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration
 
-from openbox.core.base import build_surrogate, Observation
+from openbox.core.base import build_surrogate
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
-from openbox.utils.history_container import HistoryContainer, MOHistoryContainer
+from openbox.utils.history_container import Observation, HistoryContainer, MOHistoryContainer
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 
 

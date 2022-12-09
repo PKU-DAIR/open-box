@@ -15,7 +15,7 @@ from openbox.utils.util_funcs import get_result, deprecate_kwarg
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.core.ea_advisor import EA_Advisor
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 from openbox.optimizer.base import BOBase
 
 

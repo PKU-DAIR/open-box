@@ -5,8 +5,7 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
-from openbox.core.base import Observation
-from openbox.utils.history_container import HistoryContainer
+from openbox.utils.history_container import Observation, HistoryContainer
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 
 

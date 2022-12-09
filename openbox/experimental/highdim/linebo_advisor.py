@@ -4,10 +4,10 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperparameter, CategoricalHyperparameter, \
     OrdinalHyperparameter
 
-from openbox.core.base import build_acq_func, build_surrogate, Observation, build_optimizer
+from openbox.core.base import build_acq_func, build_surrogate, build_optimizer
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.config_space import convert_configurations_to_array
-from openbox.utils.history_container import HistoryContainer
+from openbox.utils.history_container import Observation, HistoryContainer
 from openbox.utils.util_funcs import check_random_state, get_types, deprecate_kwarg
 
 

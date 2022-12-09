@@ -1,6 +1,6 @@
 # License: MIT
 
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 from openbox.core.generic_advisor import Advisor
 from openbox.utils.util_funcs import deprecate_kwarg
 

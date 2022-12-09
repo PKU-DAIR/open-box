@@ -8,6 +8,8 @@ from .utils import color_logger as logger
 from .utils import space
 from .utils import space as sp
 
+from .utils.history_container import Observation, HistoryContainer, MOHistoryContainer
+
 from .optimizer.generic_smbo import SMBO as Optimizer
 from .optimizer.parallel_smbo import pSMBO as ParallelOptimizer
 from .optimizer.message_queue_smbo import mqSMBO as DistributedOptimizer
@@ -24,8 +26,6 @@ from .core.tpe_advisor import TPE_Advisor
 from .core.ea_advisor import EA_Advisor
 from .core.mc_advisor import MCAdvisor
 
-from .core.base import Observation
-
 from .utils.tuning import get_config_space, get_objective_function
 
 from .utils.test_install import run_test
@@ -34,13 +34,13 @@ __all__ = [
     "__version__", "__package__", "package_name",
     "logger",
     "sp", "space",
+    "Observation", "HistoryContainer", "MOHistoryContainer",
     "Optimizer", "ParallelOptimizer", "DistributedOptimizer", "DistributedWorker",
     "NSGAOptimizer",
     "create_optimizer",
     "Advisor",
     "AsyncBatchAdvisor", "SyncBatchAdvisor",
     "RandomAdvisor", "TPE_Advisor", "EA_Advisor", "MCAdvisor",
-    "Observation",
     "get_config_space", "get_objective_function",
     "run_test",
 ]

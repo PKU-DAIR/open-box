@@ -10,7 +10,7 @@ from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.optimizer.base import BOBase
 from openbox.core.message_queue.master_messager import MasterMessager
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 from openbox.utils.util_funcs import deprecate_kwarg
 
 

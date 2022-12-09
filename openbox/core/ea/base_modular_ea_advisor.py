@@ -3,7 +3,7 @@ from typing import Optional, List, Callable
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox.core.ea.base_ea_advisor import EAAdvisor, Individual, as_individual
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 from openbox.utils.util_funcs import deprecate_kwarg
 
 

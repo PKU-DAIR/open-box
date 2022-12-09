@@ -3,10 +3,10 @@
 import numpy as np
 
 from openbox import logger
-from openbox.core.base import build_acq_func, build_optimizer, build_surrogate, Observation
+from openbox.core.base import build_acq_func, build_optimizer, build_surrogate
 from openbox.core.generic_advisor import Advisor
 from openbox.utils.config_space.util import convert_configurations_to_array
-from openbox.utils.history_container import MultiStartHistoryContainer
+from openbox.utils.history_container import Observation, MultiStartHistoryContainer
 from openbox.utils.multi_objective import NondominatedPartitioning
 from openbox.utils.trust_region import TurboState
 from openbox.utils.util_funcs import get_types, deprecate_kwarg

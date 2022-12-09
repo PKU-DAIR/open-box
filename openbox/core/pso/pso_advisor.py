@@ -6,7 +6,7 @@ from openbox import logger
 from openbox.core.pso.base_pso_advisor import Individual
 from openbox.core.pso.base_pso_advisor import BasePSOAdvisor
 from openbox.utils.constants import MAXINT, SUCCESS
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 from openbox.utils.util_funcs import deprecate_kwarg
 
 

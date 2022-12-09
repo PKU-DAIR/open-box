@@ -1,8 +1,6 @@
 # License: MIT
 
-import sys
 import time
-import traceback
 import math
 from typing import List
 from collections import OrderedDict
@@ -12,7 +10,7 @@ from openbox.optimizer.base import BOBase
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import get_result, deprecate_kwarg
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 from openbox.visualization import build_visualizer
 
 """

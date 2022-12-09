@@ -10,8 +10,7 @@ import statsmodels.api as sm
 
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.history_container import HistoryContainer
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation, HistoryContainer
 from openbox.utils.config_space.util import convert_configurations_to_array
 
 

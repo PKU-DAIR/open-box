@@ -13,12 +13,48 @@ from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import Configuration, ConfigurationSpace
 from openbox.utils.multi_objective import Hypervolume, get_pareto_front
 from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values, get_config_numerical_values
-from openbox.core.base import Observation
 from openbox.utils.transform import get_transform_function
 from openbox.utils.config_space.util import convert_configurations_to_array
+from openbox.utils.util_funcs import deprecate_kwarg
 
-Perf = collections.namedtuple(
-    'perf', ['cost', 'time', 'status', 'additional_info'])
+
+class Observation(object):
+    @deprecate_kwarg('objs', 'objectives', 'a future version')
+    def __init__(self, config, objectives, constraints=None, trial_state=SUCCESS, elapsed_time=None, extra_info=None):
+        self.config = config
+        self.objectives = objectives
+        self.constraints = constraints
+        self.trial_state = trial_state
+        self.elapsed_time = elapsed_time
+        self.extra_info = extra_info
+
+    def __str__(self):
+        items = [f'config={self.config}', f'objectives={self.objectives}']
+        if self.constraints is not None:
+            items.append(f'constraints={self.constraints}')
+        items.append(f'trial_state={self.trial_state}')
+        if self.elapsed_time is not None:
+            items.append(f'elapsed_time={self.elapsed_time}')
+        if self.extra_info is not None:
+            items.append(f'extra_info={self.extra_info}')
+        return f'Observation({", ".join(items)})'
+
+    __repr__ = __str__
+
+    def to_dict(self):
+        # return dict(config=self.config, objectives=self.objectives, constraints=self.constraints,
+        #             trial_state=self.trial_state, elapsed_time=self.elapsed_time, extra_info=self.extra_info)
+        return self.__dict__
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        return cls(**d)
+
+    def __eq__(self, other):
+        if not isinstance(other, Observation):
+            return False
+        # return self.to_dict() == other.to_dict()
+        return self.__dict__ == other.__dict__
 
 
 class HistoryContainer(object):
@@ -110,7 +146,7 @@ class HistoryContainer(object):
         if failed:
             self.failed_index.append(cur_idx)
 
-    def add(self, config: Configuration, perf: Perf):
+    def add(self, config: Configuration, perf):
         if config in self.data:
             logger.warning('Repeated configuration detected!')
             return
@@ -491,7 +527,7 @@ class MOHistoryContainer(HistoryContainer):
 
         self.max_y = [MAXINT] * self.num_objectives
 
-    def add(self, config: Configuration, perf: List[Perf]):
+    def add(self, config: Configuration, perf):
         assert self.num_objectives == len(perf)
 
         if config in self.data:
@@ -626,7 +662,7 @@ class MultiStartHistoryContainer(object):
     def update_observation(self, observation: Observation):
         return self.current.update_observation(observation)
 
-    def add(self, config: Configuration, perf: Perf):
+    def add(self, config: Configuration, perf):
         self.current.add(config, perf)
 
     @property

@@ -9,7 +9,7 @@ from django.http import HttpResponse, JsonResponse
 
 from openbox.utils.config_space import json as config_json
 from openbox.utils.config_space import Configuration
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 
 from openbox.artifact.data_manipulation.db_object import User, Task, Runhistory
 from user_board.utils.common import get_password

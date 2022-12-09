@@ -8,7 +8,7 @@ from openbox.core.ea.base_ea_advisor import pareto_layers
 from openbox.core.ea.base_ea_advisor import EAAdvisor
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
-from openbox.core.base import Observation
+from openbox.utils.history_container import Observation
 from openbox.utils.util_funcs import deprecate_kwarg
 
 

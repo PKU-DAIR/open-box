@@ -1,32 +1,9 @@
 # License: MIT
 
-import sys
 from openbox import logger
-from openbox.utils.constants import MAXINT, SUCCESS
+from openbox.utils.constants import MAXINT
 from openbox.acquisition_function import *
-from openbox.utils.util_funcs import get_types, deprecate_kwarg
-
-
-class Observation(object):
-    @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
-    def __init__(self, config, objectives, constraints=None, trial_state=SUCCESS, elapsed_time=None):
-        self.config = config
-        self.objectives = objectives
-        self.constraints = constraints
-        self.trial_state = trial_state
-        self.elapsed_time = elapsed_time
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __str__(self):
-        return "Observation(" \
-               + "config=%s" % self.config \
-               + ", objectives=%s" % self.objectives \
-               + (", constraints=%s" % self.constraints if self.constraints is not None else "") \
-               + ", trial_state=%s" % self.trial_state \
-               + (", elapsed_time=%s" % self.elapsed_time if self.elapsed_time is not None else "") \
-               + ")"
+from openbox.utils.util_funcs import get_types
 
 
 acq_dict = {
