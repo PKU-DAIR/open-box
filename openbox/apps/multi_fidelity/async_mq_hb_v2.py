@@ -8,7 +8,6 @@ from openbox.apps.multi_fidelity.async_mq_base_facade import async_mqBaseFacade
 from openbox.apps.multi_fidelity.utils import WAITING, RUNNING, COMPLETED, PROMOTED
 from openbox.apps.multi_fidelity.utils import sample_configuration
 from openbox.utils.config_space import ConfigurationSpace
-from openbox.utils.constants import MAXINT
 
 
 class async_mqHyperband_v2(async_mqBaseFacade):
@@ -147,7 +146,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
             # update bracket
             bracket_id = self.get_bracket_id(self.brackets, next_n_iteration)
             logger.info('Sample a new config: %s. Add to bracket %d.' % (next_config, bracket_id))
-            new_job = [RUNNING, next_config, MAXINT, next_extra_conf]  # running perf is set to MAXINT
+            new_job = [RUNNING, next_config, np.inf, next_extra_conf]  # running perf is set to np.inf
             self.brackets[bracket_id][0]['jobs'].append(new_job)
             self.brackets[bracket_id][0]['configs'].add(next_config)
             assert len(self.brackets[bracket_id][0]['jobs']) == len(self.brackets[bracket_id][0]['configs'])
@@ -181,7 +180,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
         candidate_jobs = completed_jobs[0: n_should_promote]
         for job_id, job in candidate_jobs:
             job_status, config, perf, extra_conf = job
-            if not perf < MAXINT:
+            if not perf < np.inf:
                 logger.warning('Skip promoting job (bad perf): %s' % job)
                 continue
             # check if config already exists in upper rungs
@@ -204,7 +203,7 @@ class async_mqHyperband_v2(async_mqBaseFacade):
                              (bracket_id, rung_id, bracket[rung_id]['jobs'][job_id]))
             bracket[rung_id]['jobs'][job_id][0] = PROMOTED
             bracket[rung_id]['num_promoted'] += 1
-            new_job = [WAITING, next_config, MAXINT, next_extra_conf]  # running perf is set to MAXINT
+            new_job = [WAITING, next_config, np.inf, next_extra_conf]  # running perf is set to np.inf
             bracket[rung_id + 1]['jobs'].append(new_job)
             bracket[rung_id + 1]['configs'].add(next_config)
             assert len(bracket[rung_id + 1]['jobs']) == len(bracket[rung_id + 1]['configs'])

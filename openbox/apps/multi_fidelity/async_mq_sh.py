@@ -8,7 +8,6 @@ from openbox.apps.multi_fidelity.async_mq_base_facade import async_mqBaseFacade
 from openbox.apps.multi_fidelity.utils import RUNNING, COMPLETED, PROMOTED
 from openbox.apps.multi_fidelity.utils import sample_configuration
 from openbox.utils.config_space import ConfigurationSpace
-from openbox.utils.constants import MAXINT
 
 
 class async_mqSuccessiveHalving(async_mqBaseFacade):
@@ -97,7 +96,7 @@ class async_mqSuccessiveHalving(async_mqBaseFacade):
             candidate_jobs = complete_jobs[0: int(len(complete_jobs) / self.eta)]
             for job_id, job in candidate_jobs:
                 job_status, config, perf, extra_conf = job
-                if not (job_status == COMPLETED and perf < MAXINT):
+                if not (job_status == COMPLETED and perf < np.inf):
                     continue
                 # check if config already exists in upper rungs
                 exist = False
@@ -114,7 +113,7 @@ class async_mqSuccessiveHalving(async_mqBaseFacade):
                     logger.info('Promote job in rung %d: %s' % (rung_id, self.bracket[rung_id]['jobs'][job_id]))
                     self.bracket[rung_id]['jobs'][job_id][0] = PROMOTED
                     self.bracket[rung_id]['num_promoted'] += 1
-                    new_job = [RUNNING, next_config, MAXINT, next_extra_conf]     # running perf is set to MAXINT
+                    new_job = [RUNNING, next_config, np.inf, next_extra_conf]     # running perf is set to np.inf
                     self.bracket[rung_id + 1]['jobs'].append(new_job)
                     self.bracket[rung_id + 1]['configs'].add(next_config)
                     assert len(self.bracket[rung_id + 1]['jobs']) == len(self.bracket[rung_id + 1]['configs'])
@@ -128,7 +127,7 @@ class async_mqSuccessiveHalving(async_mqBaseFacade):
             # update bracket
             rung_id = self.get_rung_id(self.bracket, next_n_iteration)
             logger.info('Sample a new config: %s. Add to rung %d.' % (next_config, rung_id))
-            new_job = [RUNNING, next_config, MAXINT, next_extra_conf]   # running perf is set to MAXINT
+            new_job = [RUNNING, next_config, np.inf, next_extra_conf]   # running perf is set to np.inf
             self.bracket[rung_id]['jobs'].append(new_job)
             self.bracket[rung_id]['configs'].add(next_config)
             assert len(self.bracket[rung_id]['jobs']) == len(self.bracket[rung_id]['configs'])

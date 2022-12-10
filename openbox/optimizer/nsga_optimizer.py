@@ -38,7 +38,7 @@ class NSGAOptimizer(NSGABase):
         self.num_constraints = num_constraints
         self.num_objectives = num_objectives
         self.algo = algorithm
-        self.FAILED_PERF = [MAXINT] * num_objectives
+        self.FAILED_PERF = [np.inf] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, max_runs=max_runs, logger_kwargs=logger_kwargs)
         random.seed(self.rng.randint(MAXINT))

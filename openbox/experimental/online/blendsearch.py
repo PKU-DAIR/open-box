@@ -89,7 +89,7 @@ class BlendSearchAdvisor(abc.ABC):
     def get_suggestion(self):
         next_config = None
         if self.globals is None:
-            self.globals = SearchPiece(self.make_searcher(self.GlobalSearch), -MAXINT, None)
+            self.globals = SearchPiece(self.make_searcher(self.GlobalSearch), -np.inf, None)
             self.cur = self.globals
             next_config = self.globals.search_method.get_suggestion()
             self.globals.config = next_config
@@ -172,7 +172,7 @@ class BlendSearchAdvisor(abc.ABC):
 
     def create_piece(self, config: Configuration):
         self.locals.append(SearchPiece(self.make_searcher(self.LocalSearch, (config, )),
-                                       -MAXINT, None))
+                                       -np.inf, None))
 
     def del_piece(self, s: SearchPiece):
         if s in self.locals:

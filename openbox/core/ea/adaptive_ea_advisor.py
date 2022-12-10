@@ -121,7 +121,7 @@ class AdaptiveEAAdvisor(EAAdvisor):
             self.running_configs.remove(config)
 
             # update population
-            if trial_state == SUCCESS and perf < MAXINT:
+            if trial_state == SUCCESS and perf < np.inf:
                 self.population.append(dict(config=config, age=self.age, perf=perf))
 
             ret_observations.append(self.history_container.update_observation(observation))

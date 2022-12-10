@@ -1,6 +1,5 @@
 # License: MIT
 
-import sys
 import time
 import json
 import collections
@@ -9,7 +8,7 @@ from functools import partial
 import numpy as np
 from ConfigSpace import CategoricalHyperparameter, OrdinalHyperparameter
 from openbox import logger
-from openbox.utils.constants import MAXINT, SUCCESS
+from openbox.utils.constants import SUCCESS
 from openbox.utils.config_space import Configuration, ConfigurationSpace
 from openbox.utils.multi_objective import Hypervolume, get_pareto_front
 from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values, get_config_numerical_values
@@ -67,7 +66,7 @@ class HistoryContainer(object):
         self.config_space = config_space  # for show_importance
         self.data = collections.OrderedDict()  # only successful data
         self.config_counter = 0
-        self.incumbent_value = MAXINT
+        self.incumbent_value = np.inf
         self.incumbents = list()
 
         self.num_objectives = 1
@@ -88,7 +87,7 @@ class HistoryContainer(object):
         self.scale_perc = 5
         self.perc = None
         self.min_y = None
-        self.max_y = MAXINT
+        self.max_y = np.inf
 
     def update_observation(self, observation: Observation):
         self.update_times.append(time.time() - self.global_start_time)
@@ -110,7 +109,7 @@ class HistoryContainer(object):
 
         transform_perf = False
         failed = False
-        if trial_state == SUCCESS and all(perf < MAXINT for perf in objectives):
+        if trial_state == SUCCESS and all(perf < np.inf for perf in objectives):
             if self.num_constraints > 0 and constraints is None:
                 logger.error('Constraint is None in a SUCCESS trial!')
                 failed = True
@@ -127,13 +126,13 @@ class HistoryContainer(object):
                     if feasible:
                         self.add(config, objectives[0])
                     else:
-                        self.add(config, MAXINT)
+                        self.add(config, np.inf)
                 else:
                     self.successful_perfs.append(objectives)
                     if feasible:
                         self.add(config, objectives)
                     else:
-                        self.add(config, [MAXINT] * self.num_objectives)
+                        self.add(config, [np.inf] * self.num_objectives)
 
                 self.perc = np.percentile(self.successful_perfs, self.scale_perc, axis=0)
                 self.min_y = np.min(self.successful_perfs, axis=0).tolist()
@@ -534,12 +533,12 @@ class MOHistoryContainer(HistoryContainer):
         super().__init__(task_id=task_id, num_constraints=num_constraints, config_space=config_space)
         self.pareto = collections.OrderedDict()
         self.num_objectives = num_objectives
-        self.mo_incumbent_value = [MAXINT] * self.num_objectives
+        self.mo_incumbent_value = [np.inf] * self.num_objectives
         self.mo_incumbents = [list() for _ in range(self.num_objectives)]
         self.ref_point = ref_point
         self.hv_data = list()
 
-        self.max_y = [MAXINT] * self.num_objectives
+        self.max_y = [np.inf] * self.num_objectives
 
     def add(self, config: Configuration, perf):
         assert self.num_objectives == len(perf)

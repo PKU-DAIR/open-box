@@ -3,7 +3,8 @@
 import time
 import sys
 import traceback
-from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+import numpy as np
+from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.core.message_queue.worker_messager import WorkerMessager
 
@@ -46,11 +47,11 @@ class mqmfWorker(object):
                         'Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
                 else:
                     if _result is None:
-                        perf = MAXINT
+                        perf = np.inf
                     elif isinstance(_result, dict):
                         perf = _result['objective_value']
                         if perf is None:
-                            perf = MAXINT
+                            perf = np.inf
                         ref_id = _result.get('ref_id', None)
                         early_stop = _result.get('early_stop', False)
                     else:
@@ -61,7 +62,7 @@ class mqmfWorker(object):
                 else:
                     traceback.print_exc(file=sys.stdout)
                     trial_state = FAILED
-                perf = MAXINT
+                perf = np.inf
 
             time_taken = time.time() - start_time
             return_info = dict(loss=perf,

@@ -136,7 +136,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
         self.running_configs.remove(config)
 
         # update population
-        if trial_state == SUCCESS and perf < MAXINT:
+        if trial_state == SUCCESS and perf < np.inf:
             self.population.append(dict(config=config, age=self.age, perf=perf))
             self.age += 1
 

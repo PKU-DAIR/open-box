@@ -3,7 +3,7 @@
 import time
 import sys
 import traceback
-from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import parse_result
 from openbox.core.message_queue.worker_messager import WorkerMessager

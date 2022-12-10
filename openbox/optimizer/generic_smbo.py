@@ -5,9 +5,10 @@ import math
 from typing import List
 from collections import OrderedDict
 from tqdm import tqdm
+import numpy as np
 from openbox import logger
 from openbox.optimizer.base import BOBase
-from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import parse_result, deprecate_kwarg
 from openbox.utils.history_container import Observation
@@ -126,7 +127,7 @@ class SMBO(BOBase):
 
         self.num_objectives = num_objectives
         self.num_constraints = num_constraints
-        self.FAILED_PERF = [MAXINT] * num_objectives
+        self.FAILED_PERF = [np.inf] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          runtime_limit=runtime_limit, sample_strategy=sample_strategy,
@@ -255,7 +256,7 @@ class SMBO(BOBase):
                 if isinstance(e, TimeoutException):
                     logger.warning(str(e))
                     trial_state = TIMEOUT
-                else:
+                else:  # todo: log exception if objective function raises error
                     logger.warning('Exception when calling objective function: %s' % str(e))
                     trial_state = FAILED
                 objectives = self.FAILED_PERF

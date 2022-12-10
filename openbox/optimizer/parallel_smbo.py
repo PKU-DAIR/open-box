@@ -6,9 +6,10 @@ import traceback
 from typing import List
 from collections import OrderedDict
 from multiprocessing import Lock
+import numpy as np
 
 from openbox import logger
-from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
+from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.core.computation.parallel_process import ParallelEvaluation
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import parse_result, deprecate_kwarg
@@ -81,7 +82,7 @@ class pSMBO(BOBase):
 
         self.num_objectives = num_objectives
         self.num_constraints = num_constraints
-        self.FAILED_PERF = [MAXINT] * num_objectives
+        self.FAILED_PERF = [np.inf] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,

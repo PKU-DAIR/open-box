@@ -5,7 +5,7 @@ import numpy as np
 
 from openbox import logger
 from openbox.utils.config_space.util import convert_configurations_to_array
-from openbox.utils.constants import MAXINT, SUCCESS
+from openbox.utils.constants import SUCCESS
 from openbox.utils.history_container import Observation
 from openbox.core.generic_advisor import Advisor
 from openbox.utils.util_funcs import deprecate_kwarg

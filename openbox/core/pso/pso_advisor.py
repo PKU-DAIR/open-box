@@ -66,11 +66,11 @@ class PSOAdvisor(BasePSOAdvisor):
                 self.running_configs.append(next_config)
                 # print(next_config, next_vel)
                 self.population.append(Individual(pos = next_config.get_array(),
-                                                  vel = next_vel, perf = MAXINT))
+                                                  vel = next_vel, perf = np.inf))
                 self.pbest.append(Individual(pos = next_config.get_array(),
-                                             vel = next_vel, perf = MAXINT))
+                                             vel = next_vel, perf = np.inf))
             self.gbest = Individual(pos = next_config.get_array(),
-                                    vel = next_vel, perf = MAXINT)
+                                    vel = next_vel, perf = np.inf)
         else:
             for t in self.population:
                 next_config = Configuration(self.config_space, vector = list(t['pos']))
@@ -111,7 +111,7 @@ class PSOAdvisor(BasePSOAdvisor):
                 self.gbest['pos'] = cur['pos']
                 self.gbest['perf'] = cur['perf']
 
-        if self.gbest['perf'] != MAXINT:
+        if self.gbest['perf'] < np.inf:
             for i in range(self.population_size):
                 cur = self.population[i]
                 curbest = self.pbest[i]

@@ -3,9 +3,9 @@
 import time
 from typing import List
 from collections import OrderedDict
+import numpy as np
 
 from openbox import logger
-from openbox.utils.constants import MAXINT
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.optimizer.base import BOBase
@@ -51,7 +51,7 @@ class mqSMBO(BOBase):
 
         self.num_objectives = num_objectives
         self.num_constraints = num_constraints
-        self.FAILED_PERF = [MAXINT] * num_objectives
+        self.FAILED_PERF = [np.inf] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
