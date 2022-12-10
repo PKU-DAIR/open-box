@@ -169,7 +169,7 @@ The convergence curve can be plotted for further visualization. If the code is r
 
 ```python
 history.plot_convergence(true_minimum=0.397887)
-history.visualize_jupyter()
+history.visualize_hiplot()
 ```
 
 <center class="half">
@@ -300,11 +300,11 @@ Similarly, we can plot the convergence curve for further visualization. If the c
 
 ```python
 history.plot_convergence()
-history.visualize_jupyter()
+history.visualize_hiplot()
 ```
 
 <center class="half">
-  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_hiplot_hpo.png" width="300"/>
 </center>
 The left figure shows the best observed objective during the optimization while the right figure reflects the relationships between each hyperparameter and the objective.
 
@@ -359,4 +359,3 @@ In the future, we will continue to introduce more usages of OpenBox, including t
 ## Reference
 
 [1] <https://www.automl.org/wp-content/uploads/2018/11/hpo.pdf>
-

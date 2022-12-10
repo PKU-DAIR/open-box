@@ -48,4 +48,4 @@ if __name__ == "__main__":
     # install pyrfr to use get_importance()
     # print(history.get_importance())
 
-    # history.visualize_jupyter()
+    # history.visualize_hiplot()

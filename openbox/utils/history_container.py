@@ -4,7 +4,7 @@ import sys
 import time
 import json
 import collections
-from typing import List, Union
+from typing import List, Union, Optional
 from functools import partial
 import numpy as np
 from ConfigSpace import CategoricalHyperparameter, OrdinalHyperparameter
@@ -318,22 +318,32 @@ class HistoryContainer(object):
                               color, infeasible_color, **kwargs)
         return ax
 
-    def visualize_jupyter(self):
-        try:
-            import hiplot as hip
-        except ModuleNotFoundError:
-            logger.error("Please run 'pip install hiplot'. "
-                              "HiPlot requires Python 3.6 or newer.")
-            raise
-        # HiPlot documentation: https://facebookresearch.github.io/hiplot/
-        visualize_data = []
-        for config, perf in zip(self.configurations, self.perfs):
-            config_perf = config.get_dictionary().copy()
-            assert 'perf' not in config_perf.keys()
-            config_perf['perf'] = perf
-            visualize_data.append(config_perf)
-        hip.Experiment.from_iterable(visualize_data).display()
-        return
+    def visualize_hiplot(self, html_file: Optional[str] = None, **kwargs):
+        """
+        Visualize the history using HiPlot in Jupyter Notebook.
+
+        HiPlot documentation: https://facebookresearch.github.io/hiplot/
+
+        Parameters
+        ----------
+        html_file: str, optional
+            If None, the visualization will be shown in the juptyer notebook.
+            If specified, the visualization will be saved to the html file.
+        kwargs: dict
+            Other keyword arguments passed to `hiplot.Experiment.display` or `hiplot.Experiment.to_html`.
+
+        Returns
+        -------
+        exp: hiplot.Experiment
+            The hiplot experiment object.
+        """
+        from openbox.visualization import visualize_hiplot
+
+        configs = self.configurations
+        y = np.array(self.perfs)
+        cy = np.array(self.constraint_perfs) if self.num_constraints > 0 else None
+        exp = visualize_hiplot(configs=configs, y=y, cy=cy, html_file=html_file, **kwargs)
+        return exp
 
     def visualize_html(self, show_importance=False, verify_surrogate=False, optimizer=None, **kwargs):
         from openbox.visualization import build_visualizer, HTMLVisualizer
@@ -608,9 +618,6 @@ class MOHistoryContainer(HistoryContainer):
 
     def plot_convergence(self, *args, **kwargs):
         raise NotImplementedError('plot_convergence only supports single objective!')
-
-    def visualize_jupyter(self, *args, **kwargs):
-        raise NotImplementedError('visualize_jupyter only supports single objective!')
 
 
 class MultiStartHistoryContainer(object):

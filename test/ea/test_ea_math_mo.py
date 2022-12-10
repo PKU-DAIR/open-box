@@ -142,8 +142,3 @@ if __name__ == "__main__":
         target = function(config)
         print(config.get_array(), pred, target)
         # print(convert_configurations_to_array([config]), pred, target)
-
-    # install pyrfr to use get_importance()
-    # print(history.get_importance())
-
-    # history.visualize_jupyter()

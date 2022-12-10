@@ -42,4 +42,4 @@ if __name__ == "__main__":
     history.plot_convergence(true_minimum=0.397887)
     plt.show()
 
-    # history.visualize_jupyter()
+    # history.visualize_hiplot()

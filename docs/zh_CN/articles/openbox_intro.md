@@ -162,11 +162,11 @@ print(history)
 
 ```python
 history.plot_convergence(true_minimum=0.397887)
-history.visualize_jupyter()
+history.visualize_hiplot()
 ```
 
 <center class="half">
-  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_branin.png" width="350"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_jupyter_branin.png" width="250"/>
+  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_branin.png" width="350"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_hiplot_branin.png" width="250"/>
 </center>
 
 #### LightGBM模型超参数优化
@@ -293,11 +293,11 @@ print(history)
 
 ```python
 history.plot_convergence()
-history.visualize_jupyter()
+history.visualize_hiplot()
 ```
 
 <center class="half">
-  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_hiplot_hpo.png" width="300"/>
 </center>
 上面左图为模型最优错误率随验证次数变化曲线，右图为反映优化历史中超参数与结果关系的HiPlot可视化图表。
 
@@ -354,4 +354,3 @@ Ackley-4d | Hartmann-6d
 [1] <https://www.automl.org/wp-content/uploads/2018/11/hpo.pdf>
 
 [2] <https://zhuanlan.zhihu.com/p/66312442>
-

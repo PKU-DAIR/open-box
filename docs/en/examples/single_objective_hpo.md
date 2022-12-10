@@ -161,13 +161,13 @@ history.plot_convergence()
 
 <img src="../../imgs/plot_convergence_hpo.png" width="60%" class="align-center">
 
-If you are using the Jupyter Notebook environment, call history.visualize_jupyter() for visualization of each trial:
+If you are using the Jupyter Notebook environment, call history.visualize_hiplot() for visualization of each trial:
 
 ```python
-history.visualize_jupyter()
+history.visualize_hiplot()
 ```
 
-<img src="../../imgs/visualize_jupyter_hpo.png" width="90%" class="align-center">
+<img src="../../imgs/visualize_hiplot_hpo.png" width="90%" class="align-center">
 
 Call <font color=#FF0000>**print(history.get_importance())**</font> print the hyperparameter importance:
 (Note that you need to install the `pyrfr` package to use this function. [Pyrfr Installation Guide](../installation/install_pyrfr.md))

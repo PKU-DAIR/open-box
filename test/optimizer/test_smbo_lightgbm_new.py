@@ -87,4 +87,4 @@ print(history)
 history.plot_convergence()
 plt.show()
 
-# history.visualize_jupyter()
+# history.visualize_hiplot()

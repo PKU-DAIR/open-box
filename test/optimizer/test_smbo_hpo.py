@@ -61,4 +61,4 @@ history.plot_convergence()
 #plt.show()
 plt.savefig('logs/plot_convergence_hpo.png')
 
-history.visualize_jupyter()
+# history.visualize_hiplot()

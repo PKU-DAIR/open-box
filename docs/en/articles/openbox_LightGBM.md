@@ -128,11 +128,11 @@ The convergence curve can be plotted for further visualization. If the code is r
 
 ```python
 history.plot_convergence()
-history.visualize_jupyter()
+history.visualize_hiplot()
 ```
 
 <center class="half">
-  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_hiplot_hpo.png" width="300"/>
 </center>
 
 
@@ -175,4 +175,3 @@ In this article, we introduced how to tune LightGBM using OpenBox, and displayed
 For more usages of OpenBox (e.g., multiple objectives, constraints, parallel running), please refer to our [documentation](https://open-box.readthedocs.io).
 
 OpenBox is now open source on [Github](https://github.com/PKU-DAIR/open-box). We are actively accepting code contributions to the OpenBox project.
-

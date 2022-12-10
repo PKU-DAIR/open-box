@@ -129,11 +129,11 @@ print(history)
 
 ```python
 history.plot_convergence()
-history.visualize_jupyter()
+history.visualize_hiplot()
 ```
 
 <center class="half">
-  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_jupyter_hpo.png" width="300"/>
+  <img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/plot_convergence_hpo.png" width="300"/><img src="https://raw.githubusercontent.com/PKU-DAIR/open-box/master/docs/imgs/visualize_hiplot_hpo.png" width="300"/>
 </center>
 
 
@@ -176,4 +176,3 @@ OpenBox系统对于超参数优化问题有着优异的表现，我们实验比�
 如果您有兴趣了解OpenBox的更多使用方法（如多目标、带约束条件场景，并行验证，服务使用等），欢迎阅读我们的教程文档：<https://open-box.readthedocs.io>。
 
 OpenBox项目已在Github开源，项目地址：<https://github.com/PKU-DAIR/open-box> 。欢迎更多开发者参与我们的开源项目。
-

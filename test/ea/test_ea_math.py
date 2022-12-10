@@ -82,8 +82,3 @@ if __name__ == "__main__":
         pred = gp.predict(convert_configurations_to_array([config]))
         target = function(config)
         print(pred, target)
-
-    # install pyrfr to use get_importance()
-    # print(history.get_importance())
-
-    # history.visualize_jupyter()
