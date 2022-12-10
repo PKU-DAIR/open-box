@@ -115,7 +115,7 @@ class AsyncBatchAdvisor(Advisor):
             # imputation
             for config in self.running_configs:
                 observation = Observation(config=config, objectives=estimated_y, constraints=estimated_c,
-                                          trial_state=SUCCESS, elapsed_time=None)
+                                          trial_state=SUCCESS, elapsed_time=None, extra_info=None)
                 batch_history_container.update_observation(observation)
 
             # use super class get_suggestion

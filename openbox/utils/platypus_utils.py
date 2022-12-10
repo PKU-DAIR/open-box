@@ -6,7 +6,7 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, \
 from ConfigSpace import Configuration
 from platypus import Real, Integer
 from platypus.operators import CompoundOperator, SBX, PM, HUX, BitFlip
-from openbox.utils.util_funcs import get_result
+from openbox.utils.util_funcs import parse_result
 
 
 def get_variator(config_space):
@@ -57,7 +57,7 @@ def objective_wrapper(objective_function, config_space, num_constraints):
     def obj_func(x):
         config = Configuration(config_space, vector=x)
         result = objective_function(config)
-        objectives, constraints = get_result(result)
+        objectives, constraints, extra_info = parse_result(result)
         if num_constraints > 0:
             return objectives, constraints
         else:

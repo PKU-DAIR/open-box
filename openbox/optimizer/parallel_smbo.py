@@ -11,7 +11,7 @@ from openbox import logger
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.core.computation.parallel_process import ParallelEvaluation
 from openbox.utils.limit import time_limit, TimeoutException
-from openbox.utils.util_funcs import get_result, deprecate_kwarg
+from openbox.utils.util_funcs import parse_result, deprecate_kwarg
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.core.ea_advisor import EA_Advisor
@@ -30,7 +30,7 @@ def wrapper(param):
         if timeout_status:
             raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
         else:
-            objectives, constraints = get_result(_result)
+            objectives, constraints, extra_info = parse_result(_result)
     except Exception as e:
         if isinstance(e, TimeoutException):
             trial_state = TIMEOUT
@@ -39,10 +39,11 @@ def wrapper(param):
             trial_state = FAILED
         objectives = None
         constraints = None
+        extra_info = None
     elapsed_time = time.time() - start_time
     return Observation(
         config=config, objectives=objectives, constraints=constraints,
-        trial_state=trial_state, elapsed_time=elapsed_time,
+        trial_state=trial_state, elapsed_time=elapsed_time, extra_info=extra_info,
     )
 
 
@@ -167,10 +168,7 @@ class pSMBO(BOBase):
 
     def callback(self, observation: Observation):
         if observation.objectives is None:
-            observation = Observation(
-                config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
-                trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
-            )
+            observation.objectives = self.FAILED_PERF.copy()
         # Report the result, and remove the config from the running queue.
         with self.advisor_lock:
             # Parent process: collect the result and increment id.
@@ -231,10 +229,7 @@ class pSMBO(BOBase):
                 # Report their results.
                 for idx, observation in enumerate(observations):
                     if observation.objectives is None:
-                        observation = Observation(
-                            config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
-                            trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
-                        )
+                        observation.objectives = self.FAILED_PERF.copy()
                     self.config_advisor.update_observation(observation)
                     logger.info('In the %d-th batch [%d/%d], observation: %s.'
                                      % (batch_id, idx+1, len(configs), observation))

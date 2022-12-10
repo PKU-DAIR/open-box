@@ -130,10 +130,7 @@ class mqSMBO(BOBase):
                 # Report result.
                 result_num += 1
                 if observation.objectives is None:
-                    observation = Observation(
-                        config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
-                        trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
-                    )
+                    observation.objectives = self.FAILED_PERF.copy()
                 self.config_advisor.update_observation(observation)
                 logger.info('Master: Get %d observation: %s' % (result_num, str(observation)))
 
@@ -162,10 +159,7 @@ class mqSMBO(BOBase):
                 # Report result.
                 result_num += 1
                 if observation.objectives is None:
-                    observation = Observation(
-                        config=observation.config, objectives=self.FAILED_PERF, constraints=observation.constraints,
-                        trial_state=observation.trial_state, elapsed_time=observation.elapsed_time,
-                    )
+                    observation.objectives = self.FAILED_PERF.copy()
                 self.config_advisor.update_observation(observation)
                 logger.info('Master: In the %d-th batch [%d], observation is: %s'
                                  % (batch_id, result_num, str(observation)))

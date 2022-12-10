@@ -15,7 +15,7 @@ from openbox.utils.multi_objective import Hypervolume, get_pareto_front
 from openbox.utils.config_space.space_utils import get_config_from_dict, get_config_values, get_config_numerical_values
 from openbox.utils.transform import get_transform_function
 from openbox.utils.config_space.util import convert_configurations_to_array
-from openbox.utils.util_funcs import deprecate_kwarg
+from openbox.utils.util_funcs import deprecate_kwarg, transform_to_1d_list
 
 
 class Observation(object):
@@ -27,6 +27,10 @@ class Observation(object):
         self.trial_state = trial_state
         self.elapsed_time = elapsed_time
         self.extra_info = extra_info
+
+        self.objectives = transform_to_1d_list(self.objectives, hint='objectives')
+        if self.constraints is not None:
+            self.constraints = transform_to_1d_list(self.constraints, hint='constraints')
 
     def __str__(self):
         items = [f'config={self.config}', f'objectives={self.objectives}']

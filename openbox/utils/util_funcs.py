@@ -57,50 +57,76 @@ def get_types(config_space, instance_features=None):
     return types, bounds
 
 
-def get_result(result):
+def transform_to_1d_list(x, hint='result'):
     """
-    Get objectives and constraints from result returned by objective function.
-    Raise ValueError if objectives is None as time_limit() function doesn't raise Exception
+    Transform a scalar, 1-d list, tuple, np.ndarray, touch.Tensor to 1-d list
+    If x is None or x is not 1-d (after squeeze), raise an error
+    """
+    assert x is not None, f'{hint} is None!'
+    x = np.asarray(x)
+    original_shape = x.shape
+    x = np.squeeze(x)  # np.squeeze requires numpy>=1.7.0
+    if x.ndim == 0:
+        x = x.reshape(1)
+    assert x.ndim == 1, f'The {hint} should be a 1-D array, but got shape: {x.shape}'
+    if x.shape != original_shape:
+        logger.warning(f'The shape of {hint} is changed from {original_shape} to {x.shape}.')
+    return x.tolist()
 
-    :param result:
-        return value from objective function
-    :return:
-        objectives:
-            list/tuple of objective values
-        constraints:
-            list/tuple of constraint values or None
+
+def parse_result(result):
     """
-    number_typing_list = (int, float, np.int32, np.int64, np.float32, np.float64)
+    Parse (objectives, constraints, extra_info) from result returned by objective function.
+
+    Parameters
+    ----------
+    result: dict (or float, list, np.ndarray)
+        The result returned by objective function.
+        Dict is recommended, but we try to support other types, such as float, list, np.ndarray, etc.
+        If result is a dict, it should contain at least one key "objectives" (or "objs" for backward compatibility).
+        Optional keys: "constraints", "extra_info".
+
+    Returns
+    -------
+    objectives: list
+        The list of objectives.
+    constraints: list, optional
+        The list of constraints.
+    extra_info: dict, optional
+        The extra information.
+    """
+    constraints, extra_info = None, None
     if result is None:
         raise ValueError('result is None!')
     elif isinstance(result, dict):  # recommended usage
-        objectives = result.get('objectives')
-        objs = result.get('objs')  # todo: deprecated
+        # for backward compatibility
+        objectives = result.pop('objectives', None)
+        objs = result.pop('objs', None)  # todo: deprecated
         if objectives is not None and objs is not None:
-            raise ValueError('"Objectives" and "objs" are both provided! Please only provide "objectives".')
+            raise ValueError('"objectives" and "objs" are both provided! Please only provide "objectives".')
         elif objectives is None and objs is None:
-            raise ValueError('No "objectives" is provided!')
+            raise ValueError('"objectives" is None!')
         elif objectives is None:
             objectives = objs
             logger.warning('Provide "objs" in result is deprecated and will be removed in future versions! '
                            'Please use "objectives" instead.')
 
-        if isinstance(objectives, number_typing_list):
-            objectives = [objectives, ]
-            logger.warning('Provide a list of objectives instead of a single value is recommended!')
-        constraints = result.get('constraints', None)
-    elif isinstance(result, number_typing_list):
-        objectives = [result, ]
-        constraints = None
-    else:
-        objectives = result
-        constraints = None
-        logger.warning('Provide a single list in result is not recommended! '
-                       'Please provide a dict with keys "objectives" and "constraints".')
+        # objectives is not None now
+        objectives = transform_to_1d_list(objectives, hint='objectives')
 
-    if objectives is None:
-        raise ValueError('objectives is None!')
-    return objectives, constraints
+        # optional keys
+        constraints = result.pop('constraints', None)
+        if constraints is not None:
+            constraints = transform_to_1d_list(constraints, hint='constraints')
+        extra_info = result.pop('extra_info', None)
+        if len(result) > 0:
+            logger.warning(f'Unused information in result: {result}')
+    else:
+        # provide only objectives
+        logger.warning(f'Provide result as <dict> that contains "objectives" is recommended, got {type(result)}')
+        objectives = transform_to_1d_list(result, hint='objectives')
+
+    return objectives, constraints, extra_info
 
 
 def check_random_state(seed):

@@ -1,8 +1,6 @@
 # License: MIT
 
-import sys
 import time
-import traceback
 import random
 import copy
 import numpy as np
@@ -14,10 +12,6 @@ from openbox.utils.config_space import Configuration
 from openbox.utils.util_funcs import deprecate_kwarg
 from platypus import Problem, NSGAII
 from platypus import nondominated as _nondominated
-
-"""
-    The objective function returns a dictionary that has --- config, constraints, objectives ---.
-"""
 
 
 class NSGAOptimizer(NSGABase):

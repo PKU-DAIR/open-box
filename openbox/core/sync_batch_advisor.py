@@ -118,7 +118,7 @@ class SyncBatchAdvisor(Advisor):
 
                 # imputation
                 observation = Observation(config=curr_batch_config, objectives=estimated_y, constraints=estimated_c,
-                                          trial_state=SUCCESS, elapsed_time=None)
+                                          trial_state=SUCCESS, elapsed_time=None, extra_info=None)
                 batch_history_container.update_observation(observation)
                 batch_configs_list.append(curr_batch_config)
 

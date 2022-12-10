@@ -5,7 +5,7 @@ import sys
 import traceback
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
-from openbox.utils.util_funcs import get_result
+from openbox.utils.util_funcs import parse_result
 from openbox.core.message_queue.worker_messager import WorkerMessager
 from openbox.utils.history_container import Observation
 
@@ -42,7 +42,7 @@ class Worker(object):
                     raise TimeoutException(
                         'Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
                 else:
-                    objectives, constraints = get_result(_result)
+                    objectives, constraints, extra_info = parse_result(_result)
             except Exception as e:
                 if isinstance(e, TimeoutException):
                     trial_state = TIMEOUT
@@ -51,11 +51,12 @@ class Worker(object):
                     trial_state = FAILED
                 objectives = None
                 constraints = None
+                extra_info = None
 
             elapsed_time = time.time() - start_time
             observation = Observation(
                 config=config, objectives=objectives, constraints=constraints,
-                trial_state=trial_state, elapsed_time=elapsed_time,
+                trial_state=trial_state, elapsed_time=elapsed_time, extra_info=extra_info,
             )
 
             # Send result

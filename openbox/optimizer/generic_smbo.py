@@ -9,13 +9,9 @@ from openbox import logger
 from openbox.optimizer.base import BOBase
 from openbox.utils.constants import MAXINT, SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
-from openbox.utils.util_funcs import get_result, deprecate_kwarg
+from openbox.utils.util_funcs import parse_result, deprecate_kwarg
 from openbox.utils.history_container import Observation
 from openbox.visualization import build_visualizer
-
-"""
-    The objective function returns a dictionary that has --- config, constraints, objectives ---.
-"""
 
 
 class SMBO(BOBase):
@@ -253,7 +249,7 @@ class SMBO(BOBase):
                         'Timeout: time limit for this evaluation is %.1fs' % _time_limit_per_trial)
                 else:
                     # parse result
-                    objectives, constraints = get_result(_result)
+                    objectives, constraints, extra_info = parse_result(_result)
             except Exception as e:
                 # parse result of failed trial
                 if isinstance(e, TimeoutException):
@@ -264,12 +260,13 @@ class SMBO(BOBase):
                     trial_state = FAILED
                 objectives = self.FAILED_PERF
                 constraints = None
+                extra_info = None
 
             elapsed_time = time.time() - start_time
             # update observation to advisor
             observation = Observation(
                 config=config, objectives=objectives, constraints=constraints,
-                trial_state=trial_state, elapsed_time=elapsed_time,
+                trial_state=trial_state, elapsed_time=elapsed_time, extra_info=extra_info,
             )
             if _time_limit_per_trial != self.time_limit_per_trial and trial_state == TIMEOUT:
                 # Timeout in the last iteration.
