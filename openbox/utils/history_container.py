@@ -2,6 +2,8 @@
 
 import time
 import json
+import copy
+from datetime import datetime
 import collections
 from typing import List, Union, Optional
 from functools import partial
@@ -19,12 +21,24 @@ from openbox.utils.util_funcs import deprecate_kwarg, transform_to_1d_list
 
 class Observation(object):
     @deprecate_kwarg('objs', 'objectives', 'a future version')
-    def __init__(self, config, objectives, constraints=None, trial_state=SUCCESS, elapsed_time=None, extra_info=None):
+    def __init__(
+            self,
+            config: Configuration,
+            objectives: Union[List[float], np.ndarray],
+            constraints: Optional[Union[List[float], np.ndarray]] = None,
+            trial_state: Optional['State'] = SUCCESS,
+            elapsed_time: Optional[float] = None,
+            extra_info: Optional[dict] = None,
+    ):
         self.config = config
         self.objectives = objectives
         self.constraints = constraints
         self.trial_state = trial_state
         self.elapsed_time = elapsed_time
+        self.create_time = datetime.now()
+        if extra_info is None:
+            extra_info = dict()
+        assert isinstance(extra_info, dict)
         self.extra_info = extra_info
 
         self.objectives = transform_to_1d_list(self.objectives, hint='objectives')
@@ -38,26 +52,50 @@ class Observation(object):
         items.append(f'trial_state={self.trial_state}')
         if self.elapsed_time is not None:
             items.append(f'elapsed_time={self.elapsed_time}')
-        if self.extra_info is not None:
+        items.append(f'create_time={self.create_time}')
+        if self.extra_info:
             items.append(f'extra_info={self.extra_info}')
         return f'Observation({", ".join(items)})'
 
     __repr__ = __str__
 
     def to_dict(self):
-        # return dict(config=self.config, objectives=self.objectives, constraints=self.constraints,
-        #             trial_state=self.trial_state, elapsed_time=self.elapsed_time, extra_info=self.extra_info)
-        return self.__dict__
+        d = {
+            'config': self.config.get_dictionary(),
+            'objectives': self.objectives,
+            'constraints': self.constraints,
+            'trial_state': self.trial_state,
+            'elapsed_time': self.elapsed_time,
+            'create_time': self.create_time,
+            'extra_info': self.extra_info,
+        }
+        for k, v in d.items():
+            d[k] = copy.deepcopy(v)
+
+        if isinstance(d['create_time'], datetime):
+            d['create_time'] = d['create_time'].isoformat()
+
+        return d
 
     @classmethod
-    def from_dict(cls, d: dict):
-        return cls(**d)
+    def from_dict(cls, d: dict, config_space: ConfigurationSpace):
+        config = d['config']
+        if isinstance(config, dict):
+            assert config_space is not None, 'config_space must be provided if config is a dict'
+            d['config'] = get_config_from_dict(config_space, config)
+
+        create_time = d.pop('create_time', None)
+
+        observation = cls(**d)
+
+        if isinstance(create_time, str):
+            observation.create_time = datetime.fromisoformat(create_time)
+        return observation
 
     def __eq__(self, other):
         if not isinstance(other, Observation):
             return False
-        # return self.to_dict() == other.to_dict()
-        return self.__dict__ == other.__dict__
+        return self.to_dict() == other.to_dict()
 
 
 class HistoryContainer(object):
