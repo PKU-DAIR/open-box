@@ -21,6 +21,7 @@ class HTMLVisualizer(BaseVisualizer):
             self,
             logging_dir: str,
             history_container: HistoryContainer,
+            auto_open_html: bool = False,
             advanced_analysis: bool = False,
             advanced_analysis_options: dict = None,
             advisor_type: str = None,
@@ -36,6 +37,7 @@ class HTMLVisualizer(BaseVisualizer):
         self.output_dir = os.path.join(logging_dir, "history/%s/" % task_id)
         self.output_dir = os.path.abspath(self.output_dir)
         os.makedirs(self.output_dir, exist_ok=True)
+        self.auto_open_html = auto_open_html
 
         self.advanced_analysis = advanced_analysis
         if advanced_analysis_options is None:
@@ -56,18 +58,23 @@ class HTMLVisualizer(BaseVisualizer):
         self.constraint_models = constraint_models
         self.timestamp = None
         self.html_path = None
+        self.displayed_html_path = None
         self.json_path = None
 
         if self.advanced_analysis:
             self.check_dependency()
 
-    def setup(self):
+    def setup(self, open_html=None):
         self.timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
         task_id = self.meta_data['task_id']
         self.html_path = os.path.join(self.output_dir, "%s_%s.html" % (task_id, self.timestamp))
+        self.displayed_html_path = 'file://' + self.html_path
         self.json_path = os.path.join(self.output_dir, "visualization_data_%s_%s.json" % (task_id, self.timestamp))
         self.generate_html()  # todo: check file conflict
-        # todo: auto open html (win, mac, not linux)
+        if open_html is None:
+            open_html = self.auto_open_html
+        if open_html:
+            self.open_html()
 
     def update(self, update_importance=None, verify_surrogate=None):
         iter_id = len(self.history_container.configurations)
@@ -83,13 +90,15 @@ class HTMLVisualizer(BaseVisualizer):
         self.save_visualization_data(update_importance=update_importance, verify_surrogate=verify_surrogate)
 
         if iter_id == max_iter:
-            logger.info('Please open the html file to view visualization result: %s' % self.html_path)
+            logger.info('Please open the html file to view visualization result: %s' % self.displayed_html_path)
 
-    def visualize(self, show_importance=False, verify_surrogate=False):
+    def visualize(self, open_html=True, show_importance=False, verify_surrogate=False):
         if show_importance:
             self.check_dependency()
-        self.setup()
+        self.setup(open_html=False)
         self.update(update_importance=show_importance, verify_surrogate=verify_surrogate)
+        if open_html:
+            self.open_html()
 
     def check_dependency(self):
         try:
@@ -436,6 +445,15 @@ class HTMLVisualizer(BaseVisualizer):
             with open(self.html_path, "w") as f:
                 f.write(html_text)
 
-            logger.info('Please open the html file to view visualization result: %s' % self.html_path)
+            logger.info('Please open the html file to view visualization result: %s' % self.displayed_html_path)
         except Exception:
             logger.exception('Failed to generate html file!')
+
+    def open_html(self):
+        try:
+            import webbrowser
+            success = webbrowser.open(self.displayed_html_path)
+            if not success:
+                raise ValueError('webbrowser.open() returned False.')
+        except Exception:
+            logger.exception('Failed to open html file! Please open it manually: %s' % self.displayed_html_path)

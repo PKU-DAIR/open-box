@@ -15,12 +15,14 @@
 ### 在优化前开启可视化
 
 开启可视化网页只需在定义`Optimizer`时设置`visualization` = `basic` or `advanced`。
+并且设置`auto_open_html` = `True`以自动在浏览器中打开可视化网页：
 
 ```python
 from openbox import Optimizer
 opt = Optimizer(
     ..., 
     visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install lightgbm shap' first
+    auto_open_html=True,       # open the html file automatically
     task_id='example_task',
     logging_dir='logs',
 )
@@ -46,10 +48,13 @@ history = opt.run()
 ### 在优化后开启可视化
 
 如果您忘记了在`Optimizer`中设置可视化，没有关系，
-您仍然可以在优化结束后开启可视化：
+您仍然可以在优化结束后开启可视化。
+设置`open_html` 为 `True` 以自动在浏览器中打开可视化网页：
+
 ```python
 history = opt.get_history()
 history.visualize_html(
+    open_html=True,  # open the html file automatically
     show_importance=True,
     verify_surrogate=True,
     optimizer=opt,
@@ -226,4 +231,3 @@ SHAP值的绝对大小体现了影响程度，正值表示正相关。
 <img src="../../imgs/visualization/single_cons.png" width="80%" class="align-center">
 
 <br>
-

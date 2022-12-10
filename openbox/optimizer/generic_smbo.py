@@ -89,8 +89,15 @@ class SMBO(BOBase):
         Directory to save log files.
     task_id : str
         Task identifier.
-    visualization : ['none', 'basic', 'advanced']
-        HTML visualization option
+    visualization : ['none', 'basic', 'advanced'], default='none'
+        HTML visualization option.
+        - 'none': Run the task without visualization. No additional files are generated.
+                  Better for running massive experiments.
+        - 'basic': Run the task with basic visualization, including basic charts for objectives and constraints.
+        - 'advanced': Enable visualization with advanced functions,
+                      including surrogate fitting analysis and hyperparameter importance analysis.
+    auto_open_html : bool, default=False
+        Whether to automatically open the HTML file for visualization. Only works when `visualization` is not 'none'.
     random_state : int
         Random seed for RNG.
     """
@@ -117,6 +124,7 @@ class SMBO(BOBase):
             logging_dir='logs',
             task_id='OpenBox',
             visualization='none',
+            auto_open_html=False,
             random_state=None,
             logger_kwargs: dict = None,
             advisor_kwargs: dict = None,
@@ -214,7 +222,7 @@ class SMBO(BOBase):
         else:
             raise ValueError('Invalid advisor type!')
 
-        self.visualizer = build_visualizer(visualization, self)
+        self.visualizer = build_visualizer(visualization, self, auto_open_html=auto_open_html)
         self.visualizer.setup()
 
     def run(self):

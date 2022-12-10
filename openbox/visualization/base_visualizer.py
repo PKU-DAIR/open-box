@@ -14,6 +14,14 @@ def build_visualizer(option: Union[str, bool], optimizer, **kwargs):
     optimizer : Optimizer
         Optimizer to visualize.
 
+    kwargs : dict
+        Other arguments for visualizer.
+        For HTMLVisualizer, available arguments are:
+        - auto_open_html : bool, default=False
+            Whether to open html file automatically.
+        - advanced_analysis_options : dict, default=None
+            Advanced analysis options. See `HTMLVisualizer` for details.
+
     Returns
     -------
     visualizer : BaseVisualizer
@@ -29,6 +37,7 @@ def build_visualizer(option: Union[str, bool], optimizer, **kwargs):
         visualizer = HTMLVisualizer(
             logging_dir=optimizer.output_dir,
             history_container=optimizer.get_history(),
+            auto_open_html=kwargs.get('auto_open_html', False),
             advanced_analysis=(option == 'advanced'),
             advanced_analysis_options=kwargs.get('advanced_analysis_options'),
             advisor_type=optimizer.advisor_type,

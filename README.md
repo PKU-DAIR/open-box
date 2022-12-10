@@ -242,12 +242,14 @@ if __name__ == "__main__":
     print(opt.get_history().get_pareto())
 ```
 
-We also provide HTML Visualization by setting `visualization` = `basic` or `advanced` when defining an `Optimizer`:
+We also provide HTML Visualization by setting `visualization` = `basic` or `advanced` when defining an `Optimizer`. 
+And set `auto_open_html` = `True` to automatically open the visualization page in your browser:
 
 ```python
 opt = Optimizer(
     ...,
     visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install lightgbm shap' first
+    auto_open_html=True,       # open the html file automatically
     task_id='example_task',
     logging_dir='logs',
 )

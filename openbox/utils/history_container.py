@@ -344,7 +344,7 @@ class HistoryContainer(object):
         exp = visualize_hiplot(configs=configs, y=y, cy=cy, html_file=html_file, **kwargs)
         return exp
 
-    def visualize_html(self, show_importance=False, verify_surrogate=False, optimizer=None, **kwargs):
+    def visualize_html(self, open_html=True, show_importance=False, verify_surrogate=False, optimizer=None, **kwargs):
         from openbox.visualization import build_visualizer, HTMLVisualizer
         # todo: user-friendly interface
         if optimizer is None:
@@ -355,7 +355,7 @@ class HistoryContainer(object):
         if visualizer.history_container is not self:
             visualizer.history_container = self
             visualizer.meta_data['task_id'] = self.task_id
-        visualizer.visualize(show_importance=show_importance, verify_surrogate=verify_surrogate)
+        visualizer.visualize(open_html=open_html, show_importance=show_importance, verify_surrogate=verify_surrogate)
         return visualizer
 
     def get_importance(self, method='fanova', return_dict=False):

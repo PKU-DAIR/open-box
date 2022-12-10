@@ -15,13 +15,15 @@ Here we visualize the optimization process based on an example from
 
 ### Turn on visualization before optimization
 
-To turn on HTML visualization, just set `visualization` = `basic` or `advanced` when defining an `Optimizer`:
+To turn on HTML visualization, just set `visualization` = `basic` or `advanced` when defining an `Optimizer`.
+And set `auto_open_html` = `True` to automatically open the visualization page in your browser:
 
 ```python
 from openbox import Optimizer
 opt = Optimizer(
     ..., 
     visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install lightgbm shap' first
+    auto_open_html=True,       # open the html file automatically
     task_id='example_task',
     logging_dir='logs',
 )
@@ -47,10 +49,12 @@ During the optimization, you can click the `Refresh` button to update the visual
 ### Visualization after optimization
 
 If you forget to set `visualization` in `Optimizer`, don't worry,
-you can also start the visualization after the optimization ends:
+you can also start the visualization after the optimization ends.
+And set `open_html` to `True` to automatically open the visualization page in your browser:
 ```python
 history = opt.get_history()
 history.visualize_html(
+    open_html=True,  # open the html file automatically
     show_importance=True,
     verify_surrogate=True,
     optimizer=opt,
@@ -226,4 +230,3 @@ You can select the constraint from the drop-down box above the figure if there a
 <img src="../../imgs/visualization/single_cons.png" width="80%" class="align-center">
 
 <br>
-
