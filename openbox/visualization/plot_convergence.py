@@ -12,50 +12,37 @@ def plot_convergence(
         ax=None, alpha=0.3, yscale=None,
         color='C0', infeasible_color='C1',
         **kwargs):
-    """Plot convergence trace.
+    """
+    Plot convergence trace.
 
     Parameters
     ----------
     y : np.ndarray
         Objective values. y.ndim must be 1.
-
     cy : np.ndarray, optional
         Constraint values. cy.ndim must be 2.
-
     true_minimum : float, optional
         True minimum value of the objective function.
-
     name : str, optional
         Name of the plotted method.
-
     clip_y : bool, default=True
         Auto clip max y value.
-
     title : str
         Title of the plot.
-
     xlabel : str
         Label of x-axis.
-
     ylabel : str
         Label of y-axis.
-
     ax : matplotlib.axes.Axes, optional
-        The matplotlib axes on which to draw the plot, or `None` to create
-        a new one.
-
-    alpha : float, default=0.2
+        The matplotlib axes on which to draw the plot, or `None` to create a new one.
+    alpha : float, default=0.3
         Alpha value of the scatter plot.
-
     yscale : str, optional
         Scale of y-axis.
-
     color : str, default='C0' (first color in default color cycle)
         Color of the curve and feasible points.
-
     infeasible_color : str, default='C1' (second color in default color cycle)
         Color of the infeasible points.
-
     kwargs : dict
         Other keyword arguments passed to `ax.plot`.
 
@@ -80,7 +67,7 @@ def plot_convergence(
     x = np.arange(y.shape[0]) + 1
 
     has_constraints = cy is not None
-    feasible = np.ones_like(y, dtype=bool)
+    feasible = np.ones(y.shape[0], dtype=bool)
     if has_constraints:
         cy = np.asarray(cy)
         assert cy.ndim == 2 and cy.shape[0] == y.shape[0]

@@ -334,7 +334,8 @@ class HistoryContainer(object):
             ax=None, alpha=0.3, yscale=None,
             color='C0', infeasible_color='C1',
             **kwargs):
-        """Plot convergence trace.
+        """
+        Plot convergence trace.
 
         Parameters
         ----------
@@ -655,6 +656,32 @@ class MOHistoryContainer(HistoryContainer):
 
     def plot_convergence(self, *args, **kwargs):
         raise NotImplementedError('plot_convergence only supports single objective!')
+
+    def plot_pareto_front(
+            self,
+            title="Pareto Front",
+            ax=None, alpha=0.3,
+            color='C0', infeasible_color='C1',
+            **kwargs):
+        """
+        Plot Pareto front
+
+        Parameters
+        ----------
+        see `plot_pareto_front` in `openbox.visualization`.
+
+        Returns
+        -------
+        ax : matplotlib.axes.Axes
+            The matplotlib axes.
+        """
+        from openbox.visualization import plot_pareto_front
+        if self.num_objectives not in [2, 3]:
+            raise ValueError('plot_pareto_front only supports 2 or 3 objectives!')
+        y = np.array(self.perfs, dtype=np.float64)  # do not transform infeasible trials
+        cy = self.get_transformed_constraint_perfs(transform=None)
+        ax = plot_pareto_front(y, cy, title, ax, alpha, color, infeasible_color, **kwargs)
+        return ax
 
 
 class MultiStartHistoryContainer(object):

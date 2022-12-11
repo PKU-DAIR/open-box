@@ -48,20 +48,9 @@ if __name__ == "__main__":
         task_id='moc',
         random_state=1,
     )
-    opt.run()
+    history = opt.run()
 
     # plot pareto front
-    pareto_front = np.asarray(opt.get_history().get_pareto_front())
-    if pareto_front.shape[-1] in (2, 3):
-        if pareto_front.shape[-1] == 2:
-            plt.scatter(pareto_front[:, 0], pareto_front[:, 1])
-            plt.xlabel('Objective 1')
-            plt.ylabel('Objective 2')
-        elif pareto_front.shape[-1] == 3:
-            ax = plt.axes(projection='3d')
-            ax.scatter3D(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2])
-            ax.set_xlabel('Objective 1')
-            ax.set_ylabel('Objective 2')
-            ax.set_zlabel('Objective 3')
-        plt.title('Pareto Front')
+    if history.num_objectives in [2, 3]:
+        history.plot_pareto_front()  # support 2 or 3 objectives
         plt.show()

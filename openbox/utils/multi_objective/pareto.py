@@ -22,7 +22,7 @@ def is_non_dominated(Y: np.ndarray) -> np.ndarray:
     return ~(dominates.any(axis=-1))
 
 
-def get_pareto_front(Y: np.ndarray):
+def get_pareto_front(Y: np.ndarray, return_index=False, lexsort=False):
     r"""
     Compute the pareto front.
 
@@ -43,5 +43,9 @@ def get_pareto_front(Y: np.ndarray):
         pareto_front_idx = pareto_front_idx[non_dominated_point_mask]
         Y = Y[non_dominated_point_mask]
         next_point_index = np.sum(non_dominated_point_mask[:next_point_index]) + 1
+    if return_index:
+        return pareto_front_idx
     pareto_front = Y_[pareto_front_idx]
+    if lexsort:
+        pareto_front = pareto_front[np.lexsort(pareto_front.T)]
     return pareto_front

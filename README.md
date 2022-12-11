@@ -195,7 +195,7 @@ A quick start example is given by:
 
 ```python
 import numpy as np
-from openbox import Optimizer, sp
+from openbox import Optimizer, space as sp
 
 # Define Search Space
 space = sp.Space()
@@ -219,7 +219,8 @@ if __name__ == '__main__':
 The example with multi-objectives and constraints is as follows:
 
 ```python
-from openbox import Optimizer, sp
+import matplotlib.pyplot as plt
+from openbox import Optimizer, space as sp
 
 # Define Search Space
 space = sp.Space()
@@ -238,8 +239,9 @@ def CONSTR(config):
 if __name__ == "__main__":
     opt = Optimizer(CONSTR, space, num_objectives=2, num_constraints=2,
                     max_runs=50, ref_point=[10.0, 10.0], task_id='moc')
-    opt.run()
-    print(opt.get_history().get_pareto())
+    history = opt.run()
+    history.plot_pareto_front()  # support 2 or 3 objectives
+    plt.show()
 ```
 
 We also provide HTML Visualization by setting `visualization` = `basic` or `advanced` when defining an `Optimizer`. 
