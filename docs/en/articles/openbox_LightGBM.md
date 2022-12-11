@@ -32,7 +32,7 @@ To display the details of defining a task, we then describe the personalized def
 First, we define the search space. In the following example, the search space contains seven hyperparameters. Since the hyperparameter *num_leaves* could to some extent limit the depth of each decision tree, we set the hyperparameter *max_depth* as a constant.
 
 ```python
-from openbox import sp
+from openbox import space as sp
 
 def get_config_space():
     cs = sp.Space()

@@ -24,7 +24,7 @@ x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratif
 
 
 ```python
-from openbox import sp
+from openbox import space as sp
 from sklearn.metrics import balanced_accuracy_score
 from lightgbm import LGBMClassifier
 
@@ -155,7 +155,9 @@ print(history)
 调用 <font color=#FF0000>**history.plot_convergence()**</font> 来可视化优化过程：
 
 ```python
+import matplotlib.pyplot as plt
 history.plot_convergence()
+plt.show()
 ```
 
 <img src="../../imgs/plot_convergence_hpo.png" width="60%" class="align-center">

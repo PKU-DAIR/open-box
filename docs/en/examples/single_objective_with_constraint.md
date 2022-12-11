@@ -9,7 +9,7 @@ to <font color=#FF0000>**minimize**</font>. Here we use the constrained **Mishra
 
 ```python
 import numpy as np
-from openbox import sp
+from openbox import space as sp
 
 def mishra(config: sp.Configuration):
     config_dict = config.get_dictionary()
@@ -108,7 +108,9 @@ print(history)
 Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the optimization process:
 
 ```python
+import matplotlib.pyplot as plt
 history.plot_convergence(true_minimum=-106.7645367)
+plt.show()
 ```
 
 <img src="../../imgs/plot_convergence_mishra.png" width="60%" class="align-center">

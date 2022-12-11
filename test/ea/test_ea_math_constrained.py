@@ -3,7 +3,7 @@ import random
 
 import numpy as np
 import matplotlib.pyplot as plt
-from openbox import Advisor, sp, Observation
+from openbox import Advisor, space as sp, Observation
 from openbox.core.ea.differential_ea_advisor import DifferentialEAAdvisor
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 from openbox.core.ea.adaptive_ea_advisor import AdaptiveEAAdvisor

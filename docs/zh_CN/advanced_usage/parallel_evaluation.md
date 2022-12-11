@@ -24,7 +24,7 @@
 
 ```python
 import numpy as np
-from openbox import sp
+from openbox import space as sp
 
 # Define Search Space
 space = sp.Space()

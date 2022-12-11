@@ -111,7 +111,7 @@ please refer to `Quick Start <./quick_start/quick_start.html>`__.
 .. code:: python
 
     import numpy as np
-    from openbox import Optimizer, sp
+    from openbox import Optimizer, space as sp
 
     # Define Search Space
     space = sp.Space()
@@ -247,4 +247,3 @@ license <https://github.com/PKU-DAIR/open-box/blob/master/LICENSE>`__.
     OpenBox as Service <openbox_as_service/openbox_as_service>
     Research and Publications <research_and_publications/research_and_publications>
     Change Logs <change_logs/change_logs>
-

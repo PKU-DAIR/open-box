@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0, '.')
 
-from openbox import sp, Optimizer
+from openbox import space as sp, Optimizer
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -47,4 +47,3 @@ if __name__ == "__main__":
 
     history.plot_convergence(true_minimum=0.397887)
     plt.show()
-

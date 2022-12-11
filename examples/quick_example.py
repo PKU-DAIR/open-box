@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from openbox import Optimizer, sp
+from openbox import Optimizer, space as sp
 
 
 # Define Search Space

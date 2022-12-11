@@ -14,7 +14,7 @@ python distributed_optimization.py --role worker --master_ip 127.0.0.1 --port 13
 
 import argparse
 import numpy as np
-from openbox import sp, DistributedOptimizer, DistributedWorker
+from openbox import space as sp, DistributedOptimizer, DistributedWorker
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--role', type=str, choices=['master', 'worker'])

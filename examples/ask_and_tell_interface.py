@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from openbox import Advisor, sp, Observation
+from openbox import Advisor, space as sp, Observation
 
 # Define Search Space
 space = sp.Space()

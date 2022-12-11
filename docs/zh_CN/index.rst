@@ -99,7 +99,7 @@ HpBandSter     ×          √      ×          ×       √
 .. code:: python
 
     import numpy as np
-    from openbox import Optimizer, sp
+    from openbox import Optimizer, space as sp
 
     # Define Search Space
     space = sp.Space()
@@ -223,5 +223,3 @@ OpenBox项目基于 `MIT License <https://github.com/PKU-DAIR/open-box/blob/mast
     OpenBox服务 <openbox_as_service/openbox_as_service>
     研究成果 <research_and_publications/research_and_publications>
     更新历史 <change_logs/change_logs>
-
-

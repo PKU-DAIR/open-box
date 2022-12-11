@@ -33,7 +33,7 @@ To display the details of defining a task, we then describe the personalized def
 First, we define the search space. In the following example, the search space contains nine hyperparameters.
 
 ```python
-from openbox import sp
+from openbox import space as sp
 
 def get_config_space():
     cs = sp.Space()

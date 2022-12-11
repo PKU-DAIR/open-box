@@ -18,7 +18,7 @@ initial_runs = 2 * (dim + 1)
 
 ```python
 import numpy as np
-from openbox import sp
+from openbox import space as sp
 params = {'x1': (0.1, 10.0),
           'x2': (0.0, 5.0)}
 space = sp.Space()
@@ -103,32 +103,23 @@ opt.run()
 
 ## 可视化
 
-由于我们同时优化了这两个目标，我们得到了一个pareto front作为结果。
-调用 <font color=#FF0000>**opt.get_history().get_pareto_front()**</font> 来获取pareto front。
+由于我们同时优化了这两个目标，我们得到了一个帕累托前沿(pareto front)作为结果。
+调用 <font color=#FF0000>**opt.get_history().plot_pareto_front()**</font> 来绘制帕累托前沿。
+请注意，`plot_pareto_front`只在目标数为2或3时可用。
 
 ```python
-import numpy as np
 import matplotlib.pyplot as plt
+
+history = opt.get_history()
 # plot pareto front
-pareto_front = np.asarray(opt.get_history().get_pareto_front())
-if pareto_front.shape[-1] in (2, 3):
-    if pareto_front.shape[-1] == 2:
-        plt.scatter(pareto_front[:, 0], pareto_front[:, 1])
-        plt.xlabel('Objective 1')
-        plt.ylabel('Objective 2')
-    elif pareto_front.shape[-1] == 3:
-        ax = plt.axes(projection='3d')
-        ax.scatter3D(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2])
-        ax.set_xlabel('Objective 1')
-        ax.set_ylabel('Objective 2')
-        ax.set_zlabel('Objective 3')
-    plt.title('Pareto Front')
+if history.num_objectives in [2, 3]:
+    history.plot_pareto_front()  # support 2 or 3 objectives
     plt.show()
 ```
 
 <img src="../../imgs/plot_pareto_front_constr.png" width="60%" class="align-center">
 
-然后绘制优化过程中与理想pareto front相比的hypervolume差。
+然后绘制优化过程中与理想帕累托前沿相比的hypervolume差。
 
 ```python
 # plot hypervolume

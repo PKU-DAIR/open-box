@@ -7,7 +7,7 @@
 首先，定义一个搜索空间。
 
 ```python
-from openbox import sp
+from openbox import space as sp
 
 # Define Search Space
 space = sp.Space()
@@ -23,7 +23,7 @@ space.add_variables([x1, x2])
 下面是定义**整型**和**类别型**变量的方法：
 
 ```python
-from openbox import sp
+from openbox import space as sp
 
 i = sp.Int("i", 0, 100) 
 kernel = sp.Categorical("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
@@ -111,7 +111,9 @@ print(history)
 调用 <font color=#FF0000>**history.plot_convergence()**</font> 来可视化优化过程：
 
 ```python
+import matplotlib.pyplot as plt
 history.plot_convergence(true_minimum=0.397887)
+plt.show()
 ```
 
 <img src="../../imgs/plot_convergence_branin.png" width="60%" class="align-center">

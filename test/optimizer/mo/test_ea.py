@@ -1,5 +1,5 @@
 import numpy as np
-from openbox import sp, Optimizer, ParallelOptimizer
+from openbox import space as sp, Optimizer, ParallelOptimizer
 
 
 # Define Search Space
@@ -57,4 +57,3 @@ if __name__ == "__main__":
     )
     history = opt.run()
     print(history)
-

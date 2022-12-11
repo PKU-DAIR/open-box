@@ -17,7 +17,7 @@ initial_runs = 2 * (dim + 1)
 
 ```python
 import numpy as np
-from openbox import sp
+from openbox import space as sp
 params = {'x1': (0.1, 10.0),
           'x2': (0.0, 5.0)}
 space = sp.Space()
@@ -108,25 +108,16 @@ Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimizati
 ## Visualization
 
 Since we optimize both objectives at the same time, we get a pareto front as the result.
-Call <font color=#FF0000>**opt.get_history().get_pareto_front()**</font> to get the pareto front.
+Call <font color=#FF0000>**opt.get_history().plot_pareto_front()**</font> to plot the pareto front.
+Please note that `plot_pareto_front` only works when the number of objectives is 2 or 3.
 
 ```python
-import numpy as np
 import matplotlib.pyplot as plt
+
+history = opt.get_history()
 # plot pareto front
-pareto_front = np.asarray(opt.get_history().get_pareto_front())
-if pareto_front.shape[-1] in (2, 3):
-    if pareto_front.shape[-1] == 2:
-        plt.scatter(pareto_front[:, 0], pareto_front[:, 1])
-        plt.xlabel('Objective 1')
-        plt.ylabel('Objective 2')
-    elif pareto_front.shape[-1] == 3:
-        ax = plt.axes(projection='3d')
-        ax.scatter3D(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2])
-        ax.set_xlabel('Objective 1')
-        ax.set_ylabel('Objective 2')
-        ax.set_zlabel('Objective 3')
-    plt.title('Pareto Front')
+if history.num_objectives in [2, 3]:
+    history.plot_pareto_front()  # support 2 or 3 objectives
     plt.show()
 ```
 

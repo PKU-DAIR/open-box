@@ -128,7 +128,7 @@ python setup.py install --user --prefix=
 
 ```python
 import numpy as np
-from openbox import Optimizer, sp
+from openbox import Optimizer, space as sp
 
 # Define Search Space
 space = sp.Space()
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 多目标带约束优化问题示例：
 
 ```python
-from openbox import Optimizer, sp
+from openbox import Optimizer, space as sp
 
 # Define Search Space
 space = sp.Space()

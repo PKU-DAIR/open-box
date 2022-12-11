@@ -7,7 +7,7 @@ This tutorial helps you run your first example with **OpenBox**.
 First, define a search space.
 
 ```python
-from openbox import sp
+from openbox import space as sp
 
 # Define Search Space
 space = sp.Space()
@@ -23,7 +23,7 @@ OpenBox also supports other types of variables.
 Here are examples of how to define **Integer** and **Categorical** variables:
 
 ```python
-from openbox import sp
+from openbox import space as sp
 
 i = sp.Int("i", 0, 100) 
 kernel = sp.Categorical("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
@@ -114,7 +114,9 @@ print(history)
 Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the optimization process:
 
 ```python
+import matplotlib.pyplot as plt
 history.plot_convergence(true_minimum=0.397887)
+plt.show()
 ```
 
 <img src="../../imgs/plot_convergence_branin.png" width="60%" class="align-center">

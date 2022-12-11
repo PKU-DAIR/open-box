@@ -23,7 +23,7 @@ Here, we use [LightGBM](https://lightgbm.readthedocs.io/en/latest/) -- a gradien
 developed by Microsoft, as the classification model.
 
 ```python
-from openbox import sp
+from openbox import space as sp
 from sklearn.metrics import balanced_accuracy_score
 from lightgbm import LGBMClassifier
 
@@ -156,7 +156,9 @@ print(history)
 Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the optimization process:
 
 ```python
+import matplotlib.pyplot as plt
 history.plot_convergence()
+plt.show()
 ```
 
 <img src="../../imgs/plot_convergence_hpo.png" width="60%" class="align-center">

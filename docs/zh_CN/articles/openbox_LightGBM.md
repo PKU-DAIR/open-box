@@ -32,7 +32,7 @@ objective_function = get_objective_function('lightgbm', x_train, x_val, y_train,
 首先，我们定义超参数空间。在这个例子中，我们的超参数空间包含7个超参数。由于最大叶子数（"num_leaves"）在一定程度上可以对树深进行控制，因此我们将最大树深（"max_depth"）设置为常量（Constant）。
 
 ```python
-from openbox import sp
+from openbox import space as sp
 
 def get_config_space():
     cs = sp.Space()

@@ -2,7 +2,7 @@
 
 import numpy as np
 from openbox import logger
-from openbox import Optimizer, sp
+from openbox import Optimizer, space as sp
 from openbox.utils.constants import SUCCESS
 
 

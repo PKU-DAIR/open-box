@@ -2,7 +2,7 @@
 import random
 
 import matplotlib.pyplot as plt
-from openbox import sp, Observation
+from openbox import space as sp, Observation
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 
 from openbox.benchmark.objective_functions.synthetic import DTLZ1

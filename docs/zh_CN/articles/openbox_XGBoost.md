@@ -33,7 +33,7 @@ objective_function = get_objective_function('xgboost', x_train, x_val, y_train, 
 首先，我们定义超参数空间。在这个例子中，我们的超参数空间包含9个超参数。
 
 ```python
-from openbox import sp
+from openbox import space as sp
 
 def get_config_space():
     cs = sp.Space()

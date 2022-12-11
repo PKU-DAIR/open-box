@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from openbox import Advisor, sp, Observation
+from openbox import Advisor, space as sp, Observation
 from openbox.core.pso.pso_advisor import PSOAdvisor
 from openbox.core.ea.regularized_ea_advisor import RegularizedEAAdvisor
 

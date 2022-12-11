@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0, '.')
 
 import traceback
-from openbox import sp
+from openbox import space as sp
 from openbox.utils.config_space import get_one_exchange_neighbourhood
 from ConfigSpace import Configuration
 import numpy as np

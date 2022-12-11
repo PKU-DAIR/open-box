@@ -9,7 +9,7 @@
 
 ```python
 import numpy as np
-from openbox import sp
+from openbox import space as sp
 
 def mishra(config: sp.Configuration):
     config_dict = config.get_dictionary()
@@ -105,7 +105,9 @@ print(history)
 调用 <font color=#FF0000>**history.plot_convergence()**</font> 来可视化优化过程：
 
 ```python
+import matplotlib.pyplot as plt
 history.plot_convergence(true_minimum=-106.7645367)
+plt.show()
 ```
 
 <img src="../../imgs/plot_convergence_mishra.png" width="60%" class="align-center">
