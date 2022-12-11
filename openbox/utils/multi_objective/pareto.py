@@ -34,12 +34,14 @@ def get_pareto_front(Y: np.ndarray):
     Returns:
         pareto_front: a `k x m`-dim array.
     """
-    pareto_front = np.arange(Y.shape[0])
+    Y_ = Y.copy()
+    pareto_front_idx = np.arange(Y.shape[0])
     next_point_index = 0
     while next_point_index < len(Y):
         non_dominated_point_mask = np.any(Y < Y[next_point_index], axis=1)
         non_dominated_point_mask[next_point_index] = True
-        pareto_front = pareto_front[non_dominated_point_mask]
+        pareto_front_idx = pareto_front_idx[non_dominated_point_mask]
         Y = Y[non_dominated_point_mask]
         next_point_index = np.sum(non_dominated_point_mask[:next_point_index]) + 1
+    pareto_front = Y_[pareto_front_idx]
     return pareto_front
