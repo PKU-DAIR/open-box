@@ -57,13 +57,13 @@ def get_types(config_space, instance_features=None):
     return types, bounds
 
 
-def transform_to_1d_list(x, hint='result'):
+def transform_to_1d_list(x, hint='result', dtype=np.float64):
     """
     Transform a scalar, 1-d list, tuple, np.ndarray, touch.Tensor to 1-d list
     If x is None or x is not 1-d (after squeeze), raise an error
     """
     assert x is not None, f'{hint} is None!'
-    x = np.asarray(x)
+    x = np.asarray(x, dtype=dtype)
     original_shape = x.shape
     x = np.squeeze(x)  # np.squeeze requires numpy>=1.7.0
     if x.ndim == 0:

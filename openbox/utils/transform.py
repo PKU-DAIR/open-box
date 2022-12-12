@@ -79,6 +79,7 @@ def gaussian_transform(X: np.ndarray):
 _func_dict = {
     'bilog': bilog_transform,
     'gaussian': gaussian_transform,
+    'none': lambda x: x,
     None: lambda x: x,
 }
 
@@ -87,4 +88,4 @@ def get_transform_function(transform: str):
     if transform in _func_dict.keys():
         return _func_dict[transform]
     else:
-        raise ValueError('Invalid transform: %s' % (transform, ))
+        raise ValueError(f'Invalid transform: {transform}, available: {_func_dict.keys()}')
