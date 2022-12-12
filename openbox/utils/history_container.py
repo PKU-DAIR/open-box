@@ -329,7 +329,7 @@ class HistoryContainer(object):
             self,
             true_minimum=None, name=None, clip_y=True,
             title="Convergence plot",
-            xlabel="Iterations",
+            xlabel="Iteration",
             ylabel="Min objective value",
             ax=None, alpha=0.3, yscale=None,
             color='C0', infeasible_color='C1',
@@ -681,6 +681,46 @@ class MOHistoryContainer(HistoryContainer):
         y = np.array(self.perfs, dtype=np.float64)  # do not transform infeasible trials
         cy = self.get_transformed_constraint_perfs(transform=None)
         ax = plot_pareto_front(y, cy, title, ax, alpha, color, infeasible_color, **kwargs)
+        return ax
+
+    def plot_hypervolumes(
+            self,
+            optimal_hypervolume=None,
+            logy=False,
+            ax=None,
+            **kwargs,
+    ):
+        """
+        Plot the hypervolume of the Pareto front over time.
+
+        Parameters
+        ----------
+        optimal_hypervolume : float, optional
+            The optimal hypervolume. If provided, plot the hypervolume difference.
+
+        logy : bool, default=False
+            Whether to plot the hypervolume on log base 10 scale.
+
+        For other parameters, see `plot_curve` in `openbox.visualization`.
+
+        Returns
+        -------
+        ax : matplotlib.axes.Axes
+            The matplotlib axes.
+        """
+        from openbox.visualization import plot_curve
+        y = np.array(self.hv_data, dtype=np.float64)
+        x = np.arange(y.shape[0]) + 1
+        if optimal_hypervolume is not None:
+            y = optimal_hypervolume - y
+            ylabel = 'Hypervolume Difference'
+        else:
+            ylabel = 'Hypervolume'
+        if logy:
+            ylabel = 'Log ' + ylabel
+            y = np.log10(y)  # log base 10  # todo: handle 0
+        xlabel = 'Iteration'
+        ax = plot_curve(x=x, y=y, xlabel=xlabel, ylabel=ylabel, ax=ax, **kwargs)
         return ax
 
 

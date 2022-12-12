@@ -122,11 +122,7 @@ Then plot the hypervolume difference during the optimization compared to the ide
 
 ```python
 # plot hypervolume
-hypervolume = opt.get_history().hv_data
-log_hv_diff = np.log10(prob.max_hv - np.asarray(hypervolume))
-plt.plot(log_hv_diff)
-plt.xlabel('Iteration')
-plt.ylabel('Log Hypervolume Difference')
+history.plot_hypervolumes(optimal_hypervolume=prob.max_hv, logy=True)
 plt.show()
 ```
 

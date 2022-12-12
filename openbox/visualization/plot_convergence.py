@@ -7,7 +7,7 @@ def plot_convergence(
         y, cy=None,
         true_minimum=None, name=None, clip_y=True,
         title="Convergence plot",
-        xlabel="Iterations",
+        xlabel="Iteration",
         ylabel="Min objective value",
         ax=None, alpha=0.3, yscale=None,
         color='C0', infeasible_color='C1',

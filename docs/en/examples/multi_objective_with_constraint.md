@@ -67,7 +67,7 @@ opt = Optimizer(
     task_id='moc',
     random_state=1,
 )
-opt.run()
+history = opt.run()
 ```
 
 Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function 
@@ -126,13 +126,8 @@ if history.num_objectives in [2, 3]:
 Then plot the hypervolume difference during the optimization compared to the ideal pareto front.
 
 ```python
-# plot hypervolume
-hypervolume = opt.get_history().hv_data
-max_hv = 92.02004226679216
-log_hv_diff = np.log10(max_hv - np.asarray(hypervolume))
-plt.plot(log_hv_diff)
-plt.xlabel('Iteration')
-plt.ylabel('Log Hypervolume Difference')
+# plot hypervolume (optimal hypervolume of CONSTR is approximated using NSGA-II)
+history.plot_hypervolumes(optimal_hypervolume=92.02004226679216, logy=True)
 plt.show()
 ```
 

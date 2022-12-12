@@ -69,7 +69,7 @@ opt = Optimizer(
     task_id='moc',
     random_state=1,
 )
-opt.run()
+history = opt.run()
 ```
 
 这里我们创建一个 <font color=#FF0000>**Optimizer**</font> 实例，并传入目标函数和搜索空间。
@@ -122,13 +122,8 @@ if history.num_objectives in [2, 3]:
 然后绘制优化过程中与理想帕累托前沿相比的hypervolume差。
 
 ```python
-# plot hypervolume
-hypervolume = opt.get_history().hv_data
-max_hv = 92.02004226679216
-log_hv_diff = np.log10(max_hv - np.asarray(hypervolume))
-plt.plot(log_hv_diff)
-plt.xlabel('Iteration')
-plt.ylabel('Log Hypervolume Difference')
+# plot hypervolume (optimal hypervolume of CONSTR is approximated using NSGA-II)
+history.plot_hypervolumes(optimal_hypervolume=92.02004226679216, logy=True)
 plt.show()
 ```
 

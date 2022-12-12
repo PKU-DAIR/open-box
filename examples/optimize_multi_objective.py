@@ -54,3 +54,7 @@ if __name__ == "__main__":
     if history.num_objectives in [2, 3]:
         history.plot_pareto_front()  # support 2 or 3 objectives
         plt.show()
+
+    # plot hypervolume (optimal hypervolume of BraninCurrin is approximated using NSGA-II)
+    history.plot_hypervolumes(optimal_hypervolume=59.36011874867746, logy=True)
+    plt.show()
