@@ -18,7 +18,7 @@ from openbox.acquisition_function.acquisition import AbstractAcquisitionFunction
 from openbox.utils.config_space import get_one_exchange_neighbourhood, \
     Configuration, ConfigurationSpace
 from openbox.acq_maximizer.random_configuration_chooser import ChooserNoCoolDown, ChooserProb
-from openbox.utils.history_container import HistoryContainer, MultiStartHistoryContainer
+from openbox.utils.history import History, MultiStartHistory
 from openbox.utils.util_funcs import get_types
 from openbox.utils.constants import MAXINT
 
@@ -31,9 +31,9 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
     """
@@ -55,7 +55,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Configuration]:
@@ -63,10 +63,8 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: openbox.utils.history.History
             runhistory object
-        stats: ~openbox.stats.stats.Stats
-            current stats object
         num_points: int
             number of points to be sampled
         **kwargs
@@ -81,7 +79,7 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -93,10 +91,8 @@ class AcquisitionFunctionMaximizer(object, metaclass=abc.ABCMeta):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: openbox.utils.history.History
             runhistory object
-        stats: ~openbox.stats.stats.Stats
-            current stats object
         num_points: int
             number of points to be sampled
         **kwargs
@@ -151,7 +147,7 @@ class CMAESOptimizer(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -159,7 +155,7 @@ class CMAESOptimizer(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -212,9 +208,9 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
 
@@ -240,7 +236,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
@@ -250,13 +246,11 @@ class LocalSearch(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: openbox.utils.history.History
             runhistory object
-        stats: ~openbox.stats.stats.Stats
-            current stats object
         num_points: int
             number of points to be sampled
-        ***kwargs:
+        **kwargs:
             Additional parameters that will be passed to the
             acquisition function
 
@@ -296,7 +290,7 @@ class LocalSearch(AcquisitionFunctionMaximizer):
                 size=num_points)
         else:
             # initiate local search with best configurations from previous runs
-            configs_previous_runs = runhistory.get_all_configs()
+            configs_previous_runs = runhistory.configurations
             configs_previous_runs_sorted = self._sort_configs_by_acq_value(
                 configs_previous_runs)
             num_configs_local_search = int(min(
@@ -375,16 +369,16 @@ class RandomSearch(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
     """
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             _sorted: bool = False,
             **kwargs
@@ -393,7 +387,7 @@ class RandomSearch(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: openbox.utils.history.History
             runhistory object
         num_points: int
             number of points to be sampled
@@ -434,9 +428,9 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
 
@@ -487,7 +481,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             random_configuration_chooser=None,
             **kwargs
@@ -496,7 +490,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: openbox.utils.history.History
             runhistory object
         num_points: int
             number of points to be sampled
@@ -551,7 +545,7 @@ class InterleavedLocalAndRandomSearch(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -564,9 +558,9 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
     """
@@ -590,7 +584,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             initial_config=None,
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
@@ -639,7 +633,7 @@ class ScipyOptimizer(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -652,9 +646,9 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
     """
@@ -683,7 +677,7 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             num_trials=10,
             **kwargs
@@ -723,7 +717,7 @@ class RandomScipyOptimizer(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -736,9 +730,9 @@ class ScipyGlobalOptimizer(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
     """
@@ -759,7 +753,7 @@ class ScipyGlobalOptimizer(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             initial_config=None,
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
@@ -791,7 +785,7 @@ class ScipyGlobalOptimizer(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -804,9 +798,9 @@ class StagedBatchScipyOptimizer(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     num_random : Number of random chosen points
 
@@ -887,7 +881,7 @@ class StagedBatchScipyOptimizer(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,  # todo useless
             **kwargs
     ) -> List[Tuple[float, Configuration]]:
@@ -946,7 +940,7 @@ class StagedBatchScipyOptimizer(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -958,9 +952,9 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
 
@@ -983,7 +977,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,  # todo useless
             **kwargs
     ) -> Iterable[Configuration]:
@@ -991,7 +985,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: openbox.utils.history.History
             runhistory object
         num_points: int
             number of points to be sampled
@@ -1051,7 +1045,7 @@ class MESMO_Optimizer(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -1063,9 +1057,9 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
 
     Parameters
     ----------
-    acquisition_function : ~openbox.acquisition_function.acquisition.AbstractAcquisitionFunction
+    acquisition_function : AbstractAcquisitionFunction
 
-    config_space : ~openbox.config_space.ConfigurationSpace
+    config_space : ConfigurationSpace
 
     rng : np.random.RandomState or int, optional
 
@@ -1083,7 +1077,7 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,  # useless in USeMO
             **kwargs
     ) -> Iterable[Configuration]:
@@ -1091,7 +1085,7 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: openbox.utils.history.History
             runhistory object
         num_points: int
             number of points to be sampled
@@ -1131,7 +1125,7 @@ class USeMO_Optimizer(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:
@@ -1159,7 +1153,7 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
 
     def maximize(
             self,
-            runhistory: Union[HistoryContainer, MultiStartHistoryContainer],
+            runhistory: Union[History, MultiStartHistory],
             num_points: int,
             _sorted: bool = True,
             **kwargs
@@ -1168,7 +1162,7 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
 
         Parameters
         ----------
-        runhistory: ~openbox.utils.history_container.HistoryContainer
+        runhistory: openbox.utils.history.History
             runhistory object
         num_points: int
             number of points to be sampled
@@ -1197,12 +1191,13 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
                 lower_bounds = None
                 upper_bounds = None
             else:
-                assert isinstance(runhistory, MultiStartHistoryContainer)
+                assert isinstance(runhistory, MultiStartHistory)
                 if runhistory.num_objectives > 1:
                     # TODO implement adaptive strategy to choose trust region center for MO
                     raise NotImplementedError()
                 else:
-                    x_center = random.choice(runhistory.get_incumbents())[0].get_array()
+                    incumbent_config = self.rng.choice(runhistory.get_incumbent_configs())
+                    x_center = incumbent_config.get_array()
                     lower_bounds = x_center - turbo_state.length / 2.0
                     upper_bounds = x_center + turbo_state.length / 2.0
 
@@ -1225,7 +1220,7 @@ class batchMCOptimizer(AcquisitionFunctionMaximizer):
 
     def _maximize(
             self,
-            runhistory: HistoryContainer,
+            runhistory: History,
             num_points: int,
             **kwargs
     ) -> Iterable[Tuple[float, Configuration]]:

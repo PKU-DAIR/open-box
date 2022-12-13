@@ -96,7 +96,7 @@ for dataset in dataset_list:
     print('=' * 10, 'SMBO')
     bo = SMBO(eval, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs', task_id='test_lgb')
     bo.run()
-    inc_value = bo.get_incumbent()
+    inc_value = bo.get_incumbents()
     print('SMBO', '='*30)
     print(inc_value)
 
@@ -104,7 +104,7 @@ for dataset in dataset_list:
     bo = pSMBO(eval, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
                parallel_strategy='sync', batch_size=4)
     bo.run()
-    inc_value = bo.get_incumbent()
+    inc_value = bo.get_incumbents()
     print('Sync Parallel SMBO', '='*30)
     print(inc_value)
 
@@ -112,6 +112,6 @@ for dataset in dataset_list:
     bo = pSMBO(eval, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
                parallel_strategy='async', batch_size=4)
     bo.run()
-    inc_value = bo.get_incumbent()
+    inc_value = bo.get_incumbents()
     print('Async Parallel SMBO', '='*30)
     print(inc_value)

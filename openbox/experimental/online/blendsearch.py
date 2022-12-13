@@ -10,7 +10,7 @@ from openbox.core.generic_advisor import Advisor
 from openbox.experimental.online.cfo import CFO
 from openbox.experimental.online.base_online_advisor import almost_equal
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.history_container import Observation, HistoryContainer
+from openbox.utils.history import Observation, History
 from openbox.utils.constants import MAXINT
 
 
@@ -58,8 +58,11 @@ class BlendSearchAdvisor(abc.ABC):
         self.running_configs = list()
         self.all_configs = set()
 
-        # init history container
-        self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
+        # init history
+        self.history = History(
+            task_id=task_id, num_objectives=1, num_constraints=num_constraints, config_space=config_space,
+            ref_point=None, meta_info=None,  # todo: add meta info
+        )
 
         # Init
         self.cur = None
@@ -113,7 +116,7 @@ class BlendSearchAdvisor(abc.ABC):
         self.cur.search_method.update_observation(observation)
         self.merge_piece()
 
-        return self.history_container.update_observation(observation)
+        return self.history.update_observation(observation)
 
     def get_suggestions(self, batch_size=None):
         if batch_size is None:
@@ -141,7 +144,7 @@ class BlendSearchAdvisor(abc.ABC):
         return config
 
     def get_history(self):
-        return self.history_container
+        return self.history
 
     def select_piece(self):
         if self.pure:

@@ -95,7 +95,7 @@ def evaluate(mth, run_i, seed):
         hv_diffs.append(hv_diff)
         time_list.append(global_time)
     config_list = bo.get_history().configurations
-    perf_list = bo.get_history().perfs
+    perf_list = bo.get_history().get_objectives(transform='none')
     pf = np.asarray(bo.get_history().get_pareto_front())
 
     # plot for debugging

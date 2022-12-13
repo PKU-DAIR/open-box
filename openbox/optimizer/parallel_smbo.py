@@ -16,7 +16,7 @@ from openbox.utils.util_funcs import parse_result, deprecate_kwarg
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.core.ea_advisor import EA_Advisor
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation, History
 from openbox.optimizer.base import BOBase
 
 
@@ -191,7 +191,7 @@ class pSMBO(BOBase):
                     time.sleep(0.3)
 
     # Asynchronously evaluate n configs
-    def async_iterate(self, n=1):
+    def async_iterate(self, n=1) -> List[Observation]:
         iter_id = 0
         res_list = list()
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
@@ -208,12 +208,8 @@ class pSMBO(BOBase):
             for res in res_list:
                 res.wait()
 
-        history = self.get_history()
-        iter_config = history.configurations[-n:]
-        iter_trial_state = history.trial_states[-n:]
-        iter_constraints = history.constraint_perfs[-n:] if self.num_constraints > 0 else None
-        iter_objectives = history.perfs[-n:]     # caution: one dim if num_objectives==1, different from SMBO.iterate()
-        return iter_config, iter_trial_state, iter_constraints, iter_objectives
+        iter_observations = self.get_history().observations[-n:]
+        return iter_observations  # type: List[Observation]
 
     def sync_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
@@ -236,7 +232,7 @@ class pSMBO(BOBase):
                                      % (batch_id, idx+1, len(configs), observation))
                 batch_id += 1
 
-    def run(self):
+    def run(self) -> History:
         if self.parallel_strategy == 'async':
             self.async_run()
         else:

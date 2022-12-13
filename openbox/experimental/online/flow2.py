@@ -2,7 +2,7 @@ from typing import List
 
 from ConfigSpace import ConfigurationSpace, Configuration
 
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 from openbox.experimental.online.base_online_advisor import OnlineAdvisor
 
 
@@ -34,7 +34,6 @@ class FLOW2(OnlineAdvisor):
         self.incn = 0
         self.inc_threshould = inc_threshould
 
-
     def get_suggestion(self):
         if self.res[1] is not None and self.res[0] is not None:
             if self.res[1] < self.res[0]:
@@ -61,7 +60,7 @@ class FLOW2(OnlineAdvisor):
                 return self.conf[i]
 
     def update_observation(self, observation: Observation):
-        self.history_container.update_observation(observation)
+        self.history.update_observation(observation)
 
         for i in range(3):
             if observation.config == self.conf[i] and self.res[i] is None:

@@ -39,7 +39,7 @@ config_dict = {
 
 bo = create_smbo(branin, **config_dict)
 history = bo.run()
-inc_value = bo.get_incumbent()
+inc_value = bo.get_incumbents()
 print('BO', '=' * 30)
 print(inc_value)
 

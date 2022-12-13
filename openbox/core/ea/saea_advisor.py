@@ -10,10 +10,9 @@ from openbox.core.base import build_acq_func, build_surrogate
 from openbox.core.ea.base_ea_advisor import Individual
 from openbox.core.ea.base_modular_ea_advisor import ModularEAAdvisor
 from openbox.surrogate.base.base_model import AbstractModel
-from openbox.utils.config_space import convert_configurations_to_array
 from openbox.utils.multi_objective import NondominatedPartitioning, get_chebyshev_scalarization
 from openbox.utils.util_funcs import deprecate_kwarg
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 
 
 class SAEAAdvisor(ModularEAAdvisor):
@@ -124,16 +123,15 @@ class SAEAAdvisor(ModularEAAdvisor):
     def _sel(self, parent: List[Individual], sub: List[Individual]) -> List[Individual]:
         self.ea.sel()
 
-        X = convert_configurations_to_array(self.history_container.configurations)
-        Y = self.history_container.get_transformed_perfs(transform=None)
+        X = self.history.get_config_array(transform='scale')
+        Y = self.history.get_objectives(transform='infeasible')
+        cY = self.history.get_constraints(transform='bilog')
 
-        # Alternate option: use untransformed perfs (may be enabled in the future)
-        # Y = np.array(self.history_container.perfs)
+        # Alternate option: use untransformed objectives (maybe enabled in the future)
+        # Y = self.history.get_objectives(transform='failed')
 
         self.lastX = X
         self.lastY = Y
-
-        cY = self.history_container.get_transformed_constraint_perfs(transform='bilog')
 
         for i in range(self.num_objectives):
             self.objective_surrogates[i].train(X, Y[:, i] if Y.ndim == 2 else Y)
@@ -143,23 +141,23 @@ class SAEAAdvisor(ModularEAAdvisor):
 
         # Code copied from generic_advisor.py
 
-        num_config_evaluated = len(self.history_container.configurations)
-        # num_config_successful = len(self.history_container.successful_perfs)
+        num_config_evaluated = len(self.history)
+        num_config_successful = self.history.get_success_count()
         # update acquisition function
         if self.num_objectives == 1:
-            incumbent_value = self.history_container.get_incumbents()[0][1]
+            incumbent_value = self.history.get_incumbent_value()
             self.acq.update(model=self.objective_surrogates[0],
                             constraint_models=self.constraint_surrogates,
                             eta=incumbent_value,
                             num_data=num_config_evaluated)
         else:  # multi-objectives
-            mo_incumbent_value = self.history_container.get_mo_incumbent_value()
+            mo_incumbent_values = self.history.get_mo_incumbent_values()
             if self.acq_type == 'parego':
                 weights = self.rng.random_sample(self.num_objectives)
                 weights = weights / np.sum(weights)
                 self.acq.update(model=self.objective_surrogates,
                                 constraint_models=self.constraint_surrogates,
-                                eta=get_chebyshev_scalarization(weights, Y)(np.atleast_2d(mo_incumbent_value)),
+                                eta=get_chebyshev_scalarization(weights, Y)(np.atleast_2d(mo_incumbent_values)),
                                 num_data=num_config_evaluated)
             elif self.acq_type.startswith('ehvi'):
                 partitioning = NondominatedPartitioning(self.num_objectives, Y)
@@ -172,7 +170,7 @@ class SAEAAdvisor(ModularEAAdvisor):
                 self.acq.update(model=self.objective_surrogates,
                                 constraint_models=self.constraint_surrogates,
                                 constraint_perfs=cY,  # for MESMOC
-                                eta=mo_incumbent_value,
+                                eta=mo_incumbent_values,
                                 num_data=num_config_evaluated,
                                 X=X, Y=Y)
 

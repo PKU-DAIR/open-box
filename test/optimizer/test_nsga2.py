@@ -22,7 +22,7 @@ opt = NSGAOptimizer(
 opt.run()
 
 # plot
-pareto_set, pareto_front = opt.get_incumbent()
+pareto_set, pareto_front = opt.get_incumbents()
 plot_pf(problem, 'bc', 'nsgaii', pareto_front)
 
 hv = Hypervolume(problem.ref_point).compute(pareto_front)

@@ -134,7 +134,7 @@ class mqHyperband(mqBaseFacade):
             self.incumbent_configs.append(T[0])
             self.incumbent_perfs.append(incumbent_loss)
 
-    def get_incumbent(self, num_inc=1):
+    def get_incumbents(self, num_inc=1):
         assert (len(self.incumbent_perfs) == len(self.incumbent_configs))
         indices = np.argsort(self.incumbent_perfs)
         configs = [self.incumbent_configs[i] for i in indices[0:num_inc]]

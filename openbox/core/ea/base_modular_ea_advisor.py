@@ -3,7 +3,7 @@ from typing import Optional, List, Callable
 from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox.core.ea.base_ea_advisor import EAAdvisor, Individual, as_individual
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 from openbox.utils.util_funcs import deprecate_kwarg
 
 
@@ -128,7 +128,7 @@ class ModularEAAdvisor(EAAdvisor):
     def update_observations(self, observations: List[Observation]):
 
         for observation in observations:
-            self.history_container.update_observation(observation)
+            self.history.update_observation(observation)
 
             pop = as_individual(observation)
 

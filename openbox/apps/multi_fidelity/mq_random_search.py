@@ -68,7 +68,7 @@ class mqRandomSearch(mqBaseFacade):
         self.stage_id += 1
         # self.remove_immediate_model()
 
-    def get_incumbent(self, num_inc=1):
+    def get_incumbents(self, num_inc=1):
         assert (len(self.incumbent_obj) == len(self.incumbent_configs))
         indices = np.argsort(self.incumbent_obj)
         configs = [self.incumbent_configs[i] for i in indices[0:num_inc]]

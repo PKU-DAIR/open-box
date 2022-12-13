@@ -49,6 +49,7 @@ if __name__ == "__main__":
         random_state=1,
     )
     history = opt.run()
+    print(history)
 
     # plot pareto front
     if history.num_objectives in [2, 3]:

@@ -5,7 +5,7 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, CategoricalHyperparameter, OrdinalHyperparameter
 from ConfigSpace.hyperparameters import NumericalHyperparameter
 
-from openbox.utils.history_container import Observation, HistoryContainer
+from openbox.utils.history import Observation, History
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 
 
@@ -33,7 +33,10 @@ class OnlineAdvisor(abc.ABC):
         self.output_dir = output_dir
         self.rng = check_random_state(random_state)
 
-        self.history_container = HistoryContainer(task_id, 0, self.config_space)
+        self.history = History(
+            task_id=task_id, num_objectives=num_objectives, num_constraints=0, config_space=config_space,
+            ref_point=None, meta_info=None,  # todo: add ref_point, meta info
+        )
 
     def get_suggestion(self):
         raise NotImplementedError
@@ -45,7 +48,7 @@ class OnlineAdvisor(abc.ABC):
         raise NotImplementedError
 
     def get_history(self):
-        return self.history_container
+        return self.history
 
     def next(self, config_a: Configuration, delta: float, gaussian=False) -> Tuple[Configuration, Configuration]:
         """

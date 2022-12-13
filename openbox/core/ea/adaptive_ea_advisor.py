@@ -5,7 +5,7 @@ import numpy as np
 from ConfigSpace import Configuration
 
 from openbox.core.ea.base_ea_advisor import EAAdvisor
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
 from openbox.utils.util_funcs import deprecate_kwarg
@@ -124,7 +124,7 @@ class AdaptiveEAAdvisor(EAAdvisor):
             if trial_state == SUCCESS and perf < np.inf:
                 self.population.append(dict(config=config, age=self.age, perf=perf))
 
-            ret_observations.append(self.history_container.update_observation(observation))
+            ret_observations.append(self.history.update_observation(observation))
 
         # Eliminate samples
         if len(self.population) > self.population_size:

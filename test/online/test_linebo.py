@@ -186,13 +186,13 @@ if __name__ == "__main__":
                     print(
                         f"Sampled point at [{config['x1']},{config['x2']}], function return {res1}, gp return {res2}")
 
-            mins = [[h.perfs[0]] for h in histories]
+            mins = [[h.objectives[0][0]] for h in histories]
             minvs = [[h.configurations[0].get_dictionary()] for h in histories]
 
             for j, h in enumerate(histories):
-                for i in range(1, len(h.perfs)):
-                    if h.perfs[i] <= mins[j][-1]:
-                        mins[j].append(h.perfs[i])
+                for i in range(1, len(h)):
+                    if h.objectives[i][0] <= mins[j][-1]:
+                        mins[j].append(h.objectives[i][0])
                         minvs[j].append(h.configurations[i].get_dictionary())
                     else:
                         mins[j].append(mins[j][-1])

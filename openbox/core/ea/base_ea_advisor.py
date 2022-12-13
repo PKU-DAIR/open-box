@@ -7,7 +7,7 @@ from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
-from openbox.utils.history_container import Observation, HistoryContainer, MOHistoryContainer
+from openbox.utils.history import Observation, History
 from openbox.utils.constants import MAXINT, SUCCESS
 
 
@@ -57,11 +57,11 @@ class EAAdvisor(abc.ABC):
         self.population_size = population_size
         assert self.population_size is not None
 
-        # init history container
-        if num_objectives == 1:
-            self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
-        else:
-            self.history_container = MOHistoryContainer(task_id, self.num_objectives, self.num_constraints)
+        # init history
+        self.history = History(
+            task_id=task_id, num_objectives=num_objectives, num_constraints=num_constraints, config_space=config_space,
+            ref_point=None, meta_info=None,  # todo: add ref_point, meta_info
+        )
 
     def get_suggestion(self):
         """
@@ -106,7 +106,7 @@ class EAAdvisor(abc.ABC):
         return config
 
     def get_history(self):
-        return self.history_container
+        return self.history
 
 
 class Individual:

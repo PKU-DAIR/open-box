@@ -176,22 +176,22 @@ if __name__ == "__main__":
                 time_costs.append(time.time() - start_time)
                 histories.append(advisor.get_history())
 
-            mins = [[h.perfs[0]] for h in histories]
+            mins = [[h.objectives[0][0]] for h in histories]
             minvs = [[h.configurations[0].get_dictionary()] for h in histories]
 
-            alls = [[h.perfs[0]] for h in histories]
+            alls = [[h.objectives[0][0]] for h in histories]
             allvs = [[h.configurations[0].get_dictionary()] for h in histories]
 
             for j, h in enumerate(histories):
-                for i in range(1, len(h.perfs)):
-                    if h.perfs[i] <= mins[j][-1]:
-                        mins[j].append(h.perfs[i])
+                for i in range(1, len(h)):
+                    if h.objectives[i][0] <= mins[j][-1]:
+                        mins[j].append(h.objectives[i][0])
                         minvs[j].append(h.configurations[i].get_dictionary())
                     else:
                         mins[j].append(mins[j][-1])
                         minvs[j].append(minvs[j][-1])
 
-                    alls[j].append(h.perfs[i])
+                    alls[j].append(h.objectives[i][0])
                     allvs[j].append(h.configurations[i].get_dictionary())
 
             mean = [np.mean([a[i] for a in mins if i < len(a)]) for i in range(MAX_RUNS)]

@@ -104,7 +104,7 @@ if role == 'master':
     bo = mqSMBO(None, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
                 parallel_strategy=parallel, batch_size=batch_size, ip='', port=port, task_id='test_mqsmbo')
     bo.run()
-    inc_value = bo.get_incumbent()
+    inc_value = bo.get_incumbents()
     print('Message Queue SMBO', '=' * 30)
     print(inc_value)
 else:

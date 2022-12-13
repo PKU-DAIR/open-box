@@ -6,7 +6,7 @@ import numpy as np
 
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
-from openbox.utils.history_container import Observation, HistoryContainer
+from openbox.utils.history import Observation, History
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
 
@@ -67,18 +67,21 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
         self.strategy = strategy
         assert self.strategy in ['worst', 'oldest']
 
-        # init history container
-        self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
+        # init history
+        self.history = History(
+            task_id=task_id, num_objectives=num_objectives, num_constraints=num_constraints, config_space=config_space,
+            ref_point=None, meta_info=None,  # todo: add meta info
+        )
 
-    def get_suggestion(self, history_container=None):
+    def get_suggestion(self, history=None):
         """
         Generate a configuration (suggestion) for this query.
         Returns
         -------
         A configuration.
         """
-        if history_container is None:
-            history_container = self.history_container
+        if history is None:
+            history = self.history
 
         if len(self.population) < self.population_size:
             # Initialize population
@@ -106,13 +109,13 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
         self.running_configs.append(next_config)
         return next_config
 
-    def get_suggestions(self, batch_size=None, history_container=None):
+    def get_suggestions(self, batch_size=None, history=None):
         if batch_size is None:
             batch_size = self.batch_size
 
         configs = list()
         for i in range(batch_size):
-            config = self.get_suggestion(history_container)
+            config = self.get_suggestion(history)
             configs.append(config)
         return configs
 
@@ -151,7 +154,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
             else:
                 raise ValueError('Unknown strategy: %s' % self.strategy)
 
-        return self.history_container.update_observation(observation)
+        return self.history.update_observation(observation)
 
     def sample_random_config(self, excluded_configs=None):
         if excluded_configs is None:
@@ -170,4 +173,4 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
         return config
 
     def get_history(self):
-        return self.history_container
+        return self.history

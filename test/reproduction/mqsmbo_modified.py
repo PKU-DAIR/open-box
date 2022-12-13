@@ -1,7 +1,7 @@
 import time
 from openbox import logger
 from openbox.optimizer.message_queue_smbo import mqSMBO
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 
 
 class mqSMBO_modified(mqSMBO):

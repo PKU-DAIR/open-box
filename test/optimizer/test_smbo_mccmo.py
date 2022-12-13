@@ -17,9 +17,13 @@ bo = SMBO(prob.evaluate, prob.config_space,
           acq_type='mcparegoc',
           ref_point=prob.ref_point,
           max_runs=100, random_state=2)
-bo.run()
+history = bo.run()
 
-hvs = bo.get_history().hv_data
-log_hv_diff = np.log10(prob.max_hv - np.asarray(hvs))
-plt.plot(log_hv_diff)
+# plot pareto front
+if history.num_objectives in [2, 3]:
+    history.plot_pareto_front()
+    plt.show()
+
+# plot hypervolume
+history.plot_hypervolumes(optimal_hypervolume=prob.max_hv, logy=True)
 plt.show()

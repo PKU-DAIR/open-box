@@ -88,8 +88,8 @@ def evaluate(mth, run_i, seed):
 
     bo.run()
     config_list = bo.get_history().configurations
-    perf_list = bo.get_history().perfs
-    time_list = bo.get_history().update_times
+    perf_list = bo.get_history().get_objectives(transform='none').reshape(-1)
+    time_list = bo.get_history().create_times
 
     return config_list, perf_list, time_list
 

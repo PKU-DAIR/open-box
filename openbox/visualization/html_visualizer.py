@@ -7,7 +7,7 @@ import copy
 from typing import List, Union
 import numpy as np
 from openbox import logger
-from openbox.utils.history_container import HistoryContainer
+from openbox.utils.history import History
 from openbox.visualization.base_visualizer import BaseVisualizer
 from openbox.surrogate.base.base_model import AbstractModel
 
@@ -20,7 +20,7 @@ class HTMLVisualizer(BaseVisualizer):
     def __init__(
             self,
             logging_dir: str,
-            history_container: HistoryContainer,
+            history: History,
             auto_open_html: bool = False,
             advanced_analysis: bool = False,
             advanced_analysis_options: dict = None,
@@ -33,7 +33,7 @@ class HTMLVisualizer(BaseVisualizer):
     ):
         super().__init__()
         assert isinstance(logging_dir, str) and logging_dir != ''
-        task_id = history_container.task_id
+        task_id = history.task_id
         self.output_dir = os.path.join(logging_dir, "history/%s/" % task_id)
         self.output_dir = os.path.abspath(self.output_dir)
         os.makedirs(self.output_dir, exist_ok=True)
@@ -46,7 +46,7 @@ class HTMLVisualizer(BaseVisualizer):
         self.advanced_analysis_options.update(advanced_analysis_options)
         self._cache_advanced_data = dict()
 
-        self.history_container = history_container
+        self.history = history
         self.meta_data = {
             'task_id': task_id,
             'advisor_type': advisor_type,
@@ -77,7 +77,7 @@ class HTMLVisualizer(BaseVisualizer):
             self.open_html()
 
     def update(self, update_importance=None, verify_surrogate=None):
-        iter_id = len(self.history_container.configurations)
+        iter_id = len(self.history)
         max_iter = self.meta_data['max_iterations'] or np.inf
         if update_importance is None:
             if not self.advanced_analysis:
@@ -138,32 +138,36 @@ class HTMLVisualizer(BaseVisualizer):
             logger.exception('Failed to save visualization data!')
 
     def generate_basic_data(self):
-        his_con = self.history_container
-
         # Config Table data
         table_list = []
         # all the config list
         rh_config = {}
         # Parallel Data
-        option = {'data': [list() for i in range(his_con.num_objectives)], 'schema': [], 'visualMap': {}}
+        option = {'data': [list() for i in range(self.history.num_objectives)], 'schema': [], 'visualMap': {}}
         # all the performance
-        perf_list = [list() for i in range(his_con.num_objectives)]
+        perf_list = [list() for i in range(self.history.num_objectives)]
         # all the constraints, A[i][j]: value of constraint i, configuration j
-        cons_list = [list() for i in range(his_con.num_constraints)]
+        cons_list = [list() for i in range(self.history.num_constraints)]
         # A[i][j]: value of configuration i, constraint j
         cons_list_rev = list()
 
-        for idx in range(len(his_con.perfs)):
-            if his_con.num_objectives > 1:
-                results = [round(tmp, 4) for tmp in his_con.perfs[idx]]
-            else:
-                results = [round(his_con.perfs[idx], 4)]
+        # todo: use observations
+        # todo: check if has invalid value
+        # all_objectives = self.history.get_objectives(transform='none', warn_invalid_value=False)
+        # all_constraints = self.history.get_constraints(transform='none', warn_invalid_value=False)
+        all_objectives = self.history.objectives
+        all_constraints = self.history.constraints
+        all_config_dicts = self.history.get_config_dicts()
+        all_trial_states = self.history.trial_states
+        all_elapsed_times = self.history.elapsed_times
+        for idx in range(len(self.history)):
+            results = [round(v, 4) for v in all_objectives[idx]]
             constraints = None
-            if his_con.num_constraints > 0:
-                constraints = [round(tmp, 4) for tmp in his_con.constraint_perfs[idx]]
+            if self.history.num_constraints > 0:
+                constraints = [round(v, 4) for v in all_constraints[idx]]
                 cons_list_rev.append(constraints)
 
-            config_dic = his_con.configurations[idx].get_dictionary()
+            config_dic = all_config_dicts[idx]
             config_str = str(config_dic)
             if len(config_str) > 35:
                 config_str = config_str[1:35]
@@ -171,8 +175,8 @@ class HTMLVisualizer(BaseVisualizer):
                 config_str = config_str[1:-1]
 
             table_list.append(
-                [idx + 1, results, constraints, config_str, his_con.trial_states[idx],
-                 round(his_con.elapsed_times[idx], 3)])
+                [idx + 1, results, constraints, config_str, all_trial_states[idx],
+                 round(all_elapsed_times[idx], 3)])
 
             rh_config[str(idx + 1)] = config_dic
 
@@ -180,20 +184,21 @@ class HTMLVisualizer(BaseVisualizer):
             for parameter in config_dic.keys():
                 config_values.append(config_dic[parameter])
 
-            for i in range(his_con.num_objectives):
+            for i in range(self.history.num_objectives):
                 option['data'][i].append(config_values + [results[i]])
 
-            for i in range(his_con.num_objectives):
+            for i in range(self.history.num_objectives):
                 perf_list[i].append(results[i])
 
-            for i in range(his_con.num_constraints):
+            for i in range(self.history.num_constraints):
                 cons_list[i].append(constraints[i])
 
-        if len(his_con.perfs) > 0:
-            option['schema'] = list(his_con.configurations[0].get_dictionary().keys()) + ['perf']
+        if len(self.history) > 0:
+            parameters = self.history.get_config_space().get_hyperparameter_names()
+            option['schema'] = list(parameters) + ['perf']
             mi = float('inf')
             ma = -float('inf')
-            for i in range(his_con.num_objectives):
+            for i in range(self.history.num_objectives):
                 mi = min(mi, np.percentile(perf_list[i], 0))
                 ma = max(ma, np.percentile(perf_list[i], 90))
             option['visualMap']['min'] = mi
@@ -208,13 +213,13 @@ class HTMLVisualizer(BaseVisualizer):
         # ok: fits the constraint, and at the bottom.
         # no：not fits the constraint.
         # other：fits the constraint, not at the bottom
-        line_data = [{'ok': [], 'no': [], 'other': []} for i in range(his_con.num_objectives)]
+        line_data = [{'ok': [], 'no': [], 'other': []} for i in range(self.history.num_objectives)]
 
-        for i in range(his_con.num_objectives):
+        for i in range(self.history.num_objectives):
             min_value = float("inf")
             for idx, perf in enumerate(perf_list[i]):
-                if his_con.num_constraints > 0 and np.any(
-                        [cons_list_rev[idx][k] > 0 for k in range(his_con.num_constraints)]):
+                if self.history.num_constraints > 0 and np.any(
+                        [cons_list_rev[idx][k] > 0 for k in range(self.history.num_constraints)]):
                     line_data[i]['no'].append([idx, perf])
                     continue
                 if perf <= min_value:
@@ -225,15 +230,18 @@ class HTMLVisualizer(BaseVisualizer):
             line_data[i]['ok'].append([len(option['data'][i]), min_value])
 
         # Pareto data
-        pareto = dict({})
-        if his_con.num_objectives > 1:
-            pareto["ref_point"] = his_con.ref_point
-            pareto["hv"] = [[idx, round(v, 3)] for idx, v in enumerate(his_con.hv_data)]
-            pareto["pareto_point"] = list(his_con.pareto.values())
-            pareto["all_points"] = his_con.perfs
+        # todo: if ref_point is None?
+        # todo: if has invalid value?
+        pareto = dict()
+        if self.history.num_objectives > 1:
+            pareto["ref_point"] = self.history.ref_point
+            hypervolumes = self.history.compute_hypervolume(data_range='all')
+            pareto["hv"] = [[idx, round(v, 3)] for idx, v in enumerate(hypervolumes)]
+            pareto["pareto_point"] = self.history.get_pareto_front().tolist()
+            pareto["all_points"] = self.history.get_objectives(transform='none', warn_invalid_value=True).tolist()
 
         draw_data = {
-            'num_objectives': his_con.num_objectives, 'num_constraints': his_con.num_constraints,
+            'num_objectives': self.history.num_objectives, 'num_constraints': self.history.num_constraints,
             'advance': self.advanced_analysis,
             'line_data': line_data,
             'cons_line_data': [[[idx, con] for idx, con in enumerate(c_l)] for c_l in cons_list],
@@ -259,14 +267,14 @@ class HTMLVisualizer(BaseVisualizer):
             if method != 'shap':  # todo: add other methods, such as fanova
                 raise NotImplementedError('HTMLVisualizer only supports shap importance method currently!')
 
-            importance_dict = self.history_container.get_importance(method=method, return_dict=True)
+            importance_dict = self.history.get_importance(method=method, return_dict=True)
             if importance_dict is None or importance_dict == {}:
                 return None
 
             objective_importance = importance_dict['objective_importance']
             constraint_importance = importance_dict['constraint_importance']
-            X = self.history_container.get_numerical_config_array()
-            parameters = self.history_container.get_config_space().get_hyperparameter_names()
+            X = self.history.get_config_array(transform='numerical')
+            parameters = self.history.get_config_space().get_hyperparameter_names()
 
             objective_shap_values = np.asarray(importance_dict['objective_shap_values']).tolist()
             constraint_shap_values = np.asarray(importance_dict['constraint_shap_values']).tolist()
@@ -302,27 +310,24 @@ class HTMLVisualizer(BaseVisualizer):
     def generate_verify_surrogate_data(self):
         try:
             logger.info('Verify surrogate model...')
-            his_con = self.history_container
 
             from openbox.utils.config_space.util import convert_configurations_to_array
             # prepare object surrogate model data
-            X_all = convert_configurations_to_array(his_con.configurations)
-            Y_all = his_con.get_transformed_perfs(transform=None)
-            if his_con.num_objectives == 1:
-                Y_all = Y_all.reshape(-1, 1)
+            X_all = self.history.get_config_array(transform='scale')
+            Y_all = self.history.get_objectives(transform='infeasible')
 
-            if his_con.num_objectives == 1:  # todo: prf does not support copy. use build surrogate instead.
+            if self.history.num_objectives == 1:  # todo: prf does not support copy. use build surrogate instead.
                 models = [copy.deepcopy(self.surrogate_model)]
             else:
                 models = copy.deepcopy(self.surrogate_model)
             pre_label_data, grade_data = self.verify_surrogate(X_all, Y_all, models)
 
-            if self.history_container.num_constraints == 0:
+            if self.history.num_constraints == 0:
                 return pre_label_data, grade_data, None
 
             # prepare constraint surrogate model data
-            cons_X_all = convert_configurations_to_array(his_con.configurations)
-            cons_Y_all = his_con.get_transformed_constraint_perfs(transform='bilog')
+            cons_X_all = X_all
+            cons_Y_all = self.history.get_constraints(transform='bilog')
             cons_models = copy.deepcopy(self.constraint_models)
 
             cons_pre_label_data, _ = self.verify_surrogate(cons_X_all, cons_Y_all, cons_models)

@@ -41,7 +41,7 @@ bo = pSMBO(branin,
            task_id='parallel')
 bo.run()
 
-inc_value = bo.get_incumbent()
+inc_value = bo.get_incumbents()
 print('BO', '=' * 30)
 print(inc_value)
 print(bo.get_history())

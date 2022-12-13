@@ -1,6 +1,6 @@
 from ConfigSpace import ConfigurationSpace, Configuration
 
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 from openbox.experimental.online.base_online_advisor import OnlineAdvisor
 
 
@@ -29,4 +29,4 @@ class RandomSearch(OnlineAdvisor):
         return self.config
 
     def update_observation(self, observation: Observation):
-        self.history_container.update_observation(observation)
+        self.history.update_observation(observation)

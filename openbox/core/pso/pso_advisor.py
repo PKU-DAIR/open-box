@@ -5,8 +5,7 @@ from ConfigSpace import ConfigurationSpace, Configuration
 from openbox import logger
 from openbox.core.pso.base_pso_advisor import Individual
 from openbox.core.pso.base_pso_advisor import BasePSOAdvisor
-from openbox.utils.constants import MAXINT, SUCCESS
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 from openbox.utils.util_funcs import deprecate_kwarg
 
 
@@ -99,7 +98,7 @@ class PSOAdvisor(BasePSOAdvisor):
 
             perf = observation.objectives[0]
             self.population[t]['perf'] = perf
-            self.history_container.update_observation(observation)
+            self.history.update_observation(observation)
 
         for i in range(self.population_size):
             cur = self.population[i]

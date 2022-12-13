@@ -14,7 +14,7 @@ import pickle as pkl
 sys.path.insert(0, os.getcwd())
 from test.reproduction.soc.soc_benchmark_function import get_problem
 from openbox.optimizer.generic_smbo import SMBO
-from openbox.test_utils import timeit, seeds
+from test.reproduction.test_utils import timeit, seeds
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--problem', type=str, default='townsend')
@@ -66,11 +66,11 @@ def evaluate(mth, run_i, seed):
         time_list.append(global_time)
 
     _perf_list = []
-    for i, c in enumerate(bo.config_advisor.constraint_perfs[0]):
-        if c > 0:
-            _perf_list.append(9999999)
-        else:
+    for i, c in enumerate(bo.get_history().get_constraints(transform='none')):
+        if c <= 0:
             _perf_list.append(perf_list[i])
+        else:
+            _perf_list.append(9999999)
 
     return config_list, _perf_list, time_list
 

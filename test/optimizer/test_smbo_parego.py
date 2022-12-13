@@ -1,6 +1,7 @@
 import os
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 sys.path.insert(0, os.getcwd())
 
 from openbox.optimizer.generic_smbo import SMBO
@@ -39,7 +40,13 @@ bo = SMBO(branin_currin, bc_cs,
           acq_type='parego',
           ref_point=bc_ref_point,
           max_runs=100)
-bo.run()
+history = bo.run()
 
-hvs = bo.get_history().hv_data
-log_hv_diff = np.log10(bc_max_hv - np.asarray(hvs))
+# plot pareto front
+if history.num_objectives in [2, 3]:
+    history.plot_pareto_front()
+    plt.show()
+
+# plot hypervolume
+history.plot_hypervolumes(optimal_hypervolume=bc_max_hv, logy=True)
+plt.show()

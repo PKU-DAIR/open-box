@@ -7,7 +7,7 @@ from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import parse_result
 from openbox.core.message_queue.worker_messager import WorkerMessager
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 
 
 class Worker(object):

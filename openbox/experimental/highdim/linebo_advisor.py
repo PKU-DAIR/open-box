@@ -6,8 +6,7 @@ from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperpara
 
 from openbox.core.base import build_acq_func, build_surrogate, build_optimizer
 from openbox.surrogate.base.base_model import AbstractModel
-from openbox.utils.config_space import convert_configurations_to_array
-from openbox.utils.history_container import Observation, HistoryContainer
+from openbox.utils.history import Observation, History
 from openbox.utils.util_funcs import check_random_state, get_types, deprecate_kwarg
 
 
@@ -112,9 +111,12 @@ class LineBOAdvisor:
         self.subspace_acq = None
         self.acq_optimizer = None
 
-        self.history_container = HistoryContainer(task_id, num_constraints, self.config_space)
+        self.history = History(
+            task_id=task_id, num_objectives=num_objectives, num_constraints=num_constraints, config_space=config_space,
+            ref_point=None, meta_info=None,  # todo: add meta info
+        )
 
-        self.sub_history_container = None
+        self.sub_history = None
 
         self.cnt = 0
 
@@ -122,8 +124,12 @@ class LineBOAdvisor:
         self.history_lines = []
 
     def update_subspace(self):
-        incumbent = self.config_space.sample_configuration() if len(self.history_container.incumbents) == 0 else \
-            self.history_container.incumbents[self.rng.randint(0, len(self.history_container.incumbents))][0]
+        incumbent_configs = self.history.get_incumbent_configs()
+
+        if len(incumbent_configs) == 0:
+            incumbent = self.config_space.sample_configuration()
+        else:
+            incumbent = self.rng.choice(incumbent_configs)
 
         x = incumbent.get_array()
 
@@ -212,9 +218,10 @@ class LineBOAdvisor:
                                                config_space=self.line_space)
             self.acq_optimizer = build_optimizer(func_str=self.acq_optimizer_type, acq_func=self.subspace_acq,
                                                  config_space=self.line_space, rng=self.rng)
-            self.sub_history_container = HistoryContainer(task_id=self.task_id,
-                                                          num_constraints=self.num_constraints,
-                                                          config_space=self.line_space)
+            self.sub_history = History(
+                task_id=self.task_id+'-sub', num_objectives=self.num_objectives, num_constraints=self.num_constraints,
+                config_space=self.line_space, ref_point=None, meta_info=None,  # todo: add meta info
+            )
 
         # print("subspace updated ", self.current_subspace)
 
@@ -226,15 +233,15 @@ class LineBOAdvisor:
         return Configuration(self.config_space, vector=oX)
 
     def get_suggestion(self):
-        if len(self.history_container.configurations) == 0:
+        if len(self.history) == 0:
             return self.config_space.sample_configuration()
 
-        incumbent_value = self.history_container.get_incumbents()[0][1]
-        num_config_evaluated = len(self.history_container.configurations)
+        incumbent_value = self.history.get_incumbent_value()
+        num_config_evaluated = len(self.history)
 
-        X = convert_configurations_to_array(self.history_container.configurations)
-        Y = self.history_container.get_transformed_perfs(transform=None)
-        cY = self.history_container.get_transformed_constraint_perfs(transform='bilog')
+        X = self.history.get_config_array(transform='scale')
+        Y = self.history.get_objectives(transform='infeasible')
+        cY = self.history.get_constraints(transform='bilog')
 
         self.last_gp_data = (X, Y)
 
@@ -254,26 +261,26 @@ class LineBOAdvisor:
 
         if self.subbo_evals != 0:
 
-            sub_num_config_evaluated = len(self.sub_history_container.configurations)
+            sub_num_config_evaluated = len(self.sub_history)
 
             if sub_num_config_evaluated == 0:
                 return self.to_original_space(self.line_space.sample_configuration())
 
-            sub_incumbent_value = self.sub_history_container.get_incumbents()[0][1]
+            sub_incumbent_value = self.sub_history.get_incumbent_value()
 
             self.subspace_acq.update(eta=sub_incumbent_value, num_data=sub_num_config_evaluated)
 
-            challengers = self.acq_optimizer.maximize(runhistory=self.sub_history_container,
+            challengers = self.acq_optimizer.maximize(runhistory=self.sub_history,
                                                       num_points=self.subbo_samples)
             ret = None
 
             for config in challengers.challengers:
                 c = self.to_original_space(config)
                 cx = c.get_array()
-                if any(np.linalg.norm(cx - i.get_array()) < 1e-6 for i in self.history_container.configurations):
+                if any(np.linalg.norm(cx - i.get_array()) < 1e-6 for i in self.history.configurations):
                     continue
 
-                if config not in self.history_container.configurations:
+                if config not in self.history.configurations:
                     ret = c
                     break
 
@@ -293,7 +300,7 @@ class LineBOAdvisor:
             ans = None
 
             for i in range(self.subbo_samples):
-                if gs_configs[ranks[i]] not in self.history_container.configurations:
+                if gs_configs[ranks[i]] not in self.history.configurations:
                     ans = gs_configs[ranks[i]]
                     break
 
@@ -303,7 +310,7 @@ class LineBOAdvisor:
             return ans
 
     def update_observation(self, observation: Observation):
-        self.history_container.update_observation(observation)
+        self.history.update_observation(observation)
 
     def get_history(self):
-        return self.history_container
+        return self.history

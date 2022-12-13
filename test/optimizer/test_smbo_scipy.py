@@ -43,5 +43,5 @@ bo2 = SMBO(branin, cs, advisor_type='default', surrogate_type='gp',
            task_id='random_scipy_bo', random_state=i, max_runs=31, time_limit_per_trial=3, logging_dir='logs')
 bo2.run()
 
-print(bo.get_incumbent())
-print(bo2.get_incumbent())
+print(bo.get_incumbents())
+print(bo2.get_incumbents())

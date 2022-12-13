@@ -10,8 +10,7 @@ import statsmodels.api as sm
 
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state
-from openbox.utils.history_container import Observation, HistoryContainer
-from openbox.utils.config_space.util import convert_configurations_to_array
+from openbox.utils.history import Observation, History
 
 
 class TPE_Advisor:
@@ -44,7 +43,10 @@ class TPE_Advisor:
         self.bw_factor = bandwidth_factor
         self.min_bandwidth = min_bandwidth
 
-        self.history_container = HistoryContainer(task_id, config_space=config_space)
+        self.history = History(
+            task_id=task_id, num_objectives=1, num_constraints=0, config_space=config_space,
+            ref_point=None, meta_info=None,  # todo: add meta info
+        )
 
         self.min_points_in_model = min_points_in_model
         if min_points_in_model is None:
@@ -78,23 +80,23 @@ class TPE_Advisor:
         self.kde_models = dict()
 
     def update_observation(self, observation: Observation):
-        self.history_container.update_observation(observation)
+        self.history.update_observation(observation)
 
-    def get_suggestion(self, history_container=None):
-        if history_container is None:
-            history_container = self.history_container
+    def get_suggestion(self, history=None):
+        if history is None:
+            history = self.history
 
         # use default as first config
-        num_config_evaluated = len(history_container.configurations)
+        num_config_evaluated = len(history)
         if num_config_evaluated == 0:
             return self.config_space.get_default_configuration()
 
         # fit
-        self.fit_kde_models(history_container)
+        self.fit_kde_models(history)
 
         # If no model is available, sample random config
         if len(self.kde_models.keys()) == 0 or self.rng.rand() < self.random_fraction:
-            return self.sample_random_configs(1, history_container)[0]
+            return self.sample_random_configs(1, history)[0]
 
         best = np.inf
         best_vector = None
@@ -154,7 +156,7 @@ class TPE_Advisor:
             if best_vector is None:
                 logger.debug(
                     "Sampling based optimization with %i samples failed -> using random configuration" % self.num_samples)
-                config = self.sample_random_configs(1, history_container)[0]
+                config = self.sample_random_configs(1, history)[0]
             else:
                 logger.debug(
                     'best_vector: {}, {}, {}, {}'.format(best_vector, best, l(best_vector), g(best_vector)))
@@ -179,7 +181,7 @@ class TPE_Advisor:
             logger.warning(
                 "Sampling based optimization with %i samples failed\n %s \nUsing random configuration" % (
                     self.num_samples, traceback.format_exc()))
-            config = self.sample_random_configs(1, history_container)[0]
+            config = self.sample_random_configs(1, history)[0]
 
         return config
 
@@ -212,15 +214,15 @@ class TPE_Advisor:
             return_array[i, :] = datum
         return return_array
 
-    def fit_kde_models(self, history_container):
-        num_config_successful = len(history_container.successful_perfs)
+    def fit_kde_models(self, history):
+        num_config_successful = history.get_success_count()
         if num_config_successful <= self.min_points_in_model - 1:
             logger.debug("Only %i run(s) available, need more than %s -> can't build model!" % (
                 num_config_successful, self.min_points_in_model + 1))
             return
 
-        train_configs = convert_configurations_to_array(history_container.configurations)
-        train_losses = history_container.get_transformed_perfs(transform=None)
+        train_configs = history.get_config_array(transform='scale')
+        train_losses = history.get_objectives(transform='infeasible').reshape(-1)
 
         n_good = max(self.min_points_in_model, (self.top_n_percent * train_configs.shape[0]) // 100)
         # n_bad = min(max(self.min_points_in_model, ((100-self.top_n_percent)*train_configs.shape[0])//100), 10)
@@ -261,21 +263,21 @@ class TPE_Advisor:
             'done building a new model based on %i/%i split\nBest loss for this budget:%f\n\n\n\n\n' % (
                 n_good, n_bad, np.min(train_losses)))
 
-    def sample_random_configs(self, num_configs=1, history_container=None):
+    def sample_random_configs(self, num_configs=1, history=None):
         """
         Sample a batch of random configurations.
         Parameters
         ----------
         num_configs
 
-        history_container
+        history
 
         Returns
         -------
 
         """
-        if history_container is None:
-            history_container = self.history_container
+        if history is None:
+            history = self.history
 
         configs = list()
         sample_cnt = 0
@@ -283,7 +285,7 @@ class TPE_Advisor:
         while len(configs) < num_configs:
             config = self.config_space.sample_configuration()
             sample_cnt += 1
-            if config not in (history_container.configurations + configs):
+            if config not in (history.configurations + configs):
                 configs.append(config)
                 sample_cnt = 0
                 continue
@@ -294,4 +296,4 @@ class TPE_Advisor:
         return configs
 
     def get_history(self):
-        return self.history_container
+        return self.history

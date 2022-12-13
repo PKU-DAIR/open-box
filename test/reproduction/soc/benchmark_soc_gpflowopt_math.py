@@ -19,7 +19,7 @@ from gpflowopt.optim import SciPyOptimizer, StagedOptimizer, MCOptimizer
 
 sys.path.insert(0, os.getcwd())
 from test.reproduction.soc.soc_benchmark_function import get_problem
-from openbox.test_utils import timeit, seeds
+from test.reproduction.test_utils import timeit, seeds
 from test.reproduction.gpflowopt_modified import BayesianOptimizer_modified
 
 parser = argparse.ArgumentParser()

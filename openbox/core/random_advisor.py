@@ -1,6 +1,6 @@
 # License: MIT
 
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 from openbox.core.generic_advisor import Advisor
 from openbox.utils.util_funcs import deprecate_kwarg
 
@@ -38,19 +38,19 @@ class RandomAdvisor(Advisor):
             logger_kwargs=logger_kwargs, **kwargs,
         )   # todo: do not derive from BO advisor
 
-    def get_suggestion(self, history_container=None):
+    def get_suggestion(self, history=None):
         """
         Generate a configuration (suggestion) for this query.
         Returns
         -------
         A configuration.
         """
-        if history_container is None:
-            history_container = self.history_container
-        return self.sample_random_configs(1, history_container)[0]
+        if history is None:
+            history = self.history
+        return self.sample_random_configs(1, history)[0]
 
     def update_observation(self, observation: Observation):
-        return self.history_container.update_observation(observation)
+        return self.history.update_observation(observation)
 
     def algo_auto_selection(self):
         return

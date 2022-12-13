@@ -75,7 +75,7 @@ def evaluate(mth, run_i, seed):
         print(seed, i, objectives, config, trial_state, 'time=', global_time)
         time_list.append(global_time)
     config_list = bo.get_history().configurations
-    perf_list = bo.get_history().perfs
+    perf_list = bo.get_history().get_objectives(transform='none')
 
     return config_list, perf_list, time_list
 

@@ -21,7 +21,7 @@ from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
 from openbox.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
 from openbox.acq_maximizer.random_configuration_chooser import ChooserProb
 from openbox.utils.config_space.util import convert_configurations_to_array
-from openbox.utils.history_container import HistoryContainer
+from openbox.utils.history import History, Observation
 
 
 class async_mqMFES(async_mqHyperband):
@@ -92,7 +92,7 @@ class async_mqMFES(async_mqHyperband):
             self.target_y[r] = list()
 
         # BO optimizer settings.
-        self.history_container = HistoryContainer(task_id=self.method_name)
+        self.history = History(task_id=self.method_name)
         self.sls_max_steps = None
         self.n_sls_iterations = 5
         self.sls_n_steps_plateau_walk = 10
@@ -137,8 +137,9 @@ class async_mqMFES(async_mqHyperband):
         if n_iteration == self.R:
             self.incumbent_configs.append(config)
             self.incumbent_perfs.append(perf)
-            # Update history container.
-            self.history_container.add(config, perf)
+            # Update history
+            observation = Observation(config=config, objectives=[perf])
+            self.history.update_observation(observation)
 
         # Refit the ensemble surrogate model.
         configs_train = self.target_x[n_iteration] + configs_running
@@ -195,7 +196,7 @@ class async_mqMFES(async_mqHyperband):
                                          num_data=len(self.incumbent_configs))
 
         challengers = self.acq_optimizer.maximize(
-            runhistory=self.history_container,
+            runhistory=self.history,
             num_points=5000,
         )
         return challengers.challengers
@@ -328,4 +329,3 @@ class async_mqMFES(async_mqHyperband):
 
     def get_weights(self):
         return self.hist_weights
-

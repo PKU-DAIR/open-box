@@ -8,7 +8,7 @@ from .utils import color_logger as logger
 from .utils import space
 from .utils import space as sp
 
-from .utils.history_container import Observation, HistoryContainer, MOHistoryContainer
+from .utils.history import Observation, History
 
 from .optimizer.generic_smbo import SMBO as Optimizer
 from .optimizer.parallel_smbo import pSMBO as ParallelOptimizer
@@ -34,7 +34,7 @@ __all__ = [
     "__version__", "__package__", "package_name",
     "logger",
     "sp", "space",
-    "Observation", "HistoryContainer", "MOHistoryContainer",
+    "Observation", "History",
     "Optimizer", "ParallelOptimizer", "DistributedOptimizer", "DistributedWorker",
     "NSGAOptimizer",
     "create_optimizer",

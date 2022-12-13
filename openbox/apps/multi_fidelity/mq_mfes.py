@@ -20,7 +20,7 @@ from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
 from openbox.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
 from openbox.acq_maximizer.random_configuration_chooser import ChooserProb
 from openbox.utils.config_space.util import convert_configurations_to_array
-from openbox.utils.history_container import HistoryContainer
+from openbox.utils.history import Observation, History
 
 
 class mqMFES(mqBaseFacade):
@@ -100,7 +100,7 @@ class mqMFES(mqBaseFacade):
 
         # BO optimizer settings.
         self.configs = list()
-        self.history_container = HistoryContainer(task_id=self.method_name)
+        self.history = History(task_id=self.method_name)
         self.sls_max_steps = None
         self.n_sls_iterations = 5
         self.sls_n_steps_plateau_walk = 10
@@ -164,9 +164,10 @@ class mqMFES(mqBaseFacade):
                 if int(n_iteration) == self.R:
                     self.incumbent_configs.extend(T)
                     self.incumbent_perfs.extend(val_losses)
-                    # Update history container.
+                    # Update history
                     for _config, _perf in zip(T, val_losses):
-                        self.history_container.add(_config, _perf)
+                        observation = Observation(config=_config, objectives=[_perf])
+                        self.history.update_observation(observation)
 
                 # Select a number of best configurations for the next loop.
                 # Filter out early stops, if any.
@@ -217,10 +218,10 @@ class mqMFES(mqBaseFacade):
         std_incumbent_value = np.min(std_normalization(self.target_y[self.iterate_r[-1]]))
         # Update surrogate model in acquisition function.
         self.acquisition_function.update(model=self.weighted_surrogate, eta=std_incumbent_value,
-                                         num_data=len(self.history_container.data))
+                                         num_data=len(self.history))
 
         challengers = self.acq_optimizer.maximize(
-            runhistory=self.history_container,
+            runhistory=self.history,
             num_points=5000,
         )
         return challengers.challengers[:num_configs]
@@ -396,7 +397,7 @@ class mqMFES(mqBaseFacade):
         logger.info('update_weight() cost %.2fs. new weights are saved to %s'
                          % (time.time()-start_time, os.path.join(dir_path, file_name)))
 
-    def get_incumbent(self, num_inc=1):
+    def get_incumbents(self, num_inc=1):
         assert (len(self.incumbent_perfs) == len(self.incumbent_configs))
         indices = np.argsort(self.incumbent_perfs)
         configs = [self.incumbent_configs[i] for i in indices[0:num_inc]]

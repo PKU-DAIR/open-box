@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from openbox import Advisor, space as sp, Observation
+from openbox import Advisor, space as sp, Observation, logger
 
 # Define Search Space
 space = sp.Space()
@@ -16,7 +16,7 @@ def branin(config):
     x1, x2 = config['x1'], config['x2']
     y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
         + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
-    return {'objectives': (y,)}
+    return {'objectives': [y, ]}
 
 
 # Run
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         space,
         # surrogate_type='gp',
         surrogate_type='auto',
-        task_id='quick_start',
+        task_id='ask_and_tell',
     )
 
     MAX_RUNS = 50
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         # tell
         observation = Observation(config=config, objectives=ret['objectives'])
         advisor.update_observation(observation)
-        print('===== ITER %d/%d: %s.' % (i+1, MAX_RUNS, observation))
+        logger.info('\n===== ITER %d/%d: %s.' % (i+1, MAX_RUNS, observation))
 
     history = advisor.get_history()
     print(history)

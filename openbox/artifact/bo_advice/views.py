@@ -9,7 +9,7 @@ from django.http import HttpResponse, JsonResponse
 
 from openbox.utils.config_space import json as config_json
 from openbox.utils.config_space import Configuration
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 
 from openbox.artifact.data_manipulation.db_object import User, Task, Runhistory
 from user_board.utils.common import get_password
@@ -166,7 +166,7 @@ def update_observation(request):
             runhistory_id = Runhistory().insert_one(item)
             observation = Observation(
                 config=config, objectives=objectives, constraints=constraints,
-                trial_state=trial_state, elapsed_time=trial_info['cost'],
+                trial_state=trial_state, elapsed_time=trial_info['cost'], extra_info=None,  # todo: add extra_info
             )
             config_advisor.update_observation(observation)
 
@@ -201,10 +201,11 @@ def get_result(request):
             task_id = request.POST.get('task_id')
             config_advisor = advisor_dict[task_id]
 
-            incumbents = config_advisor.history_container.incumbents
-            incumbents = [(k.get_dictionary(), v) for k, v in incumbents]
-            history = config_advisor.history_container.data
-            history = [(k.get_dictionary(), v) for k, v in history.items()]
+            # todo: multi-objective, constraints
+            incumbents = config_advisor.history.get_incumbents()  # type: List[Observation]
+            incumbents = [(obs.config.get_dictionary(), obs.objectives[0]) for obs in incumbents]
+            history = config_advisor.history.observations  # type: List[Observation]
+            history = [(obs.config.get_dictionary(), obs.objectives[0]) for obs in history]
             print('-' * 21)
             print('BO result')
             print(incumbents, '-' * 21, sep='')

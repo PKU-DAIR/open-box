@@ -11,7 +11,7 @@ from openbox.optimizer.base import BOBase
 from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import parse_result, deprecate_kwarg
-from openbox.utils.history_container import Observation, HistoryContainer
+from openbox.utils.history import Observation, History
 from openbox.visualization import build_visualizer
 
 
@@ -225,7 +225,7 @@ class SMBO(BOBase):
         self.visualizer = build_visualizer(visualization, self, auto_open_html=auto_open_html)
         self.visualizer.setup()
 
-    def run(self) -> HistoryContainer:
+    def run(self) -> History:
         for _ in tqdm(range(self.iteration_id, self.max_iterations)):
             if self.budget_left < 0:
                 logger.info('Time %f elapsed!' % self.runtime_limit)
@@ -244,7 +244,7 @@ class SMBO(BOBase):
         _budget_left = int(1e10) if budget_left is None else budget_left
         _time_limit_per_trial = math.ceil(min(self.time_limit_per_trial, _budget_left))
 
-        if config in self.config_advisor.history_container.configurations:
+        if config in self.config_advisor.history.configurations:
             logger.warning('Evaluating duplicated configuration: %s' % config)
 
         start_time = time.time()

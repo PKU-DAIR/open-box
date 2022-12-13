@@ -126,11 +126,11 @@ if __name__ == "__main__":
 
                 histories.append(advisor.get_history())
 
-            mins = [[h.perfs[0]] for h in histories]
+            mins = [[h.objectives[0][0]] for h in histories]
 
             for i in range(1, MAX_RUNS):
                 for j, h in enumerate(histories):
-                    mins[j].append(min(mins[j][-1], h.perfs[i]))
+                    mins[j].append(min(mins[j][-1], h.objectives[i][0]))
 
             fmins = [sum(a[i] for a in mins) / REPEATS for i in range(MAX_RUNS)]
 

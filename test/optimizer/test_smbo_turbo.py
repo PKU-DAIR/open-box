@@ -28,8 +28,8 @@ bo = SMBO(prob.evaluate, prob.config_space,
           initial_runs=initial_runs,
           init_strategy='latin_hypercube',
           random_state=seed)
-bo.run()
+history = bo.run()
 
-values = list(bo.get_history().data.values())
-plt.plot(values)
+# todo: plot all data for turbo
+history.plot_convergence()
 plt.show()

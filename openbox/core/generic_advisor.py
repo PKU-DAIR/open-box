@@ -3,15 +3,14 @@
 import os
 import abc
 import numpy as np
+from datetime import datetime
 
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
-from openbox.utils.history_container import Observation, HistoryContainer, MOHistoryContainer, \
-    MultiStartHistoryContainer
+from openbox.utils.history import Observation, History
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
-from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.core.base import build_acq_func, build_optimizer, build_surrogate
 
 
@@ -43,6 +42,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             **kwargs,
     ):
 
+        self.timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
         self.num_objectives = num_objectives
         self.num_constraints = num_constraints
         self.init_strategy = init_strategy
@@ -70,12 +70,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.config_space.seed(self.config_space_seed)
         self.ref_point = ref_point
 
-        # init history container
-        if self.num_objectives == 1:
-            self.history_container = HistoryContainer(task_id, self.num_constraints, config_space=self.config_space)
-        else:  # multi-objectives
-            self.history_container = MOHistoryContainer(task_id, self.num_objectives, self.num_constraints,
-                                                        config_space=self.config_space, ref_point=ref_point)
+        # init history
+        self.history = History(
+            task_id=task_id, num_objectives=num_objectives, num_constraints=num_constraints, config_space=config_space,
+            ref_point=ref_point, meta_info=None,  # todo: add meta info
+        )
 
         # initial design
         if initial_configurations is not None and len(initial_configurations) > 0:
@@ -156,12 +155,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
             info_str = '=== [BO auto selection] ===' + info_str
             logger.info(info_str)
 
-    def alter_model(self, history_container):
+    def alter_model(self, history: History):
         if not self.auto_alter_model:
             return
 
-        num_config_evaluated = len(history_container.configurations)
-        num_config_successful = len(history_container.successful_perfs)
+        num_config_evaluated = len(history)
 
         if num_config_evaluated == 300:
             if self.surrogate_type == 'gp':
@@ -331,46 +329,46 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         return initial_configs
 
-    def get_suggestion(self, history_container=None, return_list=False):
+    def get_suggestion(self, history: History = None, return_list: bool = False):
         """
         Generate a configuration (suggestion) for this query.
         Returns
         -------
         A configuration.
         """
-        if history_container is None:
-            history_container = self.history_container
+        if history is None:
+            history = self.history
 
-        self.alter_model(history_container)
+        self.alter_model(history)
 
-        num_config_evaluated = len(history_container.configurations)
-        num_config_successful = len(history_container.successful_perfs)
+        num_config_evaluated = len(history)
+        num_config_successful = history.get_success_count()
 
         if num_config_evaluated < self.init_num:
             res = self.initial_configurations[num_config_evaluated]
             return [res] if return_list else res
         if self.optimization_strategy == 'random':
-            res = self.sample_random_configs(1, history_container)[0]
+            res = self.sample_random_configs(1, history)[0]
             return [res] if return_list else res
 
         if (not return_list) and self.rng.random() < self.rand_prob:
             logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
-            res = self.sample_random_configs(1, history_container)[0]
+            res = self.sample_random_configs(1, history)[0]
             return [res] if return_list else res
 
-        X = convert_configurations_to_array(history_container.configurations)
-        Y = history_container.get_transformed_perfs(transform=None)
-        cY = history_container.get_transformed_constraint_perfs(transform='bilog')
+        X = history.get_config_array(transform='scale')
+        Y = history.get_objectives(transform='infeasible')
+        cY = history.get_constraints(transform='bilog')
 
         if self.optimization_strategy == 'bo':
             if num_config_successful < max(self.init_num, 1):
                 logger.warning('No enough successful initial trials! Sample random configuration.')
-                res = self.sample_random_configs(1, history_container)[0]
+                res = self.sample_random_configs(1, history)[0]
                 return [res] if return_list else res
 
             # train surrogate model
             if self.num_objectives == 1:
-                self.surrogate_model.train(X, Y)
+                self.surrogate_model.train(X, Y[:, 0])
             elif self.acq_type == 'parego':
                 weights = self.rng.random_sample(self.num_objectives)
                 weights = weights / np.sum(weights)
@@ -386,17 +384,17 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
             # update acquisition function
             if self.num_objectives == 1:
-                incumbent_value = history_container.get_incumbents()[0][1]
+                incumbent_value = history.get_incumbent_value()
                 self.acquisition_function.update(model=self.surrogate_model,
                                                  constraint_models=self.constraint_models,
                                                  eta=incumbent_value,
                                                  num_data=num_config_evaluated)
             else:  # multi-objectives
-                mo_incumbent_value = history_container.get_mo_incumbent_value()
+                mo_incumbent_values = history.get_mo_incumbent_values()
                 if self.acq_type == 'parego':
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
-                                                     eta=scalarized_obj(np.atleast_2d(mo_incumbent_value)),
+                                                     eta=scalarized_obj(np.atleast_2d(mo_incumbent_values)),
                                                      num_data=num_config_evaluated)
                 elif self.acq_type.startswith('ehvi'):
                     partitioning = NondominatedPartitioning(self.num_objectives, Y)
@@ -409,23 +407,23 @@ class Advisor(object, metaclass=abc.ABCMeta):
                     self.acquisition_function.update(model=self.surrogate_model,
                                                      constraint_models=self.constraint_models,
                                                      constraint_perfs=cY,  # for MESMOC
-                                                     eta=mo_incumbent_value,
+                                                     eta=mo_incumbent_values,
                                                      num_data=num_config_evaluated,
                                                      X=X, Y=Y)
 
             # optimize acquisition function
-            challengers = self.optimizer.maximize(runhistory=history_container,
+            challengers = self.optimizer.maximize(runhistory=history,
                                                   num_points=5000)
             if return_list:
                 # Caution: return_list doesn't contain random configs sampled according to rand_prob
                 return challengers.challengers
 
             for config in challengers.challengers:
-                if config not in history_container.configurations:
+                if config not in history.configurations:
                     return config
             logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
                                 'Sample random config.' % (len(challengers.challengers), ))
-            return self.sample_random_configs(1, history_container)[0]
+            return self.sample_random_configs(1, history)[0]
         else:
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 
@@ -440,23 +438,23 @@ class Advisor(object, metaclass=abc.ABCMeta):
         -------
 
         """
-        return self.history_container.update_observation(observation)
+        return self.history.update_observation(observation)
 
-    def sample_random_configs(self, num_configs=1, history_container=None, excluded_configs=None):
+    def sample_random_configs(self, num_configs=1, history=None, excluded_configs=None):
         """
         Sample a batch of random configurations.
         Parameters
         ----------
         num_configs
 
-        history_container
+        history
 
         Returns
         -------
 
         """
-        if history_container is None:
-            history_container = self.history_container
+        if history is None:
+            history = self.history
         if excluded_configs is None:
             excluded_configs = set()
 
@@ -466,7 +464,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         while len(configs) < num_configs:
             config = self.config_space.sample_configuration()
             sample_cnt += 1
-            if config not in (history_container.configurations + configs) and config not in excluded_configs:
+            if config not in (history.configurations + configs) and config not in excluded_configs:
                 configs.append(config)
                 sample_cnt = 0
                 continue
@@ -477,29 +475,21 @@ class Advisor(object, metaclass=abc.ABCMeta):
         return configs
 
     def get_history(self):
-        return self.history_container
+        return self.history
 
-    def save_history(self, dir_path: str = None, file_name: str = None):
+    def save_json(self, filename: str = None):
         """
         Save history to a json file.
         """
-        if dir_path is None:
-            dir_path = os.path.join(self.output_dir, 'bo_history')
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
-        if file_name is None:
-            file_name = 'bo_history_%s.json' % self.task_id
-        self.history_container.save_json(os.path.join(dir_path, file_name))
+        if filename is None:
+            filename = os.path.join(self.output_dir, f'history/{self.task_id}/history_{self.timestamp}.json')
+        self.history.save_json(filename)
 
-    def load_history_from_json(self, file_name=None):
+    def load_json(self, filename: str):
         """
         Load history from a json file.
         """
-        if file_name is None:
-            file_name = os.path.join(self.output_dir, 'bo_history', 'bo_history_%s.json' % self.task_id)
-        if not os.path.exists(file_name):
-            raise FileNotFoundError('History file not found: %s' % file_name)
-        self.history_container.load_history_from_json(file_name)
+        self.history = History.load_json(filename, self.config_space)
 
     def get_suggestions(self):
         raise NotImplementedError

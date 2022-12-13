@@ -38,6 +38,6 @@ bo = SMBO(branin, cs,
           max_runs=50,
           task_id='mcei', random_state=seed)
 bo.run()
-inc_value = bo.get_incumbent()
+inc_value = bo.get_incumbents()
 print('BO', '=' * 30)
 print(inc_value)

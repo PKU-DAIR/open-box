@@ -72,7 +72,7 @@ class NSGAOptimizer(NSGABase):
         logger.info('Optimization is complete. Time: %.2fs.' % (end_time - start_time))
         return self
 
-    def get_incumbent(self):
+    def get_incumbents(self):
         solutions = self.get_solutions(feasible=True, nondominated=True, decode=True)
         pareto_set = [Configuration(self.config_space, vector=np.asarray(s.variables)) for s in solutions]
         pareto_front = np.array([s.objectives for s in solutions])

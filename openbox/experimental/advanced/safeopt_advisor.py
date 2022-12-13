@@ -7,8 +7,7 @@ from ConfigSpace import ConfigurationSpace, Configuration
 
 from openbox.core.base import build_surrogate
 from openbox.surrogate.base.base_model import AbstractModel
-from openbox.utils.config_space import convert_configurations_to_array
-from openbox.utils.history_container import Observation, HistoryContainer, MOHistoryContainer
+from openbox.utils.history import Observation, History
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 
 
@@ -280,8 +279,11 @@ class SafeOptAdvisor:
         else:
             self.beta = lambda t: beta
 
-        self.history_container = HistoryContainer(task_id, 0, self.config_space) if num_objectives == 1 else \
-            MOHistoryContainer(task_id, num_objectives, 0, self.config_space)
+        # init history
+        self.history = History(
+            task_id=task_id, num_objectives=num_objectives, num_constraints=0,
+            config_space=config_space, ref_point=None, meta_info=None,  # todo: add meta info
+        )
 
         arrays = self.sets.get_arrays()[0]
 
@@ -308,8 +310,8 @@ class SafeOptAdvisor:
         if len(self.to_eval) == 0:  # If self.to_eval has some configs, it's the seed set. Evaluate them first.
 
             # Train GP model
-            X = convert_configurations_to_array(self.history_container.configurations)
-            Y = self.history_container.get_transformed_perfs()
+            X = self.history.get_config_array(transform='scale')
+            Y = self.history.get_objectives(transform='infeasible')
             self.objective_surrogate.train(X, Y[:, 0] if Y.ndim == 2 else Y)
 
             # Calculate beta^(-1/2)
@@ -380,7 +382,7 @@ class SafeOptAdvisor:
 
         observation.constraints = None
 
-        return self.history_container.update_observation(observation)
+        return self.history.update_observation(observation)
 
     def get_history(self):
-        return self.history_container
+        return self.history

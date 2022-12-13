@@ -41,5 +41,5 @@ class NSGABase(object, metaclass=abc.ABCMeta):
     def iterate(self):
         raise NotImplementedError()
 
-    def get_incumbent(self):
+    def get_incumbents(self):
         raise NotImplementedError()

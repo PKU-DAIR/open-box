@@ -8,7 +8,7 @@ from openbox.core.ea.base_ea_advisor import pareto_layers
 from openbox.core.ea.base_ea_advisor import EAAdvisor
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
-from openbox.utils.history_container import Observation
+from openbox.utils.history import Observation
 from openbox.utils.util_funcs import deprecate_kwarg
 
 
@@ -99,7 +99,7 @@ class NSGA2EAdvisor(EAAdvisor):
             if trial_state == SUCCESS:
                 self.population.append(Individual(config=config, perf=perf))
 
-            ret_observations.append(self.history_container.update_observation(observation))
+            ret_observations.append(self.history.update_observation(observation))
 
         # Eliminate samples
         if len(self.population) > self.population_size:

@@ -28,4 +28,4 @@ opt = NSGAOptimizer(
 )
 opt.run()
 
-print(opt.get_incumbent())
+print(opt.get_incumbents())

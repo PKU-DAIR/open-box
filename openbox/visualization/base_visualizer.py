@@ -36,7 +36,7 @@ def build_visualizer(option: Union[str, bool], optimizer, **kwargs):
         from openbox.visualization.html_visualizer import HTMLVisualizer
         visualizer = HTMLVisualizer(
             logging_dir=optimizer.output_dir,
-            history_container=optimizer.get_history(),
+            history=optimizer.get_history(),
             auto_open_html=kwargs.get('auto_open_html', False),
             advanced_analysis=(option == 'advanced'),
             advanced_analysis_options=kwargs.get('advanced_analysis_options'),

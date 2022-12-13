@@ -5,8 +5,7 @@ import numpy as np
 from openbox import logger
 from openbox.core.base import build_acq_func, build_optimizer, build_surrogate
 from openbox.core.generic_advisor import Advisor
-from openbox.utils.config_space.util import convert_configurations_to_array
-from openbox.utils.history_container import Observation, MultiStartHistoryContainer
+from openbox.utils.history import Observation, MultiStartHistory
 from openbox.utils.multi_objective import NondominatedPartitioning
 from openbox.utils.trust_region import TurboState
 from openbox.utils.util_funcs import get_types, deprecate_kwarg
@@ -58,8 +57,10 @@ class MCAdvisor(Advisor):
                          logger_kwargs=logger_kwargs)
 
         if self.use_trust_region:
-            self.history_container = MultiStartHistoryContainer(task_id, self.num_objectives, self.num_constraints,
-                                                                config_space=self.config_space, ref_point=ref_point)
+            self.history = MultiStartHistory(
+                task_id=task_id, num_objectives=num_objectives, num_constraints=num_constraints,
+                config_space=config_space, ref_point=ref_point, meta_info=None,  # todo: add meta info
+            )
 
     def algo_auto_selection(self):
         info_str = ''
@@ -157,17 +158,17 @@ class MCAdvisor(Advisor):
             cont_dim = np.sum(types == 0)
             self.turbo_state = TurboState(cont_dim)
 
-    def get_suggestion(self, history_container=None):
-        if history_container is None:
-            history_container = self.history_container
+    def get_suggestion(self, history=None):
+        if history is None:
+            history = self.history
 
         # Check if turbo needs to be restarted
         if self.use_trust_region and self.turbo_state.restart_triggered:
-            history_container.restart()
+            history.restart()
             logger.info('Turbo Restart!')
 
-        num_config_evaluated = len(history_container.configurations)
-        num_config_successful = len(history_container.successful_perfs)
+        num_config_evaluated = len(history)
+        num_config_successful = history.get_success_count()
 
         if num_config_evaluated < self.init_num:
             return self.initial_configurations[num_config_evaluated]
@@ -175,9 +176,9 @@ class MCAdvisor(Advisor):
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(1)[0]
 
-        X = convert_configurations_to_array(history_container.configurations)
-        Y = history_container.get_transformed_perfs(transform=None)
-        cY = history_container.get_transformed_constraint_perfs(transform='bilog')
+        X = history.get_config_array(transform='scale')
+        Y = history.get_objectives(transform='infeasible')
+        cY = history.get_constraints(transform='bilog')
 
         if self.optimization_strategy == 'bo':
             if num_config_successful < max(self.init_num, 1):
@@ -186,7 +187,7 @@ class MCAdvisor(Advisor):
 
             # train surrogate model
             if self.num_objectives == 1:
-                self.surrogate_model.train(X, Y)
+                self.surrogate_model.train(X, Y[:, 0])
             else:  # multi-objectives
                 for i in range(self.num_objectives):
                     self.surrogate_model[i].train(X, Y[:, i])
@@ -197,7 +198,7 @@ class MCAdvisor(Advisor):
 
             # update acquisition function
             if self.num_objectives == 1:  # MC-EI
-                incumbent_value = history_container.get_incumbents()[0][1]
+                incumbent_value = history.get_incumbent_value()
                 self.acquisition_function.update(model=self.surrogate_model,
                                                  constraint_models=self.constraint_models,
                                                  eta=incumbent_value)
@@ -214,7 +215,7 @@ class MCAdvisor(Advisor):
                                                      cell_upper_bounds=cell_bounds[1])
 
             # optimize acquisition function
-            challengers = self.optimizer.maximize(runhistory=history_container,
+            challengers = self.optimizer.maximize(runhistory=history,
                                                   num_points=5000,
                                                   turbo_state=self.turbo_state)
             is_repeated_config = True
@@ -222,7 +223,7 @@ class MCAdvisor(Advisor):
             cur_config = None
             while is_repeated_config:
                 cur_config = challengers.challengers[repeated_time]
-                if cur_config in history_container.configurations:
+                if cur_config in history.configurations:
                     repeated_time += 1
                 else:
                     is_repeated_config = False
