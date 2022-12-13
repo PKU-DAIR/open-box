@@ -11,7 +11,7 @@ from openbox.optimizer.base import BOBase
 from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import time_limit, TimeoutException
 from openbox.utils.util_funcs import parse_result, deprecate_kwarg
-from openbox.utils.history_container import Observation
+from openbox.utils.history_container import Observation, HistoryContainer
 from openbox.visualization import build_visualizer
 
 
@@ -225,7 +225,7 @@ class SMBO(BOBase):
         self.visualizer = build_visualizer(visualization, self, auto_open_html=auto_open_html)
         self.visualizer.setup()
 
-    def run(self):
+    def run(self) -> HistoryContainer:
         for _ in tqdm(range(self.iteration_id, self.max_iterations)):
             if self.budget_left < 0:
                 logger.info('Time %f elapsed!' % self.runtime_limit)
@@ -236,7 +236,7 @@ class SMBO(BOBase):
             self.budget_left -= runtime
         return self.get_history()
 
-    def iterate(self, budget_left=None):
+    def iterate(self, budget_left=None) -> Observation:
         # get configuration suggestion from advisor
         config = self.config_advisor.get_suggestion()
 
@@ -244,53 +244,45 @@ class SMBO(BOBase):
         _budget_left = int(1e10) if budget_left is None else budget_left
         _time_limit_per_trial = math.ceil(min(self.time_limit_per_trial, _budget_left))
 
-        # only evaluate non duplicate configuration
-        if config not in self.config_advisor.history_container.configurations:
-            start_time = time.time()
-            try:
-                # evaluate configuration on objective_function within time_limit_per_trial
-                args, kwargs = (config,), dict()
-                timeout_status, _result = time_limit(self.objective_function,
-                                                     _time_limit_per_trial,
-                                                     args=args, kwargs=kwargs)
-                if timeout_status:
-                    raise TimeoutException(
-                        'Timeout: time limit for this evaluation is %.1fs' % _time_limit_per_trial)
-                else:
-                    # parse result
-                    objectives, constraints, extra_info = parse_result(_result)
-            except Exception as e:
-                # parse result of failed trial
-                if isinstance(e, TimeoutException):
-                    logger.warning(str(e))
-                    trial_state = TIMEOUT
-                else:  # todo: log exception if objective function raises error
-                    logger.warning('Exception when calling objective function: %s' % str(e))
-                    trial_state = FAILED
-                objectives = self.FAILED_PERF
-                constraints = None
-                extra_info = None
+        if config in self.config_advisor.history_container.configurations:
+            logger.warning('Evaluating duplicated configuration: %s' % config)
 
-            elapsed_time = time.time() - start_time
-            # update observation to advisor
-            observation = Observation(
-                config=config, objectives=objectives, constraints=constraints,
-                trial_state=trial_state, elapsed_time=elapsed_time, extra_info=extra_info,
-            )
-            if _time_limit_per_trial != self.time_limit_per_trial and trial_state == TIMEOUT:
-                # Timeout in the last iteration.
-                pass
+        start_time = time.time()
+        try:
+            # evaluate configuration on objective_function within time_limit_per_trial
+            args, kwargs = (config,), dict()
+            timeout_status, _result = time_limit(self.objective_function,
+                                                 _time_limit_per_trial,
+                                                 args=args, kwargs=kwargs)
+            if timeout_status:
+                raise TimeoutException(
+                    'Timeout: time limit for this evaluation is %.1fs' % _time_limit_per_trial)
             else:
-                self.config_advisor.update_observation(observation)
+                # parse result
+                objectives, constraints, extra_info = parse_result(_result)
+        except Exception as e:
+            # parse result of failed trial
+            if isinstance(e, TimeoutException):
+                logger.warning(str(e))
+                trial_state = TIMEOUT
+            else:  # todo: log exception if objective function raises error
+                logger.warning('Exception when calling objective function: %s' % str(e))
+                trial_state = FAILED
+            objectives = self.FAILED_PERF
+            constraints = None
+            extra_info = None
+
+        elapsed_time = time.time() - start_time
+        # update observation to advisor
+        observation = Observation(
+            config=config, objectives=objectives, constraints=constraints,
+            trial_state=trial_state, elapsed_time=elapsed_time, extra_info=extra_info,
+        )
+        if _time_limit_per_trial != self.time_limit_per_trial and trial_state == TIMEOUT:
+            # Timeout in the last iteration.
+            pass
         else:
-            logger.info('This configuration has been evaluated! Skip it: %s' % config)
-            history = self.get_history()
-            config_idx = history.configurations.index(config)
-            trial_state = history.trial_states[config_idx]
-            objectives = history.perfs[config_idx]
-            constraints = history.constraint_perfs[config_idx] if self.num_constraints > 0 else None
-            if self.num_objectives == 1:
-                objectives = (objectives,)
+            self.config_advisor.update_observation(observation)
 
         self.iteration_id += 1
         # Logging
@@ -301,4 +293,4 @@ class SMBO(BOBase):
             logger.info('Iter %d, objectives: %s.' % (self.iteration_id, objectives))
 
         self.visualizer.update()
-        return config, trial_state, constraints, objectives
+        return observation
