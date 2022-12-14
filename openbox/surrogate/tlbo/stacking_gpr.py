@@ -1,9 +1,13 @@
 # License: MIT
 
 import numpy as np
+import time
+from openbox import logger, History
 from openbox.surrogate.tlbo.base import BaseTLSurrogate
 from openbox.core.base import build_surrogate
 from openbox.utils.config_space.util import convert_configurations_to_array
+
+_scale_method = 'scale'
 
 
 class SGPR(BaseTLSurrogate):
@@ -22,19 +26,29 @@ class SGPR(BaseTLSurrogate):
 
         self.iteration_id = 0
         self.index_mapper = dict()
-        self.get_regressor()
+        self.get_regressor(normalize=_scale_method)
 
-    def get_regressor(self):
+    def get_regressor(self, normalize):
         # Train transfer learning regressor.
-        for idx, hpo_evaluation_data in enumerate(self.source_hpo_data):
-            print('Build the %d-th residual GPs.' % idx)
-            _X, _y = list(), list()
-            for _config, _config_perf in list(hpo_evaluation_data.items())[:self.num_src_hpo_trial]:
-                _X.append(_config)
-                _y.append(_config_perf)
-            X = convert_configurations_to_array(_X)
-            y = np.array(_y, dtype=np.float64)
+
+        if self.source_hpo_data is None:
+            logger.warning('No history BO data provided, resort to naive BO optimizer without TL.')
+            return
+
+        assert isinstance(self.source_hpo_data, list)
+
+        start_time = time.time()
+        self.source_surrogates = list()
+        for idx, task_history in enumerate(self.source_hpo_data):
+            assert isinstance(task_history, History)
+
+            logger.info('Building the %d-th residual GPs.' % idx)
+
+            X = task_history.get_config_array(transform=normalize)[:self.num_src_hpo_trial]
+            y = task_history.get_objectives()[:self.num_src_hpo_trial]
+
             self.train_regressor(X, y)
+        logger.info('Building the source surrogate took %.3fs.' % (time.time() - start_time))
 
     def train_regressor(self, X, y, is_top=False):
         model = build_surrogate(self.surrogate_type, self.config_space,
@@ -47,7 +61,9 @@ class SGPR(BaseTLSurrogate):
         if len(self.base_regressors) == 0 or is_top:
             model.train(X, y)
         else:
-            stacked_mu, stacked_sigma = self.calculate_stacked_results(X)
+            stacked_mu, _ = self.calculate_stacked_results(X)
+            stacked_mu = np.reshape(stacked_mu, y.shape)
+
             model.train(X, y - stacked_mu)
 
         if not is_top:

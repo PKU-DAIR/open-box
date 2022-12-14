@@ -6,7 +6,7 @@ import typing
 import numpy as np
 from typing import List
 
-from openbox import logger
+from openbox import logger, History
 from openbox.utils.util_funcs import get_types
 from openbox.core.base import build_surrogate
 from openbox.utils.constants import VERY_SMALL_NUMBER
@@ -62,52 +62,26 @@ class BaseTLSurrogate(object):
             logger.warning('No history BO data provided, resort to naive BO optimizer without TL.')
             return
 
+        assert isinstance(self.source_hpo_data, list)
+
         logger.info('Start to train base surrogates.')
         start_time = time.time()
         self.source_surrogates = list()
-        for hpo_evaluation_data in self.source_hpo_data:
+        for task_history in self.source_hpo_data:
+            assert isinstance(task_history, History)
             model = build_surrogate(self.surrogate_type, self.config_space,
                                     np.random.RandomState(self.random_seed))
-            _X, _y = list(), list()
-            for _config, _config_perf in hpo_evaluation_data.items():
-                _X.append(_config)
-                _y.append(_config_perf)
-            X = convert_configurations_to_array(_X)
-            y = np.array(_y, dtype=np.float64)
-            if self.num_src_hpo_trial != -1:
-                X = X[:self.num_src_hpo_trial]
-                y = y[:self.num_src_hpo_trial]
 
-            if normalize == 'standardize':
-                if (y == y[0]).all():
-                    y[0] += 1e-4
-                y, _, _ = zero_mean_unit_var_normalization(y)
-            elif normalize == 'scale':
-                if (y == y[0]).all():
-                    y[0] += 1e-4
-                y, _, _ = zero_one_normalization(y)
-                y = 2 * y - 1.
-            else:
-                raise ValueError('Invalid parameter in norm.')
+            X = task_history.get_config_array(transform=normalize)[:self.num_src_hpo_trial]
+            y = task_history.get_objectives()[:self.num_src_hpo_trial]
 
             self.eta_list.append(np.min(y))
             model.train(X, y)
             self.source_surrogates.append(model)
         logger.info('Building base surrogates took %.3fs.' % (time.time() - start_time))
 
-    def build_single_surrogate(self, X: np.ndarray, y: np.array, normalize):
-        assert normalize in ['standardize', 'scale', 'none']
+    def build_single_surrogate(self, X: np.ndarray, y: np.array):
         model = build_surrogate(self.surrogate_type, self.config_space, np.random.RandomState(self.random_seed))
-        if normalize == 'standardize':
-            if (y == y[0]).all():
-                y[0] += 1e-4
-            y, _, _ = zero_mean_unit_var_normalization(y)
-        elif normalize == 'scale':
-            if (y == y[0]).all():
-                y[0] += 1e-4
-            y, _, _ = zero_one_normalization(y)
-        else:
-            pass
         model.train(X, y)
         return model
 

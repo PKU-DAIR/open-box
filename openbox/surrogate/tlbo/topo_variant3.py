@@ -2,10 +2,11 @@
 
 import numpy as np
 from sklearn.model_selection import KFold
+from openbox import logger
 from openbox.surrogate.tlbo.base import BaseTLSurrogate
 from openbox.surrogate.tlbo.scipy_solver import scipy_solve
 
-_scale_method = 'standardize'
+_scale_method = 'scale'
 
 
 class TOPO_V3(BaseTLSurrogate):
@@ -44,8 +45,8 @@ class TOPO_V3(BaseTLSurrogate):
         idxs = list()
         for train_idx, val_idx in kf.split(X):
             idxs.extend(list(val_idx))
-            X_train, X_val, y_train, y_val = X[train_idx,:], X[val_idx,:], y[train_idx], y[val_idx]
-            model = self.build_single_surrogate(X_train, y_train, normalize=_scale_method)
+            X_train, X_val, y_train, y_val = X[train_idx, :], X[val_idx, :], y[train_idx], y[val_idx]
+            model = self.build_single_surrogate(X_train, y_train)
             mu, var = model.predict(X_val)
             mu, var = mu.flatten(), var.flatten()
             _mu.extend(list(mu))
@@ -56,7 +57,7 @@ class TOPO_V3(BaseTLSurrogate):
     def train(self, X: np.ndarray, y: np.array):
         instance_num = X.shape[0]
         # Build the target surrogate.
-        self.target_surrogate = self.build_single_surrogate(X, y, normalize=_scale_method)
+        self.target_surrogate = self.build_single_surrogate(X, y)
         self.target_y_range = 0.5 * (np.max(y) - np.min(y))
         # print('Target y range', self.target_y_range)
         pred_y = self.batch_predict(X)
@@ -84,20 +85,22 @@ class TOPO_V3(BaseTLSurrogate):
             self.w = rho * w_new + (1 - rho) * self.w
 
         w = self.w.copy()
+
+        logger.info('=' * 20)
         weight_str = ','.join([('%.2f' % item) for item in w])
-        print('In iter-%d' % self.iteration_id)
-        print(weight_str)
+        logger.info('In iter-%d' % self.iteration_id)
+        logger.info(weight_str)
         self.hist_ws.append(w)
         self.iteration_id += 1
 
     def learn_source_weights(self, pred_y, true_y):
-        x, status = scipy_solve(pred_y, true_y, 3, debug=True)
+        x, status = scipy_solve(pred_y, true_y, 3, debug=False)
         if status:
             x[x < 1e-3] = 0.
         return status, x
 
     def learn_weights(self, pred_y, true_y):
-        x, status = scipy_solve(pred_y, true_y, 3, debug=True)
+        x, status = scipy_solve(pred_y, true_y, 3, debug=False)
         if status:
             x[x < 1e-3] = 0.
         else:

@@ -7,7 +7,7 @@ from sklearn.model_selection import KFold
 from openbox import logger
 from openbox.surrogate.tlbo.base import BaseTLSurrogate
 
-_scale_method = 'standardize'
+_scale_method = 'scale'
 
 
 class MFGPE(BaseTLSurrogate):

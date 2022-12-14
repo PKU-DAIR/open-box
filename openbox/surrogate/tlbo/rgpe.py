@@ -4,6 +4,8 @@ import numpy as np
 from openbox import logger
 from openbox.surrogate.tlbo.base import BaseTLSurrogate
 
+_scale_method = 'scale'
+
 
 class RGPE(BaseTLSurrogate):
     def __init__(self, config_space, source_hpo_data, seed,
@@ -12,7 +14,7 @@ class RGPE(BaseTLSurrogate):
                          surrogate_type=surrogate_type, num_src_hpo_trial=num_src_hpo_trial)
         self.method_id = 'rgpe'
         self.only_source = only_source
-        self.build_source_surrogates(normalize='standardize')
+        self.build_source_surrogates(normalize=_scale_method)
 
         self.scale = True
         # self.num_sample = 100
@@ -28,7 +30,7 @@ class RGPE(BaseTLSurrogate):
 
     def train(self, X: np.ndarray, y: np.array):
         # Build the target surrogate.
-        self.target_surrogate = self.build_single_surrogate(X, y, normalize='standardize')
+        self.target_surrogate = self.build_single_surrogate(X, y)
         if self.source_hpo_data is None:
             return
 
@@ -55,7 +57,7 @@ class RGPE(BaseTLSurrogate):
                     del row_indexs[i]
                     if (y[row_indexs] == y[row_indexs[0]]).all():
                         y[row_indexs[0]] += 1e-4
-                    model = self.build_single_surrogate(X[row_indexs, :], y[row_indexs], normalize='standardize')
+                    model = self.build_single_surrogate(X[row_indexs, :], y[row_indexs])
                     mu, var = model.predict(X)
                     cached_mu_list.append(mu)
                     cached_var_list.append(var)
@@ -71,7 +73,7 @@ class RGPE(BaseTLSurrogate):
                     if (y[row_indexs] == y[row_indexs[0]]).all():
                         y[row_indexs[0]] += 1e-4
 
-                    model = self.build_single_surrogate(X[row_indexs, :], y[row_indexs], normalize='standardize')
+                    model = self.build_single_surrogate(X[row_indexs, :], y[row_indexs])
                     mu, var = model.predict(X)
                     cached_mu_list.append(mu)
                     cached_var_list.append(var)
@@ -131,7 +133,7 @@ class RGPE(BaseTLSurrogate):
             if np.sum(self.w) == 0:
                 self.w = [1. / self.K] * self.K + [0.]
             else:
-                self.w[:-1] = np.array(self.w[:-1])/np.sum(self.w[:-1])
+                self.w[:-1] = np.array(self.w[:-1]) / np.sum(self.w[:-1])
 
         logger.info('=' * 20)
         w = self.w.copy()
