@@ -23,10 +23,10 @@
  * @contact     www.datatables.net
  * @copyright   Copyright 2008-2019 SpryMedia Ltd.
  *
- * This en file is free software, available under the following license:
+ * This source file is free software, available under the following license:
  *   MIT license - http://datatables.net/license
  *
- * This en file is distributed in the hope that it will be useful, but
+ * This source file is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
  *
@@ -152,7 +152,7 @@
 		 * rows - as such, the jQuery selector used should match TR row nodes or TD/TH cell nodes
 		 * rather than any descendants, so the data can be obtained for the row/cell. If matching
 		 * rows are found, the data returned is the original data array/object that was used to
-		 * create the row (or a generated array if from a DOM en).
+		 * create the row (or a generated array if from a DOM source).
 		 *
 		 * This method is often useful in-combination with $ where both functions are given the
 		 * same parameters and the array indexes will match identically.
@@ -224,7 +224,7 @@
 		 * Add a single new row or multiple rows of data to the table. Please note
 		 * that this is suitable for client-side processing only - if you are using
 		 * server-side processing (i.e. "bServerSide": true), then to add data, you
-		 * must add it to the data en, i.e. the server-side, through an Ajax call.
+		 * must add it to the data source, i.e. the server-side, through an Ajax call.
 		 *  @param {array|object} data The data to be added to the table. This can be:
 		 *    <ul>
 		 *      <li>1D array of data - add a single row with the data provided</li>
@@ -485,7 +485,7 @@
 		 * Get the data for the whole table, an individual row or an individual cell based on the
 		 * provided parameters.
 		 *  @param {int|node} [src] A TR row node, TD/TH cell node or an integer. If given as
-		 *    a TR node then the data en for the whole row will be returned. If given as a
+		 *    a TR node then the data source for the whole row will be returned. If given as a
 		 *    TD/TH cell node then iCol will be automatically calculated and the data for the
 		 *    cell returned. If given as an integer, then this is treated as the aoData internal
 		 *    data index for the row (see fnGetPosition) and the data for that row used.
@@ -800,7 +800,7 @@
 		/**
 		 * Update a table cell or row - this method will accept either a single value to
 		 * update the cell with, an array of values with one element for each column or
-		 * an object in the same format as the original data en. The function is
+		 * an object in the same format as the original data source. The function is
 		 * self-referencing in order to make the multi column updates easier.
 		 *  @param {object|array|string} mData Data to update the cell/row with
 		 *  @param {node|int} mRow TR element you want to update or the aoData index
@@ -1287,7 +1287,7 @@
 				}
 				else if ( oSettings.bDeferLoading || _fnDataSource( oSettings ) == 'dom' ) {
 					/* Grab the data from the page - only do this when deferred loading or no Ajax
-					 * en since there is no point in reading the DOM data if we are then going
+					 * source since there is no point in reading the DOM data if we are then going
 					 * to replace it with Ajax data
 					 */
 					_fnAddTr( oSettings, $(oSettings.nTBody).children('tr') );
@@ -1558,7 +1558,7 @@
 	
 	
 	/**
-	 * Find the unique elements in a en array.
+	 * Find the unique elements in a source array.
 	 *
 	 * @param  {array} src Source array
 	 * @return {array} Array of unique items
@@ -1660,7 +1660,7 @@
 	/**
 	 * Create a mapping object that allows camel case parameters to be looked up
 	 * for their Hungarian counterparts. The mapping is stored in a private
-	 * parameter called `_hungarianMap` which can be accessed on the en object.
+	 * parameter called `_hungarianMap` which can be accessed on the source object.
 	 *  @param {object} o
 	 *  @memberof DataTable#oApi
 	 */
@@ -2388,8 +2388,8 @@
 	
 	/**
 	 * Add a data array to the table, creating DOM node etc. This is the parallel to
-	 * _fnGatherData, but for adding rows from a Javascript en, rather than a
-	 * DOM en.
+	 * _fnGatherData, but for adding rows from a Javascript source, rather than a
+	 * DOM source.
 	 *  @param {object} oSettings dataTables settings object
 	 *  @param {array} aData data array to be added
 	 *  @param {node} [nTr] TR element to add to the table - optional. If not given,
@@ -2523,13 +2523,13 @@
 			return defaultContent;
 		}
 	
-		// When the data en is null and a specific data type is requested (i.e.
+		// When the data source is null and a specific data type is requested (i.e.
 		// not the original data), we can use default column data
 		if ( (cellData === rowData || cellData === null) && defaultContent !== null && type !== undefined ) {
 			cellData = defaultContent;
 		}
 		else if ( typeof cellData === 'function' ) {
-			// If the data en is a function, then we run it and use the return,
+			// If the data source is a function, then we run it and use the return,
 			// executing in the scope of the data object (for instances)
 			return cellData.call( rowData );
 		}
@@ -2580,9 +2580,9 @@
 	
 	
 	/**
-	 * Return a function that can be used to get data from a en object, taking
-	 * into account the ability to use nested objects as a en
-	 *  @param {string|int|function} mSource The data en for the object
+	 * Return a function that can be used to get data from a source object, taking
+	 * into account the ability to use nested objects as a source
+	 *  @param {string|int|function} mSource The data source for the object
 	 *  @returns {function} Data get function
 	 *  @memberof DataTable#oApi
 	 */
@@ -2621,7 +2621,7 @@
 		else if ( typeof mSource === 'string' && (mSource.indexOf('.') !== -1 ||
 			      mSource.indexOf('[') !== -1 || mSource.indexOf('(') !== -1) )
 		{
-			/* If there is a . in the en string then the data en is in a
+			/* If there is a . in the source string then the data source is in a
 			 * nested object so we loop over the data for each level to get the next
 			 * level down. On each loop we test for undefined, and if found immediately
 			 * return. This allows entire objects to be missing and sDefaultContent to
@@ -2668,7 +2668,7 @@
 							data = (join==="") ? out : out.join(join);
 	
 							// The inner call to fetchData has already traversed through the remainder
-							// of the en requested, so we exit from the loop
+							// of the source requested, so we exit from the loop
 							break;
 						}
 						else if ( funcNotation )
@@ -2705,9 +2705,9 @@
 	
 	
 	/**
-	 * Return a function that can be used to set data from a en object, taking
-	 * into account the ability to use nested objects as a en
-	 *  @param {string|int|function} mSource The data en for the object
+	 * Return a function that can be used to set data from a source object, taking
+	 * into account the ability to use nested objects as a source
+	 *  @param {string|int|function} mSource The data source for the object
 	 *  @returns {function} Data set function
 	 *  @memberof DataTable#oApi
 	 */
@@ -2724,7 +2724,7 @@
 		}
 		else if ( mSource === null )
 		{
-			/* Nothing to do when the data en is null */
+			/* Nothing to do when the data source is null */
 			return function () {};
 		}
 		else if ( typeof mSource === 'function' )
@@ -2777,7 +2777,7 @@
 						}
 	
 						// The inner call to setData has already traversed through the remainder
-						// of the en and has set the data, thus we can exit here
+						// of the source and has set the data, thus we can exit here
 						return;
 					}
 					else if ( funcNotation )
@@ -2882,7 +2882,7 @@
 	
 	/**
 	 * Mark cached data as invalid such that a re-read of the data will occur when
-	 * the cached data is next requested. Also update from the data en object.
+	 * the cached data is next requested. Also update from the data source object.
 	 *
 	 * @param {object} settings DataTables settings object
 	 * @param {int}    rowIdx   Row index to invalidate
@@ -2958,14 +2958,14 @@
 	
 	
 	/**
-	 * Build a data en object from an HTML row, reading the contents of the
+	 * Build a data source object from an HTML row, reading the contents of the
 	 * cells that are in the row.
 	 *
 	 * @param {object} settings DataTables settings object
 	 * @param {node|object} TR element from which to read data or existing row
 	 *   object from which to re-read the data from the cells
 	 * @param {int} [colIdx] Optional column index
-	 * @param {array|object} [d] Data en object. If `colIdx` is given then this
+	 * @param {array|object} [d] Data source object. If `colIdx` is given then this
 	 *   parameter should also be given and will be used to write the data into.
 	 *   Only the column in question will be written
 	 * @returns {object} Object with two parameters: `data` the data read, in
@@ -3104,7 +3104,7 @@
 			 */
 			nTr._DT_RowIndex = iRow;
 	
-			/* Special parameters can be given by the data en to be used on the row */
+			/* Special parameters can be given by the data source to be used on the row */
 			_fnRowAttributes( oSettings, row );
 	
 			/* Process each column */
@@ -3163,7 +3163,7 @@
 	
 	/**
 	 * Add attributes to a row based on the special `DT_*` parameters in a data
-	 * en object.
+	 * source object.
 	 *  @param {object} settings DataTables settings object
 	 *  @param {object} DataTables row object for the row to be modified
 	 *  @memberof DataTable#oApi
@@ -3719,7 +3719,7 @@
 	
 	
 	/**
-	 * Use the DOM en to create up an array of header cells. The idea here is to
+	 * Use the DOM source to create up an array of header cells. The idea here is to
 	 * create a layout grid (array) of rows x columns, which contains a reference
 	 * to the cell that that point in the grid (regardless of col/rowspan), such that
 	 * any column / row could be removed and the new grid constructed
@@ -4154,11 +4154,11 @@
 	
 	
 	/**
-	 * Get the data from the JSON data en to use for drawing a table. Using
+	 * Get the data from the JSON data source to use for drawing a table. Using
 	 * `_fnGetObjectDataFn` allows the data to be sourced from a property of the
-	 * en object, or from a processing function.
+	 * source object, or from a processing function.
 	 *  @param {object} oSettings dataTables settings object
-	 *  @param  {object} json Data en object / array from the server
+	 *  @param  {object} json Data source object / array from the server
 	 *  @return {array} Array of data to use
 	 */
 	function _fnAjaxDataSrc ( oSettings, json )
@@ -4741,14 +4741,14 @@
 	
 		// If there is default sorting required - let's do it. The sort function
 		// will do the drawing for us. Otherwise we draw the table regardless of the
-		// Ajax en - this allows the table to look initialised for Ajax sourcing
+		// Ajax source - this allows the table to look initialised for Ajax sourcing
 		// data (show 'loading' message possibly)
 		_fnReDraw( settings );
 	
 		// Server-side processing init complete is done by _fnAjaxUpdateDraw
 		var dataSrc = _fnDataSource( settings );
 		if ( dataSrc != 'ssp' || deferLoading ) {
-			// if there is an ajax en load the data
+			// if there is an ajax source load the data
 			if ( dataSrc == 'ajax' ) {
 				_fnBuildAjax( settings, [], function(json) {
 					var aData = _fnAjaxDataSrc( settings, json );
@@ -4780,7 +4780,7 @@
 	/**
 	 * Draw the table for the first time, adding all required features
 	 *  @param {object} oSettings dataTables settings object
-	 *  @param {object} [json] JSON from the server that completed the table, if using Ajax en
+	 *  @param {object} [json] JSON from the server that completed the table, if using Ajax source
 	 *    with client-side processing (optional)
 	 *  @memberof DataTable#oApi
 	 */
@@ -5972,7 +5972,7 @@
 				aiOrig[ displayMaster[i] ] = i;
 			}
 	
-			/* Do the sort - here we want multi-column sorting based on a given data en (column)
+			/* Do the sort - here we want multi-column sorting based on a given data source (column)
 			 * and sorting function (from oSort) in a certain direction. It's reasonably complex to
 			 * follow on it's own, but this is what we want (example two column sorting):
 			 *  fnLocalSorting = function(a,b){
@@ -6503,7 +6503,7 @@
 	/**
 	 * See if a property is defined on one object, if so assign it to the other object
 	 *  @param {object} ret target object
-	 *  @param {object} src en object
+	 *  @param {object} src source object
 	 *  @param {string} name property
 	 *  @param {string} [mappedName] name to map too - optional, name used if not given
 	 *  @memberof DataTable#oApi
@@ -6544,7 +6544,7 @@
 	 *  @param {boolean} breakRefs If true, then arrays will be sliced to take an
 	 *      independent copy with the exception of the `data` or `aaData` parameters
 	 *      if they are present. This is so you can pass in a collection to
-	 *      DataTables and have that used as your data en without breaking the
+	 *      DataTables and have that used as your data source without breaking the
 	 *      references
 	 *  @returns {object} out Reference, just for convenience - out === the return.
 	 *  @memberof DataTable#oApi
@@ -6710,11 +6710,11 @@
 	
 	
 	/**
-	 * Detect the data en being used for the table. Used to simplify the code
+	 * Detect the data source being used for the table. Used to simplify the code
 	 * a little (ajax) and to make it compress a little smaller.
 	 *
 	 *  @param {object} settings dataTables settings object
-	 *  @returns {string} Data en
+	 *  @returns {string} Data source
 	 *  @memberof DataTable#oApi
 	 */
 	function _fnDataSource ( settings )
@@ -7643,7 +7643,7 @@
 	
 	
 	/**
-	 * Reload tables from the Ajax data en. Note that this function will
+	 * Reload tables from the Ajax data source. Note that this function will
 	 * automatically re-draw the table when the remote data has been loaded.
 	 *
 	 * @param {boolean} [reset=true] Reset (default) or hold the current paging
@@ -7662,7 +7662,7 @@
 	 * Get the current Ajax URL. Note that this returns the URL from the first
 	 * table in the current context.
 	 *
-	 * @return {string} Current Ajax en URL
+	 * @return {string} Current Ajax source URL
 	 *//**
 	 * Set the Ajax URL. Note that this will set the URL for all tables in the
 	 * current context.
@@ -8167,7 +8167,7 @@
 		var row = ctx[0].aoData[ this[0] ];
 		row._aData = data;
 	
-		// If the DOM has an id, and the data en is an array
+		// If the DOM has an id, and the data source is an array
 		if ( $.isArray( data ) && row.nTr.id ) {
 			_fnSetObjectDataFn( ctx[0].rowId )( data, row.nTr.id );
 		}
@@ -9588,11 +9588,11 @@
 		"anCells": null,
 	
 		/**
-		 * Data object from the original data en for the row. This is either
+		 * Data object from the original data source for the row. This is either
 		 * an array if using the traditional form of DataTables, or an object if
 		 * using mData options. The exact type will depend on the passed in
-		 * data from the data en, or will be an array if using DOM a data
-		 * en.
+		 * data from the data source, or will be an array if using DOM a data
+		 * source.
 		 *  @type array|object
 		 *  @default []
 		 */
@@ -9643,9 +9643,9 @@
 		"_sRowStripe": "",
 	
 		/**
-		 * Denote if the original data en was from the DOM, or the data en
+		 * Denote if the original data source was from the DOM, or the data source
 		 * object. This is used for invalidating data, so DataTables can
-		 * automatically read data from the original en, unless uninstructed
+		 * automatically read data from the original source, unless uninstructed
 		 * otherwise.
 		 *  @type string
 		 *  @default null
@@ -9735,7 +9735,7 @@
 	
 		/**
 		 * Flag to indicate if HTML5 data attributes should be used as the data
-		 * en for filtering or sorting. True is either are.
+		 * source for filtering or sorting. True is either are.
 		 *  @type boolean
 		 *  @default false
 		 *  @private
@@ -9743,8 +9743,8 @@
 		"_bAttrSrc": false,
 	
 		/**
-		 * Developer definable function that is called whenever a cell is created (Ajax en,
-		 * etc) or processed for input (DOM en). This can be used as a compliment to mRender
+		 * Developer definable function that is called whenever a cell is created (Ajax source,
+		 * etc) or processed for input (DOM source). This can be used as a compliment to mRender
 		 * allowing you to modify the DOM element (add background colour for example) when the
 		 * element is available.
 		 *  @type function
@@ -9787,7 +9787,7 @@
 	
 		/**
 		 * Property to read the value for the cells in the column from the data
-		 * en array / object. If null, then the default content is used, if a
+		 * source array / object. If null, then the default content is used, if a
 		 * function is given then the return from the function is used.
 		 *  @type function|int|string|null
 		 *  @default null
@@ -9843,8 +9843,8 @@
 	
 		/**
 		 * Allows a default value to be given for a column's data, and will be used
-		 * whenever a null data en is encountered (this can be because mData
-		 * is set to null, or because the data en itself is null).
+		 * whenever a null data source is encountered (this can be because mData
+		 * is set to null, or because the data source itself is null).
 		 *  @type string
 		 *  @default null
 		 */
@@ -9943,7 +9943,7 @@
 		 *  @name DataTable.defaults.data
 		 *
 		 *  @example
-		 *    // Using a 2D array data en
+		 *    // Using a 2D array data source
 		 *    $(document).ready( function () {
 		 *      $('#example').dataTable( {
 		 *        "data": [
@@ -9961,7 +9961,7 @@
 		 *    } );
 		 *
 		 *  @example
-		 *    // Using an array of objects as a data en (`data`)
+		 *    // Using an array of objects as a data source (`data`)
 		 *    $(document).ready( function () {
 		 *      $('#example').dataTable( {
 		 *        "data": [
@@ -10048,7 +10048,7 @@
 	
 		/**
 		 * DataTables can be instructed to load data to display in the table from a
-		 * Ajax en. This option defines how that Ajax call is made and where to.
+		 * Ajax source. This option defines how that Ajax call is made and where to.
 		 *
 		 * The `ajax` property has three different modes of operation, depending on
 		 * how it is defined. These are:
@@ -10085,13 +10085,13 @@
 		 *
 		 * * `dataSrc` - By default DataTables will look for the property `data` (or
 		 *   `aaData` for compatibility with DataTables 1.9-) when obtaining data
-		 *   from an Ajax en or for server-side processing - this parameter
+		 *   from an Ajax source or for server-side processing - this parameter
 		 *   allows that property to be changed. You can use Javascript dotted
-		 *   object notation to get a data en for multiple levels of nesting, or
+		 *   object notation to get a data source for multiple levels of nesting, or
 		 *   it my be used as a function. As a function it takes a single parameter,
 		 *   the JSON returned from the server, which can be manipulated as
 		 *   required, with the returned value being that used by DataTables as the
-		 *   data en for the table. This supersedes `sAjaxDataProp` from
+		 *   data source for the table. This supersedes `sAjaxDataProp` from
 		 *   DataTables 1.9-.
 		 *
 		 * * `success` - Should not be overridden it is used internally in
@@ -10335,7 +10335,7 @@
 	
 		/**
 		 * Deferred rendering can provide DataTables with a huge speed boost when you
-		 * are using an Ajax or JS data en for the table. This option, when set to
+		 * are using an Ajax or JS data source for the table. This option, when set to
 		 * true, will cause DataTables to defer the creation of the table elements for
 		 * each row until they are needed for a draw - saving a significant amount of
 		 * time.
@@ -10551,7 +10551,7 @@
 		/**
 		 * Configure DataTables to use server-side processing. Note that the
 		 * `ajax` parameter must also be given in order to give DataTables a
-		 * en to obtain the required data for each draw.
+		 * source to obtain the required data for each draw.
 		 *  @type boolean
 		 *  @default false
 		 *
@@ -10678,7 +10678,7 @@
 	
 		/**
 		 * This function is called when a TR element is created (and all TD child
-		 * elements have been inserted), or registered if using a DOM en, allowing
+		 * elements have been inserted), or registered if using a DOM source, allowing
 		 * manipulation of the TR element (adding classes etc).
 		 *  @type function
 		 *  @param {node} row "TR" element for the current row
@@ -10937,7 +10937,7 @@
 		 * AIR database.
 		 *  @type function
 		 *  @member
-		 *  @param {string} en HTTP en to obtain the data from (`ajax`)
+		 *  @param {string} source HTTP source to obtain the data from (`ajax`)
 		 *  @param {array} data A key/value pair object containing the data to send
 		 *    to the server
 		 *  @param {function} callback to be called on completion of the data get
@@ -11835,9 +11835,9 @@
 		 *
 		 * By default DataTables will look for the property `data` (or `aaData` for
 		 * compatibility with DataTables 1.9-) when obtaining data from an Ajax
-		 * en or for server-side processing - this parameter allows that
+		 * source or for server-side processing - this parameter allows that
 		 * property to be changed. You can use Javascript dotted object notation to
-		 * get a data en for multiple levels of nesting.
+		 * get a data source for multiple levels of nesting.
 		 *  @type string
 		 *  @default data
 		 *
@@ -11855,7 +11855,7 @@
 		 * superseded by that provided through `ajax`, which should be used instead.
 		 *
 		 * You can instruct DataTables to load data from an external
-		 * en using this parameter (use aData if you want to pass data in you
+		 * source using this parameter (use aData if you want to pass data in you
 		 * already have). Simply provide a url a JSON object can be obtained from.
 		 *  @type string
 		 *  @default null
@@ -12286,8 +12286,8 @@
 	
 	
 		/**
-		 * Developer definable function that is called whenever a cell is created (Ajax en,
-		 * etc) or processed for input (DOM en). This can be used as a compliment to mRender
+		 * Developer definable function that is called whenever a cell is created (Ajax source,
+		 * etc) or processed for input (DOM source). This can be used as a compliment to mRender
 		 * allowing you to modify the DOM element (add background colour for example) when the
 		 * element is available.
 		 *  @type function
@@ -12327,47 +12327,47 @@
 	
 	
 		/**
-		 * This property can be used to read data from any data en property,
+		 * This property can be used to read data from any data source property,
 		 * including deeply nested objects / properties. `data` can be given in a
 		 * number of different ways which effect its behaviour:
 		 *
-		 * * `integer` - treated as an array index for the data en. This is the
+		 * * `integer` - treated as an array index for the data source. This is the
 		 *   default that DataTables uses (incrementally increased for each column).
-		 * * `string` - read an object property from the data en. There are
+		 * * `string` - read an object property from the data source. There are
 		 *   three 'special' options that can be used in the string to alter how
-		 *   DataTables reads the data from the en object:
+		 *   DataTables reads the data from the source object:
 		 *    * `.` - Dotted Javascript notation. Just as you use a `.` in
 		 *      Javascript to read from nested objects, so to can the options
 		 *      specified in `data`. For example: `browser.version` or
 		 *      `browser.name`. If your object parameter name contains a period, use
 		 *      `\\` to escape it - i.e. `first\\.name`.
 		 *    * `[]` - Array notation. DataTables can automatically combine data
-		 *      from and array en, joining the data with the characters provided
+		 *      from and array source, joining the data with the characters provided
 		 *      between the two brackets. For example: `name[, ]` would provide a
-		 *      comma-space separated list from the en array. If no characters
-		 *      are provided between the brackets, the original array en is
+		 *      comma-space separated list from the source array. If no characters
+		 *      are provided between the brackets, the original array source is
 		 *      returned.
 		 *    * `()` - Function notation. Adding `()` to the end of a parameter will
 		 *      execute a function of the name given. For example: `browser()` for a
-		 *      simple function on the data en, `browser.version()` for a
+		 *      simple function on the data source, `browser.version()` for a
 		 *      function in a nested property or even `browser().version` to get an
 		 *      object property if the function called returns an object. Note that
 		 *      function notation is recommended for use in `render` rather than
 		 *      `data` as it is much simpler to use as a renderer.
-		 * * `null` - use the original data en for the row rather than plucking
+		 * * `null` - use the original data source for the row rather than plucking
 		 *   data directly from it. This action has effects on two other
 		 *   initialisation options:
 		 *    * `defaultContent` - When null is given as the `data` option and
 		 *      `defaultContent` is specified for the column, the value defined by
 		 *      `defaultContent` will be used for the cell.
 		 *    * `render` - When null is used for the `data` option and the `render`
-		 *      option is specified for the column, the whole data en for the
+		 *      option is specified for the column, the whole data source for the
 		 *      row is used for the renderer.
 		 * * `function` - the function given will be executed whenever DataTables
 		 *   needs to set or get the data for a cell in the column. The function
 		 *   takes three parameters:
 		 *    * Parameters:
-		 *      * `{array|object}` The data en for the row
+		 *      * `{array|object}` The data source for the row
 		 *      * `{string}` The type call data requested - this will be 'set' when
 		 *        setting data or 'filter', 'display', 'type', 'sort' or undefined
 		 *        when gathering data. Note that when `undefined` is given for the
@@ -12450,22 +12450,22 @@
 		 *      $('#example').dataTable( {
 		 *        "columnDefs": [ {
 		 *          "targets": [ 0 ],
-		 *          "data": function ( en, type, val ) {
+		 *          "data": function ( source, type, val ) {
 		 *            if (type === 'set') {
-		 *              en.price = val;
+		 *              source.price = val;
 		 *              // Store the computed dislay and filter values for efficiency
-		 *              en.price_display = val=="" ? "" : "$"+numberFormat(val);
-		 *              en.price_filter  = val=="" ? "" : "$"+numberFormat(val)+" "+val;
+		 *              source.price_display = val=="" ? "" : "$"+numberFormat(val);
+		 *              source.price_filter  = val=="" ? "" : "$"+numberFormat(val)+" "+val;
 		 *              return;
 		 *            }
 		 *            else if (type === 'display') {
-		 *              return en.price_display;
+		 *              return source.price_display;
 		 *            }
 		 *            else if (type === 'filter') {
-		 *              return en.price_filter;
+		 *              return source.price_filter;
 		 *            }
 		 *            // 'sort', 'type' and undefined all just use the integer
-		 *            return en.price;
+		 *            return source.price;
 		 *          }
 		 *        } ]
 		 *      } );
@@ -12507,25 +12507,25 @@
 		 * this option can be given in a number of different ways to effect its
 		 * behaviour:
 		 *
-		 * * `integer` - treated as an array index for the data en. This is the
+		 * * `integer` - treated as an array index for the data source. This is the
 		 *   default that DataTables uses (incrementally increased for each column).
-		 * * `string` - read an object property from the data en. There are
+		 * * `string` - read an object property from the data source. There are
 		 *   three 'special' options that can be used in the string to alter how
-		 *   DataTables reads the data from the en object:
+		 *   DataTables reads the data from the source object:
 		 *    * `.` - Dotted Javascript notation. Just as you use a `.` in
 		 *      Javascript to read from nested objects, so to can the options
 		 *      specified in `data`. For example: `browser.version` or
 		 *      `browser.name`. If your object parameter name contains a period, use
 		 *      `\\` to escape it - i.e. `first\\.name`.
 		 *    * `[]` - Array notation. DataTables can automatically combine data
-		 *      from and array en, joining the data with the characters provided
+		 *      from and array source, joining the data with the characters provided
 		 *      between the two brackets. For example: `name[, ]` would provide a
-		 *      comma-space separated list from the en array. If no characters
-		 *      are provided between the brackets, the original array en is
+		 *      comma-space separated list from the source array. If no characters
+		 *      are provided between the brackets, the original array source is
 		 *      returned.
 		 *    * `()` - Function notation. Adding `()` to the end of a parameter will
 		 *      execute a function of the name given. For example: `browser()` for a
-		 *      simple function on the data en, `browser.version()` for a
+		 *      simple function on the data source, `browser.version()` for a
 		 *      function in a nested property or even `browser().version` to get an
 		 *      object property if the function called returns an object.
 		 * * `object` - use different data for the different data types requested by
@@ -12539,17 +12539,17 @@
 		 *   needs to set or get the data for a cell in the column. The function
 		 *   takes three parameters:
 		 *    * Parameters:
-		 *      * {array|object} The data en for the row (based on `data`)
+		 *      * {array|object} The data source for the row (based on `data`)
 		 *      * {string} The type call data requested - this will be 'filter',
 		 *        'display', 'type' or 'sort'.
-		 *      * {array|object} The full data en for the row (not based on
+		 *      * {array|object} The full data source for the row (not based on
 		 *        `data`)
 		 *    * Return:
 		 *      * The return value from the function is what will be used for the
 		 *        data requested.
 		 *
 		 *  @type string|int|function|object|null
-		 *  @default null Use the data en value.
+		 *  @default null Use the data source value.
 		 *
 		 *  @name DataTable.defaults.column.render
 		 *  @dtopt Columns
@@ -12576,7 +12576,7 @@
 		 *      $('#example').dataTable( {
 		 *        "columnDefs": [ {
 		 *          "targets": [ 0 ],
-		 *          "data": null, // Use the full data en object for the renderer's en
+		 *          "data": null, // Use the full data source object for the renderer's source
 		 *          "render": "browserName()"
 		 *        } ]
 		 *      } );
@@ -12584,7 +12584,7 @@
 		 *
 		 *  @example
 		 *    // As an object, extracting different data for the different types
-		 *    // This would be used with a data en such as:
+		 *    // This would be used with a data source such as:
 		 *    //   { "phone": 5552368, "phone_filter": "5552368 555-2368", "phone_display": "555-2368" }
 		 *    // Here the `phone` integer is used for sorting and type detection, while `phone_filter`
 		 *    // (which has both forms) is used for filtering for if a user inputs either format, while
@@ -12593,7 +12593,7 @@
 		 *      $('#example').dataTable( {
 		 *        "columnDefs": [ {
 		 *          "targets": [ 0 ],
-		 *          "data": null, // Use the full data en object for the renderer's en
+		 *          "data": null, // Use the full data source object for the renderer's source
 		 *          "render": {
 		 *            "_": "phone",
 		 *            "filter": "phone_filter",
@@ -12604,7 +12604,7 @@
 		 *    } );
 		 *
 		 *  @example
-		 *    // Use as a function to create a link from the data en
+		 *    // Use as a function to create a link from the data source
 		 *    $(document).ready( function() {
 		 *      $('#example').dataTable( {
 		 *        "columnDefs": [ {
@@ -12714,8 +12714,8 @@
 	
 		/**
 		 * Allows a default value to be given for a column's data, and will be used
-		 * whenever a null data en is encountered (this can be because `data`
-		 * is set to null, or because the data en itself is null).
+		 * whenever a null data source is encountered (this can be because `data`
+		 * is set to null, or because the data source itself is null).
 		 *  @type string
 		 *  @default null
 		 *
@@ -12800,7 +12800,7 @@
 	
 	
 		/**
-		 * Defines a data en type for the ordering which can be used to read
+		 * Defines a data source type for the ordering which can be used to read
 		 * real-time information from the table (updating the internally cached
 		 * version) prior to ordering. This allows ordering to occur on user
 		 * editable elements such as form inputs.
@@ -13001,7 +13001,7 @@
 			/**
 			 * Delay the creation of TR and TD elements until they are actually
 			 * needed by a driven page draw. This can give a significant speed
-			 * increase for Ajax en and Javascript en data, but makes no
+			 * increase for Ajax source and Javascript source data, but makes no
 			 * difference at all fro DOM and server-side processing tables.
 			 * Note that this parameter will be set by the initialisation routine. To
 			 * set a default use {@link DataTable.defaults}.
@@ -13991,8 +13991,8 @@
 		 * 1. `{object}` DataTables settings object: see
 		 *    {@link DataTable.models.oSettings}
 		 * 2. `{array|object}` Data for the row to be processed (same as the
-		 *    original format that was passed in as the data en, or an array
-		 *    from a DOM data en
+		 *    original format that was passed in as the data source, or an array
+		 *    from a DOM data source
 		 * 3. `{int}` Row index ({@link DataTable.models.oSettings.aoData}), which
 		 *    can be useful to retrieve the `TR` element if you need DOM interaction.
 		 *
@@ -14154,7 +14154,7 @@
 	
 	
 		/**
-		 * Ordering plug-ins - custom data en
+		 * Ordering plug-ins - custom data source
 		 * 
 		 * The extension options for ordering of data available here is complimentary
 		 * to the default type based ordering that DataTables typically uses. It
@@ -15545,10 +15545,10 @@ return DataTable;
  * @contact     www.sprymedia.co.uk/contact
  * @copyright   Copyright 2010-2019 SpryMedia Ltd.
  *
- * This en file is free software, available under the following license:
+ * This source file is free software, available under the following license:
  *   MIT license - http://datatables.net/license/mit
  *
- * This en file is distributed in the hope that it will be useful, but
+ * This source file is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
  *
@@ -16789,4 +16789,3 @@ DataTable.AutoFill.classes.btn = 'btn btn-primary';
 
 return DataTable;
 }));
-

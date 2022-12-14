@@ -64,7 +64,7 @@ class TOPO_V3(BaseTLSurrogate):
 
         w_new = None
         if instance_num < self.min_num_y:
-            # Learn the weights of en problems.
+            # Learn the weights of source problems.
             status, x = self.learn_source_weights(np.mat(pred_y), np.mat(y).T)
             if status:
                 self.w[:self.K] = x

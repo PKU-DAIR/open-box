@@ -32,7 +32,7 @@ class BaseTLSurrogate(object):
         self.source_surrogates = None
         self.target_surrogate = None
         self.history_dataset_features = history_dataset_features
-        # The number of en problems.
+        # The number of source problems.
         if source_hpo_data is not None:
             self.K = len(source_hpo_data)
             if history_dataset_features is not None:
@@ -156,7 +156,7 @@ class BaseTLSurrogate(object):
         mu_buf = np.zeros((n, m))
 
         target_var = None
-        # Predictions from en surrogates.
+        # Predictions from source surrogates.
         for i in range(0, self.K + 1):
             if i == self.K:
                 if self.target_surrogate is not None:
