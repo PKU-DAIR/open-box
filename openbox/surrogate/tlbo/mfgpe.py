@@ -46,7 +46,7 @@ class MFGPE(BaseTLSurrogate):
         for train_idx, val_idx in kf.split(X):
             idxs.extend(list(val_idx))
             X_train, X_val, y_train, y_val = X[train_idx, :], X[val_idx, :], y[train_idx], y[val_idx]
-            model = self.build_single_surrogate(X_train, y_train, normalize=_scale_method)
+            model = self.build_single_surrogate(X_train, y_train)
             mu, var = model.predict(X_val)
             mu, var = mu.flatten(), var.flatten()
             _mu.extend(list(mu))
@@ -80,9 +80,9 @@ class MFGPE(BaseTLSurrogate):
         if snapshot_weight:
             self.snapshot_w = self.w
             weight_str = ','.join([('%.2f' % item) for item in self.snapshot_w])
-            logger.info('In iter-%d' % self.iteration_id)
+            # logger.info('In iter-%d' % self.iteration_id)
             self.target_weight.append(self.snapshot_w[-1])
-            logger.info('Weight: ' + str(weight_str))
+            logger.info(f'weight: {weight_str}')
             self.iteration_id += 1
             self.hist_ws.append(self.snapshot_w)
 

@@ -86,10 +86,9 @@ class TOPO_V3(BaseTLSurrogate):
 
         w = self.w.copy()
 
-        logger.info('=' * 20)
         weight_str = ','.join([('%.2f' % item) for item in w])
-        logger.info('In iter-%d' % self.iteration_id)
-        logger.info(weight_str)
+        # logger.info('In iter-%d' % self.iteration_id)
+        logger.info(f'weight: {weight_str}')
         self.hist_ws.append(w)
         self.iteration_id += 1
 

@@ -11,7 +11,6 @@ from openbox.utils.util_funcs import get_types
 from openbox.core.base import build_surrogate
 from openbox.utils.constants import VERY_SMALL_NUMBER
 from openbox.utils.config_space import ConfigurationSpace
-from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.transform import (
     zero_mean_unit_var_normalization, zero_mean_unit_var_unnormalization,
     zero_one_normalization, zero_one_unnormalization,
@@ -63,7 +62,7 @@ class BaseTLSurrogate(object):
     def predict(self, X: np.ndarray):
         pass
 
-    def build_source_surrogates(self, normalize):
+    def build_source_surrogates(self, normalize='scale'):
         if self.source_hpo_data is None:
             logger.warning('No history BO data provided, resort to naive BO optimizer without TL.')
             return
