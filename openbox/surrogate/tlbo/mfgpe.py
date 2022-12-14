@@ -2,10 +2,10 @@
 
 import numpy as np
 from typing import List
-from collections import OrderedDict
 from sklearn.model_selection import KFold
 from openbox import logger
 from openbox.surrogate.tlbo.base import BaseTLSurrogate
+from openbox.utils.history import History
 
 _scale_method = 'scale'
 
@@ -27,7 +27,7 @@ class MFGPE(BaseTLSurrogate):
         self.hist_ws = list()
         self.iteration_id = 0
 
-    def update_mf_trials(self, mf_hpo_data: List[OrderedDict]):
+    def update_mf_trials(self, mf_hpo_data: List[History]):
         if self.K == 0:
             self.K = len(mf_hpo_data) - 1  # K is the number of low-fidelity groups
             self.w = [1. / self.K] * self.K + [0.]

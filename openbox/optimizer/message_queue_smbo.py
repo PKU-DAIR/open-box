@@ -2,7 +2,6 @@
 
 import time
 from typing import List
-from collections import OrderedDict
 import numpy as np
 
 from openbox import logger
@@ -10,7 +9,7 @@ from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.optimizer.base import BOBase
 from openbox.core.message_queue.master_messager import MasterMessager
-from openbox.utils.history import Observation
+from openbox.utils.history import Observation, History
 from openbox.utils.util_funcs import deprecate_kwarg
 
 
@@ -35,7 +34,7 @@ class mqSMBO(BOBase):
             init_strategy='random_explore_first',
             initial_configurations=None,
             ref_point=None,
-            history_bo_data: List[OrderedDict] = None,
+            history_bo_data: List[History] = None,
             logging_dir='logs',
             task_id='OpenBox',
             random_state=None,

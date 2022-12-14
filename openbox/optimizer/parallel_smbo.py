@@ -4,7 +4,6 @@ import sys
 import time
 import traceback
 from typing import List
-from collections import OrderedDict
 from multiprocessing import Lock
 import numpy as np
 
@@ -69,7 +68,7 @@ class pSMBO(BOBase):
             init_strategy='random_explore_first',
             initial_configurations=None,
             ref_point=None,
-            history_bo_data: List[OrderedDict] = None,
+            history_bo_data: List[History] = None,
             logging_dir='logs',
             task_id='OpenBox',
             random_state=None,

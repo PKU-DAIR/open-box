@@ -3,7 +3,6 @@
 import time
 import math
 from typing import List
-from collections import OrderedDict
 from tqdm import tqdm
 import numpy as np
 from openbox import logger
@@ -83,7 +82,7 @@ class SMBO(BOBase):
     ref_point : List[float], optional
         Reference point for calculating hypervolume in multi-objective problem.
         Must be provided if using EHVI based acquisition function.
-    history_bo_data : List[OrderedDict], optional
+    history_bo_data : List[History], optional
         Historical data for transfer learning.
     logging_dir : str
         Directory to save log files.
@@ -120,7 +119,7 @@ class SMBO(BOBase):
             init_strategy='random_explore_first',
             initial_configurations=None,
             ref_point=None,
-            history_bo_data: List[OrderedDict] = None,
+            history_bo_data: List[History] = None,
             logging_dir='logs',
             task_id='OpenBox',
             visualization='none',

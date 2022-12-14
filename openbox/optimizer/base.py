@@ -5,7 +5,6 @@ import abc
 import time
 import numpy as np
 from typing import List
-from collections import OrderedDict
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state
 from openbox.utils.history import History
@@ -23,7 +22,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
             max_runs=50,
             runtime_limit=None,
             sample_strategy='bo',
-            history_bo_data: List[OrderedDict] = None,
+            history_bo_data: List[History] = None,
             time_limit_per_trial=600,
             logger_kwargs: dict = None,
     ):
