@@ -12,7 +12,10 @@ from openbox.core.base import build_surrogate
 from openbox.utils.constants import VERY_SMALL_NUMBER
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.utils.config_space.util import convert_configurations_to_array
-from openbox.utils.transform import zero_mean_unit_var_normalization, zero_one_normalization
+from openbox.utils.transform import (
+    zero_mean_unit_var_normalization, zero_mean_unit_var_unnormalization,
+    zero_one_normalization, zero_one_unnormalization,
+)
 
 
 class BaseTLSurrogate(object):
@@ -47,6 +50,9 @@ class BaseTLSurrogate(object):
         self.meta_feature_scaler = None
         self.meta_feature_imputer = None
 
+        self.y_normalize_mean = None
+        self.y_normalize_std = None
+
         self.target_weight = list()
 
     @abc.abstractmethod
@@ -73,7 +79,8 @@ class BaseTLSurrogate(object):
                                     np.random.RandomState(self.random_seed))
 
             X = task_history.get_config_array(transform=normalize)[:self.num_src_hpo_trial]
-            y = task_history.get_objectives()[:self.num_src_hpo_trial]
+            y = task_history.get_objectives(transform='infeasible')[:self.num_src_hpo_trial]
+            y = y.reshape(-1)  # single objective
 
             if (y == y[0]).all():
                 y[0] += 1e-4
@@ -89,7 +96,9 @@ class BaseTLSurrogate(object):
 
         if (y == y[0]).all():
             y[0] += 1e-4
-        y, _, _ = zero_mean_unit_var_normalization(y)
+        y, mean, std = zero_mean_unit_var_normalization(y)
+        self.y_normalize_mean = mean
+        self.y_normalize_std = std
 
         model.train(X, y)
         return model
@@ -126,6 +135,11 @@ class BaseTLSurrogate(object):
 
             var[var < self.var_threshold] = self.var_threshold
             var[np.isnan(var)] = self.var_threshold
+
+            if self.y_normalize_mean is not None and self.y_normalize_std is not None:
+                mean = zero_mean_unit_var_unnormalization(mean, self.y_normalize_mean, self.y_normalize_std)
+                var = var * self.y_normalize_std ** 2
+
             return mean, var
         raise ValueError('Unexpected case happened.')
 

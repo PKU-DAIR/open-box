@@ -45,7 +45,8 @@ class SGPR(BaseTLSurrogate):
             logger.info('Building the %d-th residual GPs.' % idx)
 
             X = task_history.get_config_array(transform=normalize)[:self.num_src_hpo_trial]
-            y = task_history.get_objectives()[:self.num_src_hpo_trial]
+            y = task_history.get_objectives(transform='infeasible')[:self.num_src_hpo_trial]
+            y = y.reshape(-1)  # single objective
 
             self.train_regressor(X, y)
         logger.info('Building the source surrogate took %.3fs.' % (time.time() - start_time))
