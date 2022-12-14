@@ -75,6 +75,10 @@ class BaseTLSurrogate(object):
             X = task_history.get_config_array(transform=normalize)[:self.num_src_hpo_trial]
             y = task_history.get_objectives()[:self.num_src_hpo_trial]
 
+            if (y == y[0]).all():
+                y[0] += 1e-4
+            y, _, _ = zero_mean_unit_var_normalization(y)
+
             self.eta_list.append(np.min(y))
             model.train(X, y)
             self.source_surrogates.append(model)
@@ -82,6 +86,11 @@ class BaseTLSurrogate(object):
 
     def build_single_surrogate(self, X: np.ndarray, y: np.array):
         model = build_surrogate(self.surrogate_type, self.config_space, np.random.RandomState(self.random_seed))
+
+        if (y == y[0]).all():
+            y[0] += 1e-4
+        y, _, _ = zero_mean_unit_var_normalization(y)
+
         model.train(X, y)
         return model
 
