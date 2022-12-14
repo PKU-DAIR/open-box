@@ -3,10 +3,13 @@
 When performing black-box optimization, users often run tasks that are similar to
 previous ones. This observation can be used to speed up the current task.
 
-OpenBox takes as input observations from $K + 1$ tasks: $D^1$, ...,
-$D^K$ for $K$ previous tasks and $D^T$ for the current task. 
+OpenBox takes as input observations from $K + 1$ tasks: $D^1, ..., D^K$ 
+for $K$ previous tasks and $D^T$ for the current task. 
 So far, OpenBox only supports transfer learning between single-objective tasks.
-Three transfer learning algorithms are supported, which are [RGPE](https://arxiv.org/abs/1802.02219), [SGPR](https://dl.acm.org/doi/abs/10.1145/3097983.3098043), and [TransBO](https://arxiv.org/abs/2206.02663).
+Three transfer learning algorithms are supported, which are 
+[RGPE](https://arxiv.org/abs/1802.02219),
+[SGPR](https://dl.acm.org/doi/abs/10.1145/3097983.3098043), and 
+[TransBO](https://arxiv.org/abs/2206.02663).
 
 We have provided an example in 
 [examples/transfer_learning.py](https://github.com/PKU-DAIR/open-box/blob/master/examples/transfer_learning.py).
