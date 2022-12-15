@@ -34,7 +34,7 @@ class mqSMBO(BOBase):
             init_strategy='random_explore_first',
             initial_configurations=None,
             ref_point=None,
-            history_bo_data: List[History] = None,
+            transfer_learning_history: List[History] = None,
             logging_dir='logs',
             task_id='OpenBox',
             random_state=None,
@@ -54,7 +54,7 @@ class mqSMBO(BOBase):
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
-                         history_bo_data=history_bo_data, logger_kwargs=logger_kwargs)
+                         transfer_learning_history=transfer_learning_history, logger_kwargs=logger_kwargs)
 
         self.parallel_strategy = parallel_strategy
         self.batch_size = batch_size
@@ -72,7 +72,7 @@ class mqSMBO(BOBase):
                                                    initial_trials=initial_runs,
                                                    initial_configurations=initial_configurations,
                                                    init_strategy=init_strategy,
-                                                   history_bo_data=history_bo_data,
+                                                   transfer_learning_history=transfer_learning_history,
                                                    optimization_strategy=sample_strategy,
                                                    surrogate_type=surrogate_type,
                                                    acq_type=acq_type,
@@ -92,7 +92,7 @@ class mqSMBO(BOBase):
                                                     initial_trials=initial_runs,
                                                     initial_configurations=initial_configurations,
                                                     init_strategy=init_strategy,
-                                                    history_bo_data=history_bo_data,
+                                                    transfer_learning_history=transfer_learning_history,
                                                     optimization_strategy=sample_strategy,
                                                     surrogate_type=surrogate_type,
                                                     acq_type=acq_type,

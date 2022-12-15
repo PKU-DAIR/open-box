@@ -28,7 +28,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             initial_trials=3,
             initial_configurations=None,
             init_strategy='random_explore_first',
-            history_bo_data=None,
+            transfer_learning_history=None,
             rand_prob=0.1,
             optimization_strategy='bo',
             surrogate_type='auto',
@@ -59,7 +59,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.optimization_strategy = optimization_strategy
 
         # Init the basic ingredients in Bayesian optimization.
-        self.history_bo_data = history_bo_data
+        self.transfer_learning_history = transfer_learning_history
         self.surrogate_type = surrogate_type
         self.constraint_surrogate_type = None
         self.acq_type = acq_type
@@ -112,16 +112,17 @@ class Advisor(object, metaclass=abc.ABCMeta):
         info_str = ''
 
         if self.surrogate_type == 'auto':
-            self.auto_alter_model = True
+            use_tl = self.transfer_learning_history is not None
+            self.auto_alter_model = True if not use_tl else False
             if n_total_hp >= 100:
                 self.optimization_strategy = 'random'
                 self.surrogate_type = 'prf'  # for setup procedure
             elif n_total_hp >= 10:
-                self.surrogate_type = 'prf'
+                self.surrogate_type = 'prf' if not use_tl else 'tlbo_rgpe_prf'
             elif n_cat_hp > n_cont_hp:
-                self.surrogate_type = 'prf'
+                self.surrogate_type = 'prf' if not use_tl else 'tlbo_rgpe_prf'
             else:
-                self.surrogate_type = 'gp'
+                self.surrogate_type = 'gp' if not use_tl else 'tlbo_rgpe_gp'
             info_str += ' surrogate_type: %s.' % self.surrogate_type
 
         if self.acq_type == 'auto':
@@ -152,7 +153,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
             info_str += ' acq_optimizer_type: %s.' % self.acq_optimizer_type
 
         if info_str != '':
-            info_str = '=== [BO auto selection] ===' + info_str
+            info_str = '[BO auto selection] ' + info_str
             logger.info(info_str)
 
     def alter_model(self, history: History):
@@ -197,7 +198,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
                     logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
-                                        'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
+                                   'since MESMO is used. Surrogate_type should be set to \'gp_rbf\'.')
             else:  # with constraints
                 assert self.acq_type in ['ehvic', 'mesmoc', 'mesmoc2']
                 if self.constraint_surrogate_type is None:
@@ -208,15 +209,24 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
                     logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
-                                        'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
+                                   'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
                 if self.acq_type == 'mesmoc' and self.constraint_surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
                     logger.warning('Constraint surrogate model has changed to Gaussian Process with RBF kernel '
-                                        'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
+                                   'since MESMOC is used. Surrogate_type should be set to \'gp_rbf\'.')
 
             # Check reference point is provided for EHVI methods
             if 'ehvi' in self.acq_type and self.ref_point is None:
                 raise ValueError('Must provide reference point to use EHVI method!')
+
+        # transfer learning
+        if self.transfer_learning_history is not None:
+            if not (self.num_objectives == 1 and self.num_constraints == 0):
+                raise NotImplementedError('Currently, transfer learning is only supported for single objective '
+                                          'optimization without constraints.')
+            surrogate_str = self.surrogate_type.split('_')
+            assert len(surrogate_str) == 3 and surrogate_str[0] == 'tlbo'
+            assert surrogate_str[1] in ['rgpe', 'sgpr', 'topov3']  # todo: 'mfgpe'
 
     def setup_bo_basics(self):
         """
@@ -229,12 +239,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
                                                    rng=self.rng,
-                                                   history_hpo_data=self.history_bo_data)
+                                                   transfer_learning_history=self.transfer_learning_history)
         else:  # multi-objectives
             self.surrogate_model = [build_surrogate(func_str=self.surrogate_type,
                                                     config_space=self.config_space,
                                                     rng=self.rng,
-                                                    history_hpo_data=self.history_bo_data)
+                                                    transfer_learning_history=self.transfer_learning_history)
                                     for _ in range(self.num_objectives)]
 
         if self.num_constraints > 0:

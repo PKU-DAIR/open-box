@@ -77,7 +77,7 @@ def build_optimizer(func_str='local_random', acq_func=None, config_space=None, r
                      rng=rng)
 
 
-def build_surrogate(func_str='gp', config_space=None, rng=None, history_hpo_data=None):
+def build_surrogate(func_str='gp', config_space=None, rng=None, transfer_learning_history=None):
     assert config_space is not None
     func_str = func_str.lower()
     types, bounds = get_types(config_space)
@@ -115,24 +115,24 @@ def build_surrogate(func_str='gp', config_space=None, rng=None, history_hpo_data
     elif func_str.startswith('mfgpe'):
         from openbox.surrogate.tlbo.mfgpe import MFGPE
         inner_surrogate_type = 'prf'
-        return MFGPE(config_space, history_hpo_data, seed,
+        return MFGPE(config_space, transfer_learning_history, seed,
                      surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
     elif func_str.startswith('tlbo'):
         logger.info('The current TL surrogate is %s' % func_str)
         if 'rgpe' in func_str:
             from openbox.surrogate.tlbo.rgpe import RGPE
             inner_surrogate_type = func_str.split('_')[-1]
-            return RGPE(config_space, history_hpo_data, seed,
+            return RGPE(config_space, transfer_learning_history, seed,
                         surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
         elif 'sgpr' in func_str:
             from openbox.surrogate.tlbo.stacking_gpr import SGPR
             inner_surrogate_type = func_str.split('_')[-1]
-            return SGPR(config_space, history_hpo_data, seed,
+            return SGPR(config_space, transfer_learning_history, seed,
                         surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
         elif 'topov3' in func_str:
             from openbox.surrogate.tlbo.topo_variant3 import TOPO_V3
             inner_surrogate_type = func_str.split('_')[-1]
-            return TOPO_V3(config_space, history_hpo_data, seed,
+            return TOPO_V3(config_space, transfer_learning_history, seed,
                            surrogate_type=inner_surrogate_type, num_src_hpo_trial=-1)
         else:
             raise ValueError('Invalid string %s for tlbo surrogate!' % func_str)

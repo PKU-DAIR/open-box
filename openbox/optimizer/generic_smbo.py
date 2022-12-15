@@ -82,7 +82,7 @@ class SMBO(BOBase):
     ref_point : List[float], optional
         Reference point for calculating hypervolume in multi-objective problem.
         Must be provided if using EHVI based acquisition function.
-    history_bo_data : List[History], optional
+    transfer_learning_history : List[History], optional
         Historical data for transfer learning.
     logging_dir : str
         Directory to save log files.
@@ -119,7 +119,7 @@ class SMBO(BOBase):
             init_strategy='random_explore_first',
             initial_configurations=None,
             ref_point=None,
-            history_bo_data: List[History] = None,
+            transfer_learning_history: List[History] = None,
             logging_dir='logs',
             task_id='OpenBox',
             visualization='none',
@@ -138,7 +138,7 @@ class SMBO(BOBase):
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
                          runtime_limit=runtime_limit, sample_strategy=sample_strategy,
-                         time_limit_per_trial=time_limit_per_trial, history_bo_data=history_bo_data,
+                         time_limit_per_trial=time_limit_per_trial, transfer_learning_history=transfer_learning_history,
                          logger_kwargs=logger_kwargs)
 
         self.advisor_type = advisor_type
@@ -157,7 +157,7 @@ class SMBO(BOBase):
                                           acq_type=acq_type,
                                           acq_optimizer_type=acq_optimizer_type,
                                           ref_point=ref_point,
-                                          history_bo_data=history_bo_data,
+                                          transfer_learning_history=transfer_learning_history,
                                           task_id=task_id,
                                           output_dir=logging_dir,
                                           random_state=random_state,
@@ -176,7 +176,7 @@ class SMBO(BOBase):
                                             acq_type=acq_type,
                                             acq_optimizer_type=acq_optimizer_type,
                                             ref_point=ref_point,
-                                            history_bo_data=history_bo_data,
+                                            transfer_learning_history=transfer_learning_history,
                                             task_id=task_id,
                                             output_dir=logging_dir,
                                             random_state=random_state,
@@ -212,7 +212,7 @@ class SMBO(BOBase):
                                                 acq_type=acq_type,
                                                 acq_optimizer_type=acq_optimizer_type,
                                                 ref_point=ref_point,
-                                                history_bo_data=history_bo_data,
+                                                transfer_learning_history=transfer_learning_history,
                                                 task_id=task_id,
                                                 output_dir=logging_dir,
                                                 random_state=random_state,

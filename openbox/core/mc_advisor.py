@@ -22,7 +22,7 @@ class MCAdvisor(Advisor):
             initial_trials=3,
             initial_configurations=None,
             init_strategy='random_explore_first',
-            history_bo_data=None,
+            transfer_learning_history=None,
             optimization_strategy='bo',
             surrogate_type='auto',
             acq_type='auto',
@@ -45,7 +45,7 @@ class MCAdvisor(Advisor):
                          initial_trials=initial_trials,
                          initial_configurations=initial_configurations,
                          init_strategy=init_strategy,
-                         history_bo_data=history_bo_data,
+                         transfer_learning_history=transfer_learning_history,
                          optimization_strategy=optimization_strategy,
                          surrogate_type=surrogate_type,
                          acq_type=acq_type,
@@ -92,7 +92,7 @@ class MCAdvisor(Advisor):
             info_str += ' acq_optimizer_type: %s.' % self.acq_optimizer_type
 
         if info_str != '':
-            info_str = '=== [BO auto selection] ===' + info_str
+            info_str = '[BO auto selection] ' + info_str
             logger.info(info_str)
 
     def check_setup(self):
@@ -131,12 +131,12 @@ class MCAdvisor(Advisor):
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
                                                    config_space=self.config_space,
                                                    rng=self.rng,
-                                                   history_hpo_data=self.history_bo_data)
+                                                   transfer_learning_history=self.transfer_learning_history)
         else:  # multi-objectives
             self.surrogate_model = [build_surrogate(func_str=self.surrogate_type,
                                                     config_space=self.config_space,
                                                     rng=self.rng,
-                                                    history_hpo_data=self.history_bo_data)
+                                                    transfer_learning_history=self.transfer_learning_history)
                                     for _ in range(self.num_objectives)]
 
         if self.num_constraints > 0:

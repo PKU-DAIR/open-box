@@ -25,7 +25,7 @@ from openbox import Observation, History, Advisor, space as sp, logger
 # Define config space
 cs = sp.Space()
 for i in range(3):
-    cs.add_variable(sp.Int('x%d' % (i+1), -200, 200))
+    cs.add_variable(sp.Float('x%d' % (i+1), -200, 200))
 
 # Define objective function
 def obj(config):
@@ -46,8 +46,8 @@ by `optimizer.get_history()` for Optimizer or `advisor.get_history()` for Adviso
 In this case, we generate one relevant source task and two irrelevant source tasks.
 
 ```python
-# Generate history data for transfer learning. history_bo_data requires a list of History.
-history_bo_data = list()  # type: List[History]
+# Generate history data for transfer learning. transfer_learning_history requires a list of History.
+transfer_learning_history = list()  # type: List[History]
 # 3 source tasks with 50 evaluations of random configurations each
 # one task is relevant to the target task, the other two are irrelevant
 num_history_tasks, num_results_per_task = 3, 50
@@ -67,11 +67,11 @@ for task_idx in range(num_history_tasks):
         observation = Observation(config=config, objectives=[y])
         history.update_observation(observation)
 
-    history_bo_data.append(history)
+    transfer_learning_history.append(history)
 ```
 
-To switch on transfer learning, we need to specify `history_bo_data` and `surrogate_type`:
-+ `history_bo_data`: A list of History, which represents the observations from each source task.
+To switch on transfer learning, we need to specify `transfer_learning_history` and `surrogate_type`:
++ `transfer_learning_history`: A list of History, which represents the observations from each source task.
 + `surrogate_type`: A string. Different from "auto" as shown in [Quick Start](../quick_start/quick_start),
 `surrogate_type` here includes three parts.
   + The first part must be `"tlbo"`. 
@@ -93,7 +93,7 @@ tlbo_advisor = Advisor(
     num_objectives=1,
     num_constraints=0,
     initial_trials=3,
-    history_bo_data=history_bo_data,  # type: List[History]
+    transfer_learning_history=transfer_learning_history,  # type: List[History]
     surrogate_type='tlbo_rgpe_gp',
     acq_type='ei',
     acq_optimizer_type='random_scipy',

@@ -17,7 +17,7 @@ class RandomAdvisor(Advisor):
                  initial_trials=3,
                  initial_configurations=None,
                  init_strategy='random_explore_first',
-                 history_bo_data=None,
+                 transfer_learning_history=None,
                  surrogate_type=None,
                  acq_type=None,
                  acq_optimizer_type='local_random',
@@ -31,7 +31,7 @@ class RandomAdvisor(Advisor):
         super().__init__(
             config_space=config_space, num_objectives=num_objectives, num_constraints=num_constraints,
             initial_trials=initial_trials, initial_configurations=initial_configurations,
-            init_strategy=init_strategy, history_bo_data=history_bo_data,
+            init_strategy=init_strategy, transfer_learning_history=transfer_learning_history,
             rand_prob=1, optimization_strategy='random',
             surrogate_type=surrogate_type, acq_type=acq_type, acq_optimizer_type=acq_optimizer_type,
             ref_point=ref_point, output_dir=output_dir, task_id=task_id, random_state=random_state,

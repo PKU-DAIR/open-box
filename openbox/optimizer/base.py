@@ -22,7 +22,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
             max_runs=50,
             runtime_limit=None,
             sample_strategy='bo',
-            history_bo_data: List[History] = None,
+            transfer_learning_history: List[History] = None,
             time_limit_per_trial=600,
             logger_kwargs: dict = None,
     ):
@@ -43,7 +43,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
         self.budget_left = self.runtime_limit
         self.iteration_id = 0
         self.sample_strategy = sample_strategy
-        self.history_bo_data = history_bo_data
+        self.transfer_learning_history = transfer_learning_history
         self.time_limit_per_trial = time_limit_per_trial
         self.config_advisor = None
 

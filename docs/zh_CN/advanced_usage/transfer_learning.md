@@ -22,7 +22,7 @@ from openbox import Observation, History, Advisor, space as sp, logger
 # Define config space
 cs = sp.Space()
 for i in range(3):
-    cs.add_variable(sp.Int('x%d' % (i+1), -200, 200))
+    cs.add_variable(sp.Float('x%d' % (i+1), -200, 200))
 
 # Define objective function
 def obj(config):
@@ -43,8 +43,8 @@ def obj(config):
 在这个例子里，我们生成了一个相关的源任务，和两个不相关的源任务。
 
 ```python
-# Generate history data for transfer learning. history_bo_data requires a list of History.
-history_bo_data = list()  # type: List[History]
+# Generate history data for transfer learning. transfer_learning_history requires a list of History.
+transfer_learning_history = list()  # type: List[History]
 # 3 source tasks with 50 evaluations of random configurations each
 # one task is relevant to the target task, the other two are irrelevant
 num_history_tasks, num_results_per_task = 3, 50
@@ -64,11 +64,11 @@ for task_idx in range(num_history_tasks):
         observation = Observation(config=config, objectives=[y])
         history.update_observation(observation)
 
-    history_bo_data.append(history)
+    transfer_learning_history.append(history)
 ```
 
-为了启用迁移学习，我们需要指定 `history_bo_data` 和 `surrogate_type`:
-+ `history_bo_data`: 一个包含History的列表，每个History对应一个源任务。
+为了启用迁移学习，我们需要指定 `transfer_learning_history` 和 `surrogate_type`:
++ `transfer_learning_history`: 一个包含History的列表，每个History对应一个源任务。
 + `surrogate_type`: 一个字符串。不同于 [Quick Start](../quick_start/quick_start) 中展示的"auto",
   这里的`surrogate_type`包含三个部分：
   + 第一个部分必须是`"tlbo"`。
@@ -91,7 +91,7 @@ tlbo_advisor = Advisor(
     num_objectives=1,
     num_constraints=0,
     initial_trials=3,
-    history_bo_data=history_bo_data,  # type: List[History]
+    transfer_learning_history=transfer_learning_history,  # type: List[History]
     surrogate_type='tlbo_rgpe_gp',
     acq_type='ei',
     acq_optimizer_type='random_scipy',
