@@ -60,7 +60,7 @@ for task_idx in range(num_history_tasks):
     for _ in range(num_results_per_task):
         config = cs.sample_configuration()
         if task_idx == 1:  # relevant task
-            y = obj(config) + 100
+            y = obj(config)['objectives'][0] + 100
         else:              # irrelevant tasks
             y = np.random.random()
         # build and update observation
@@ -103,9 +103,9 @@ tlbo_advisor = Advisor(
 max_iter = 20
 for i in range(max_iter):
     config = tlbo_advisor.get_suggestion()
-    y = obj(config)
-    logger.info(f'Iteration {i+1}, result: {y}')
-    observation = Observation(config=config, objectives=[y])
+    res = obj(config)
+    logger.info(f'Iteration {i+1}, result: {res}')
+    observation = Observation(config=config, objectives=res['objectives'])
     tlbo_advisor.update_observation(observation)
 ```
 
