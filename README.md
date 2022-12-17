@@ -1,5 +1,5 @@
 <p align="center"><a href="https://github.com/PKU-DAIR/open-box">
-  <img src="docs/imgs/logo.png" width="40%" alt="OpenBox Logo" >
+  <img src="docs/imgs/logo.png" width="40%" alt="OpenBox Logo">
 </a></p>
 
 -----------
@@ -15,7 +15,9 @@
 [![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](
   https://open-box.readthedocs.io/)
 
-[OpenBox Docs](https://open-box.readthedocs.io) | [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
+[OpenBox Documentation](https://open-box.readthedocs.io)
+| [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
+| [中文README](https://github.com/PKU-DAIR/open-box/blob/master/README_zh_CN.md)
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System
 **OpenBox** is an efficient and generalized blackbox optimization (BBO) system, which supports the following 
@@ -49,7 +51,7 @@ The design of OpenBox follows the following principles:
 + **Fault tolerance**, **extensibility**, and **data privacy protection**.
 
 ## Links
-+ [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest) | 
++ [Documentations](https://open-box.readthedocs.io/en/latest/) | 
   [中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 + [Examples](https://github.com/PKU-DAIR/open-box/tree/master/examples)
 + [Pypi package](https://pypi.org/project/openbox/)
@@ -212,7 +214,7 @@ Also, for advanced features, [install SWIG](https://open-box.readthedocs.io/en/l
 first and then run `pip install ".[extra]"`.
 
 For more details about installation instructions, please refer to the 
-[Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html).
+[Installation Guide](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html).
 
 ## Quick Start
 
@@ -269,7 +271,7 @@ if __name__ == "__main__":
     plt.show()
 ```
 
-We also provide **HTML Visualization** by setting additional options
+We also provide **HTML Visualization**. Enable it by setting additional options
 `visualization`=`basic`/`advanced` and `auto_open_html=True`(optional) in `Optimizer`:
 
 ```python
@@ -306,19 +308,19 @@ For more visualization details, please refer to
 
 <img src="docs/imgs/logo_alibaba.png" width="35%" class="align-left" alt="Alibaba Logo">
 
-* [Alibaba Group](https://www.alibabagroup.com/en/global/home)
+* [Alibaba Group](https://www.alibabagroup.com/en-US/)
 
 <img src="docs/imgs/logo_kuaishou.png" width="35%" class="align-left" alt="Kuaishou Logo">
 
 * [Kuaishou Technology](https://www.kuaishou.com/en)
 
 
-## **Releases and Contributing**
+## **Contributing**
 OpenBox has a frequent release cycle. Please let us know if you encounter a bug by 
 [filling an issue](https://github.com/PKU-DAIR/open-box/issues/new/choose).
 
 We appreciate all contributions. If you are planning to contribute any bug-fixes, 
-please do so without further discussions.
+please create a [pull request](https://github.com/PKU-DAIR/open-box/pulls).
 
 If you plan to contribute new features, new modules, etc. please first open an issue or reuse an existing issue, 
 and discuss the feature with us.
@@ -331,7 +333,8 @@ We appreciate all contributions and thank all the contributors!
 
 ## **Feedback**
 * [File an issue](https://github.com/PKU-DAIR/open-box/issues) on GitHub
-* Email us via [*Yang Li*](https://thomas-young-2013.github.io/) or *shenyu@pku.edu.cn*
+* Email us via [*Yang Li*](https://thomas-young-2013.github.io/), 
+  *shenyu@pku.edu.cn* or *jianghuaijun@pku.edu.cn*
 * [Q&A] Join the QQ group: 227229622
 
 ## **Related Projects**

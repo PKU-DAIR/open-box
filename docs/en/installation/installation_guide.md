@@ -34,7 +34,7 @@ To install OpenBox from PyPI, simply run the following command:
 pip install openbox
 ```
 
-For advanced features, [install SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+For advanced features, [install SWIG](./install_swig)
 first and then run `pip install "openbox[extra]"`. 
 
 ### 3.2 Manual Installation from Source
@@ -45,7 +45,7 @@ git clone https://github.com/PKU-DAIR/open-box.git && cd open-box
 pip install .
 ```
 
-Also, for advanced features, [install SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+Also, for advanced features, [install SWIG](./install_swig)
 first and then run `pip install ".[extra]"`.
 
 ### 3.3 Test for Installation

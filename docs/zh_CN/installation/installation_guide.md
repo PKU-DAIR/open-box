@@ -34,7 +34,7 @@ pip install --upgrade pip setuptools wheel
 pip install openbox
 ```
 
-如需使用高级功能，请先[安装 SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+如需使用高级功能，请先[安装 SWIG](./install_swig)
 ，然后运行 `pip install "openbox[extra]"`。
 
 ### 3.2 从源代码手动安装
@@ -45,7 +45,7 @@ git clone https://github.com/PKU-DAIR/open-box.git && cd open-box
 pip install .
 ```
 
-同样，如需使用高级功能，请先[安装 SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+同样，如需使用高级功能，请先[安装 SWIG](./install_swig)
 ，然后运行 `pip install ".[extra]"`。
 
 ### 3.3 安装测试
@@ -70,7 +70,7 @@ if __name__ == '__main__':
 ## 4 进阶功能安装（可选）
 
 如果您想使用更高级的功能，比如使用 `pyrfr` （概率随机森林）作为代理模型，或根据历史计算超参数重要性，
-请先[安装 SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)，然后运行：
+请先[安装 SWIG](./install_swig)，然后运行：
 ```bash
 pip install "openbox[extra]"
 ```
