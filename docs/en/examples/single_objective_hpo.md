@@ -52,7 +52,7 @@ def objective_function(config: sp.Configuration):
     y_pred = model.predict(x_test)
 
     loss = 1 - balanced_accuracy_score(y_test, y_pred)  # minimize
-    return dict(objectives=(loss, ))
+    return dict(objectives=[loss])
 ```
 
 Here are some instructions on how to **define a configuration space**:

@@ -15,7 +15,7 @@ for i in range(3):
 def obj(config):
     x1, x2, x3 = config['x1'], config['x2'], config['x3']
     y = (x1-10)**2 + x2**2 + (x3-100)**2
-    return y
+    return {'objectives': [y]}
 
 
 # Generate history data for transfer learning. transfer_learning_history requires a list of History.

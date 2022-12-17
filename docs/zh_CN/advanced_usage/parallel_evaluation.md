@@ -38,7 +38,7 @@ def branin(config):
     x1, x2 = config['x1'], config['x2']
     y = (x2 - 5.1 / (4 * np.pi ** 2) * x1 ** 2 + 5 / np.pi * x1 - 6) ** 2 \
         + 10 * (1 - 1 / (8 * np.pi)) * np.cos(x1) + 10
-    return {'objectives': (y,)}
+    return {'objectives': [y]}
 ```
 
 如果你对这个问题描述还不熟悉，请参考我们的[快速入门教程](../quick_start/quick_start)。

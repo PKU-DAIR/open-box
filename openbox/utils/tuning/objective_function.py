@@ -30,7 +30,7 @@ def get_lightgbm_objective_function(x_train, x_val, y_train, y_val, task_type='c
         loss = 1 - balanced_accuracy_score(y_val, y_pred)  # OpenBox minimizes the objective
 
         # return result dictionary
-        result = dict(objectives=(loss,))
+        result = dict(objectives=[loss])
         return result
 
     if task_type == 'cls':
@@ -58,7 +58,7 @@ def get_xgboost_objective_function(x_train, x_val, y_train, y_val, task_type='cl
         loss = 1 - balanced_accuracy_score(y_val, y_pred)  # OpenBox minimizes the objective
 
         # return result dictionary
-        result = dict(objectives=(loss,))
+        result = dict(objectives=[loss])
         return result
 
     if task_type == 'cls':

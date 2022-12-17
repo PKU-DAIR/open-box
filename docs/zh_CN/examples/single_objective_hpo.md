@@ -53,7 +53,7 @@ def objective_function(config: sp.Configuration):
     y_pred = model.predict(x_test)
 
     loss = 1 - balanced_accuracy_score(y_test, y_pred)  # minimize
-    return dict(objectives=(loss, ))
+    return dict(objectives=[loss])
 ```
 
 下面给出了一些定义搜索空间的提示：

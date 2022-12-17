@@ -23,7 +23,7 @@ def branin(config):
     y = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
 
     ret = dict(
-        objectives=(y, )
+        objectives=[y]
     )
     return ret
 

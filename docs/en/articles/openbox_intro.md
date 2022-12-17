@@ -137,7 +137,7 @@ space.add_variables([x1, x2])
 def branin(config):
     x1, x2 = config['x1'], config['x2']
     y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
-    return y
+    return {'objectives': [y]}
 ```
 
 Next, we call the OpenBox optimization framework Optimizer to perform optimization. Here we set *max_runs*=50, which means that the objective function will be tuned 50 times.
@@ -261,7 +261,7 @@ def objective_function(config):
     loss = 1 - balanced_accuracy_score(y_val, y_pred)  # OpenBox minimizes the objective
 
     # return result dictionary
-    result = dict(objectives=(loss, ))
+    result = dict(objectives=[loss])
     return result
 ```
 

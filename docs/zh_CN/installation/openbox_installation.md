@@ -114,7 +114,7 @@ config_space.add_hyperparameters([x1, x2])
 def branin(config):
     x1, x2 = config['x1'], config['x2']
     y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
-    return y
+    return {'objectives': [y]}
 
 # Run
 bo = SMBO(branin, config_space, max_runs=50, task_id='quick_start')
@@ -160,7 +160,7 @@ def branin(config):
     import numpy as np  # for Windows user, please import related packages in objective function
     x1, x2 = config['x1'], config['x2']
     y = (x2-5.1/(4*np.pi**2)*x1**2+5/np.pi*x1-6)**2+10*(1-1/(8*np.pi))*np.cos(x1)+10
-    return y
+    return {'objectives': [y]}
 
 # Run
 if __name__ == '__main__':  # for Windows user, this line is necessary
@@ -207,4 +207,3 @@ extra_compile_args = ['-O2', '-std=c++11', '-stdlib=libc++', '-mmacosx-version-m
 ```bash
 env CC="/usr/bin/gcc -stdlib=libc++ -mmacosx-version-min=10.7" pip install .
 ```
-

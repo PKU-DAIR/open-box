@@ -18,7 +18,7 @@ def branin(x):
     s = 10.
     t = 1. / (8. * np.pi)
     ret = a * (x2 - b * x1 ** 2 + c * x1 - r) ** 2 + s * (1 - t) * np.cos(x1) + s
-    return {'objectives': (ret,)}
+    return {'objectives': [ret]}
 
 
 cs = ConfigurationSpace()
