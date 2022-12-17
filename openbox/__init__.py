@@ -1,8 +1,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-from .pkginfo import version as __version__, package_name
-
 from .utils import color_logger as logger
 
 from .utils import space
@@ -30,8 +28,12 @@ from .utils.tuning import get_config_space, get_objective_function
 
 from .utils.test_install import run_test
 
+
+__version__ = version = "0.7.18"
+
+
 __all__ = [
-    "__version__", "__package__", "package_name",
+    "__version__", "version",
     "logger",
     "sp", "space",
     "Observation", "History",
