@@ -152,7 +152,7 @@ class GaussianProcess(BaseGP):
             kernel=self.kernel,
             normalize_y=False,
             optimizer=None,
-            n_restarts_optimizer=-1,  # Do not use scikit-learn's optimization routine
+            n_restarts_optimizer=0,  # Do not use scikit-learn's optimization routine
             alpha=alpha,    # The original is 0 (Governed by the kernel). Fix RBF kernel error.
             noise=None,
             random_state=self.rng,
