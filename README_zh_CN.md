@@ -12,6 +12,7 @@
   https://github.com/PKU-DAIR/open-box/pulls?q=is%3Apr+is%3Aopen)
 [![Version](https://img.shields.io/github/release/PKU-DAIR/open-box.svg)](
   https://github.com/PKU-DAIR/open-box/releases)
+[![Test](https://github.com/PKU-DAIR/open-box/actions/workflows/test.yml/badge.svg)](https://github.com/PKU-DAIR/open-box/actions/workflows/test.yml)
 [![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](
   https://open-box.readthedocs.io/)
 
