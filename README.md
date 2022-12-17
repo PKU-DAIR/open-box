@@ -240,7 +240,7 @@ if __name__ == "__main__":
     opt = Optimizer(CONSTR, space, num_objectives=2, num_constraints=2,
                     max_runs=50, ref_point=[10.0, 10.0], task_id='moc')
     history = opt.run()
-    history.plot_pareto_front()  # support 2 or 3 objectives
+    history.plot_pareto_front()  # plot for 2 or 3 objectives
     plt.show()
 ```
 

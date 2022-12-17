@@ -394,6 +394,8 @@ class HTMLVisualizer(BaseVisualizer):
 
     def generate_html(self):
         try:
+            # todo: isn’t compatible with PEP 302. should use importlib_resources to access data files.
+            #   https://setuptools.pypa.io/en/latest/userguide/datafiles.html#accessing-data-files-at-runtime
             # todo: move static html files to assets/
             # static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'html/assets/static')
             static_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../artifact/user_board/static')
