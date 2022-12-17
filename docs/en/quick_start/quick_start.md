@@ -137,7 +137,7 @@ Call <font color=#FF0000>**print(history.get_importance())**</font> to print the
 print(history.get_importance())
 ```
 
-```python
+```
 +------------+------------+
 | Parameters | Importance |
 +------------+------------+

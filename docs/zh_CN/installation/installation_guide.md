@@ -12,15 +12,16 @@
 
 ## 2 预先准备
 
-我们**强烈建议**您为OpenBox创建一个单独的Python环境，例如通过[Anaconda](https://www.anaconda.com/products/individual#Downloads):
+我们**强烈建议**您为OpenBox创建一个单独的Python环境，例如通过
+[Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n openbox python=3.7
 conda activate openbox
 ```
 
-我们建议您在安装OpenBox之前通过以下命令更新`pip`和`setuptools`：
+我们建议您在安装OpenBox之前通过以下命令更新`pip`，`setuptools`和`wheel`：
 ```bash
-pip install pip setuptools --upgrade
+pip install --upgrade pip setuptools wheel
 ```
 
 ## 3 安装 OpenBox
@@ -33,14 +34,19 @@ pip install pip setuptools --upgrade
 pip install openbox
 ```
 
+如需使用高级功能，请先[安装 SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+，然后运行 `pip install "openbox[extra]"`。
+
 ### 3.2 从源代码手动安装
 
-使用以下命令通过Github源码安装OpenBox:
+使用以下命令通过Github源码安装最新版本的OpenBox:
 ```bash
 git clone https://github.com/PKU-DAIR/open-box.git && cd open-box
-cat requirements/main.txt | xargs -n 1 -L 1 pip install
-python setup.py install
+pip install .
 ```
+
+同样，如需使用高级功能，请先[安装 SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+，然后运行 `pip install ".[extra]"`。
 
 ### 3.3 安装测试
 
@@ -64,7 +70,12 @@ if __name__ == '__main__':
 ## 4 进阶功能安装（可选）
 
 如果您想使用更高级的功能，比如使用 `pyrfr` （概率随机森林）作为代理模型，或根据历史计算超参数重要性，
-请参考 [Pyrfr安装教程](./install_pyrfr.md) 并安装 `pyrfr`。
+请先[安装 SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)，然后运行：
+```bash
+pip install "openbox[extra]"
+```
+
+如果您在安装`pyrfr`时遇到问题，请参考 [Pyrfr安装教程](./install_pyrfr.md)。
 
 ## 5 疑难解答
 
@@ -77,7 +88,8 @@ if __name__ == '__main__':
 
 + 'ERROR: Failed building wheel for ConfigSpace'。请参考[提示](./install_configspace_on_win_fix_vc.md)。
 
-+ 对于 Windows 用户，如果您在安装 lazy_import 时遇到了困难，请参考 [提示](./install-lazy_import-on-windows.md)。(Deprecated in 0.7.10)
++ 对于 Windows 用户，如果您在安装 lazy_import 时遇到了困难，请参考 
+  [提示](./install-lazy_import-on-windows.md)。(Deprecated in 0.7.10)
 
 ### macOS
 

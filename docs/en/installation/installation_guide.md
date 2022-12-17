@@ -12,15 +12,16 @@ Supported Systems:
 
 ## 2 Preparations before Installation
 
-We **STRONGLY** suggest you to create a Python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
+We **STRONGLY** suggest you to create a Python environment via 
+[Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n openbox python=3.7
 conda activate openbox
 ```
 
-Then we recommend you to update your `pip` and `setuptools` as follows:
+Then we recommend you to update your `pip`, `setuptools` and `wheel` as follows:
 ```bash
-pip install pip setuptools --upgrade
+pip install --upgrade pip setuptools wheel
 ```
 
 ## 3 Install OpenBox
@@ -33,14 +34,19 @@ To install OpenBox from PyPI, simply run the following command:
 pip install openbox
 ```
 
+For advanced features, [install SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+first and then run `pip install "openbox[extra]"`. 
+
 ### 3.2 Manual Installation from Source
 
-To install OpenBox using the source code, please run the following commands:
+To install the newest OpenBox from the source code, please run the following commands:
 ```bash
 git clone https://github.com/PKU-DAIR/open-box.git && cd open-box
-cat requirements/main.txt | xargs -n 1 -L 1 pip install
-python setup.py install
+pip install .
 ```
+
+Also, for advanced features, [install SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+first and then run `pip install ".[extra]"`.
 
 ### 3.3 Test for Installation
 
@@ -61,10 +67,15 @@ If successful, you will receive the following message:
 
 If you encountered any problem during installation, please refer to the **Trouble Shooting** section.
 
-## 4 Installation for Advanced Usage (Optional)
+## 4 Installation for Advanced Features (Optional)
 
 To use advanced features such as `pyrfr` (probabilistic random forest) surrogate and get hyper-parameter 
-importance from history, please refer to [Pyrfr Installation Guide](./install_pyrfr.md) to install `pyrfr`.
+importance from history, please [Install SWIG](./install_swig) first, and then run:
+```bash
+pip install "openbox[extra]"
+```
+
+If you encounter problems installing `pyrfr`, please refer to [Pyrfr Installation Guide](./install_pyrfr.md).
 
 ## 5 Trouble Shooting
 
@@ -78,7 +89,8 @@ append `--user` to the command line.
 
 + 'ERROR: Failed building wheel for ConfigSpace'. Please refer to [tips](./install_configspace_on_win_fix_vc.md).
 
-+ For Windows users who have trouble installing lazy_import, please refer to [tips](./install-lazy_import-on-windows.md). (Deprecated in 0.7.10)
++ For Windows users who have trouble installing lazy_import, please refer to 
+  [tips](./install-lazy_import-on-windows.md). (Deprecated in 0.7.10)
 
 ### macOS
 
