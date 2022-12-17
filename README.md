@@ -1,29 +1,38 @@
-<p align="center">
-<img src="docs/imgs/logo.png" width="40%">
-</p>
+<p align="center"><a href="https://github.com/PKU-DAIR/open-box">
+  <img src="docs/imgs/logo.png" width="40%" alt="OpenBox Logo" >
+</a></p>
 
 -----------
 
-[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/PKU-DAIR/open-box/blob/master/LICENSE)
-[![Issues](https://img.shields.io/github/issues-raw/PKU-DAIR/open-box.svg)](https://github.com/PKU-DAIR/open-box/issues?q=is%3Aissue+is%3Aopen)
-[![Bugs](https://img.shields.io/github/issues/PKU-DAIR/open-box/bug.svg)](https://github.com/PKU-DAIR/open-box/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
-[![Pull Requests](https://img.shields.io/github/issues-pr-raw/PKU-DAIR/open-box.svg)](https://github.com/PKU-DAIR/open-box/pulls?q=is%3Apr+is%3Aopen)
-[![Version](https://img.shields.io/github/release/PKU-DAIR/open-box.svg)](https://github.com/PKU-DAIR/open-box/releases)
-[![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](https://open-box.readthedocs.io/en/latest/?badge=latest)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](
+  https://github.com/PKU-DAIR/open-box/blob/master/LICENSE)
+[![Issues](https://img.shields.io/github/issues-raw/PKU-DAIR/open-box.svg)](
+  https://github.com/PKU-DAIR/open-box/issues?q=is%3Aissue+is%3Aopen)
+[![Pull Requests](https://img.shields.io/github/issues-pr-raw/PKU-DAIR/open-box.svg)](
+  https://github.com/PKU-DAIR/open-box/pulls?q=is%3Apr+is%3Aopen)
+[![Version](https://img.shields.io/github/release/PKU-DAIR/open-box.svg)](
+  https://github.com/PKU-DAIR/open-box/releases)
+[![Documentation Status](https://readthedocs.org/projects/open-box/badge/?version=latest)](
+  https://open-box.readthedocs.io/)
 
-[OpenBox Doc](https://open-box.readthedocs.io) | [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
+[OpenBox Docs](https://open-box.readthedocs.io) | [OpenBox中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 
 ## OpenBox: Generalized and Efficient Blackbox Optimization System
-**OpenBox** is an efficient and generalized blackbox optimization (BBO) system, which supports the following characteristics: 1) **BBO with multiple objectives and constraints**, 2) **BBO with transfer learning**, 3) **BBO with distributed parallelization**, 4) **BBO with multi-fidelity acceleration** and 5) **BBO with early stops**.
-OpenBox is designed and developed by the AutoML team from the <a href="http://net.pku.edu.cn/~cuibin/" target="_blank" rel="nofollow">DAIR Lab</a> at Peking University, and its goal is to make blackbox optimization easier to apply both in industry and academia, and help facilitate data science.
+**OpenBox** is an efficient and generalized blackbox optimization (BBO) system, which supports the following 
+characteristics: 1) **BBO with multiple objectives and constraints**, 2) **BBO with transfer learning**, 3) 
+**BBO with distributed parallelization**, 4) **BBO with multi-fidelity acceleration** and 5) **BBO with early stops**.
+OpenBox is designed and developed by the AutoML team from the [DAIR Lab](http://net.pku.edu.cn/~cuibin/) at Peking 
+University, and its goal is to make blackbox optimization easier to apply both in industry and academia, and help 
+facilitate data science.
 
 
 ## Software Artifacts
 #### Standalone Python package.
 Users can install the released package and use it with Python.
 #### Distributed BBO service.
-We adopt the "BBO as a service" paradigm and implement OpenBox as a managed general service for black-box optimization. Users can access this service via REST API conveniently, and do not need to worry about other issues such as environment setup, software maintenance, programming, and optimization of the execution. Moreover, we also provide a Web UI,
+We adopt the "BBO as a service" paradigm and implement OpenBox as a managed general service for black-box optimization. 
+Users can access this service via REST API conveniently, and do not need to worry about other issues such as environment 
+setup, software maintenance, programming, and optimization of the execution. Moreover, we also provide a Web UI,
 through which users can easily track and manage the tasks.
 
 
@@ -33,21 +42,27 @@ The design of OpenBox follows the following principles:
 + **Ease of use**: Minimal user effort, and user-friendly visualization for tracking and managing BBO tasks.
 + **Consistent performance**: Host state-of-the-art optimization algorithms; Choose the proper algorithm automatically.
 + **Resource-aware management**: Give cost-model-based advice to users, e.g., minimal workers or time-budget.
-+ **Scalability**: Scale to dimensions on the number of input variables, objectives, tasks, trials, and parallel evaluations.
-+ **High efficiency**: Effective use of parallel resources, system optimization with transfer-learning and multi-fidelities, etc.
++ **Scalability**: Scale to dimensions on the number of input variables, objectives, tasks, trials, and parallel 
+  evaluations.
++ **High efficiency**: Effective use of parallel resources, system optimization with transfer-learning and 
+  multi-fidelities, etc.
 + **Fault tolerance**, **extensibility**, and **data privacy protection**.
 
 ## Links
-+ [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest) | [中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
++ [Documentations](https://open-box.readthedocs.io/en/latest/?badge=latest) | 
+  [中文文档](https://open-box.readthedocs.io/zh_CN/latest/)
 + [Examples](https://github.com/PKU-DAIR/open-box/tree/master/examples)
 + [Pypi package](https://pypi.org/project/openbox/)
 + Conda package: [to appear soon]()
 + Blog post: [to appear soon]()
 
 ## News
-+ OpenBox based solutions achieved the First Place of [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup) (Track - Automated Hyperparameter Optimization of Recommendation System).
-+ OpenBox team won the Top Prize (special prize) in the open-source innovation competition at [2021 CCF ChinaSoft](http://chinasoft.ccf.org.cn/papers/chinasoft.html) conference.
-+ [Pasca](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search functionality, won the Best Student Paper Award at WWW'22.
++ OpenBox based solutions achieved the First Place of [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup)
+  (Track - Automated Hyperparameter Optimization of Recommendation System).
++ OpenBox team won the Top Prize (special prize) in the open-source innovation competition at 
+  [2021 CCF ChinaSoft](http://chinasoft.ccf.org.cn/papers/chinasoft.html) conference.
++ [Pasca](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search functionality, 
+  won the Best Student Paper Award at WWW'22.
 
 ## OpenBox Capabilities in a Glance
 <table>
@@ -135,10 +150,14 @@ The design of OpenBox follows the following principles:
       </td>
       <td>
       <ul>
-        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Local Machine</a></li>
-        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Cluster Servers</a></li>
-        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">Hybrid mode</a></li>
-        <li><a href="https://open-box.readthedocs.io/en/latest/openbox_as_service/openbox_as_service.html">Software as a Service</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">
+          Local Machine</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">
+          Cluster Servers</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/advanced_usage/parallel_evaluation.html">
+          Hybrid mode</a></li>
+        <li><a href="https://open-box.readthedocs.io/en/latest/openbox_as_service/openbox_as_service.html">
+          Software as a Service</a></li>
       </ul>
       </td>
     </tr>
@@ -158,15 +177,16 @@ Supported Systems:
 + macOS
 + Windows
 
-We **strongly** suggest you to create a Python environment via [Anaconda](https://www.anaconda.com/products/individual#Downloads):
+We **strongly** suggest you to create a Python environment via 
+[Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
 conda create -n openbox python=3.7
 conda activate openbox
 ```
 
-Then update your `pip` and `setuptools` as follows:
+Then we recommend you to update your `pip`, `setuptools` and `wheel` as follows:
 ```bash
-pip install pip setuptools --upgrade
+pip install --upgrade pip setuptools wheel
 ```
 
 ### Installation from PyPI
@@ -177,16 +197,22 @@ To install OpenBox from PyPI:
 pip install openbox
 ```
 
+For advanced features, [install SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+first and then run `pip install "openbox[extra]"`. 
+
 ### Manual Installation from Source
 
-To install the newest OpenBox package, just type the following scripts on the command line:
+To install the newest OpenBox from the source code, please run the following commands:
 ```bash
 git clone https://github.com/PKU-DAIR/open-box.git && cd open-box
-cat requirements/main.txt | xargs -n 1 -L 1 pip install
-python setup.py install --user --prefix=
+pip install .
 ```
 
-For more details about installation instructions, please refer to the [Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html).
+Also, for advanced features, [install SWIG](https://open-box.readthedocs.io/en/latest/installation/install_swig.html)
+first and then run `pip install ".[extra]"`.
+
+For more details about installation instructions, please refer to the 
+[Installation Guide Document](https://open-box.readthedocs.io/en/latest/installation/installation_guide.html).
 
 ## Quick Start
 
@@ -243,61 +269,62 @@ if __name__ == "__main__":
     plt.show()
 ```
 
-We also provide HTML Visualization by setting `visualization` = `basic` or `advanced` when defining an `Optimizer`. 
-And set `auto_open_html` = `True` to automatically open the visualization page in your browser:
+We also provide **HTML Visualization** by setting additional options
+`visualization`=`basic`/`advanced` and `auto_open_html=True`(optional) in `Optimizer`:
 
 ```python
 opt = Optimizer(
     ...,
-    visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install lightgbm shap' first
-    auto_open_html=True,       # open the html file automatically
+    visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+    auto_open_html=True,       # open the visualization page in your browser automatically
     task_id='example_task',
     logging_dir='logs',
 )
 history = opt.run()
 ```
 
-For more visualization details, please refer to [HTML Visualization](https://open-box.readthedocs.io/en/latest/visualization/visualization.html).
+For more visualization details, please refer to 
+[HTML Visualization](https://open-box.readthedocs.io/en/latest/visualization/visualization.html).
 
 **More Examples**:
-+ [Single-Objective with Constraints](https://github.com/PKU-DAIR/open-box/blob/master/examples/optimize_problem_with_constraint.py)
++ [Single-Objective with Constraints](
+  https://github.com/PKU-DAIR/open-box/blob/master/examples/optimize_problem_with_constraint.py)
 + [Multi-Objective](https://github.com/PKU-DAIR/open-box/blob/master/examples/optimize_multi_objective.py)
-+ [Multi-Objective with Constraints](https://github.com/PKU-DAIR/open-box/blob/master/examples/optimize_multi_objective_with_constraint.py)
++ [Multi-Objective with Constraints](
+  https://github.com/PKU-DAIR/open-box/blob/master/examples/optimize_multi_objective_with_constraint.py)
 + [Ask-and-tell Interface](https://github.com/PKU-DAIR/open-box/blob/master/examples/ask_and_tell_interface.py)
-+ [Parallel Evaluation on Local](https://github.com/PKU-DAIR/open-box/blob/master/examples/evaluate_async_parallel_optimization.py)
++ [Parallel Evaluation on Local](
+  https://github.com/PKU-DAIR/open-box/blob/master/examples/evaluate_async_parallel_optimization.py)
 + [Distributed Evaluation](https://github.com/PKU-DAIR/open-box/blob/master/examples/distributed_optimization.py)
 + [Tuning LightGBM](https://github.com/PKU-DAIR/open-box/blob/master/examples/tuning_lightgbm.py)
 + [Tuning XGBoost](https://github.com/PKU-DAIR/open-box/blob/master/examples/tuning_xgboost.py)
 
 ## **Enterprise Users**
-<p align="left">
-<img src="docs/imgs/logo_tencent.png" width="35%">
-</p>
+<img src="docs/imgs/logo_tencent.png" width="35%" class="align-left" alt="Tencent Logo">
 
 * [Tencent Inc.](https://www.tencent.com/en-us/)
 
-<p align="left">
-<img src="docs/imgs/logo_alibaba.png" width="35%">
-</p>
+<img src="docs/imgs/logo_alibaba.png" width="35%" class="align-left" alt="Alibaba Logo">
 
 * [Alibaba Group](https://www.alibabagroup.com/en/global/home)
 
-<p align="left">
-<img src="docs/imgs/logo_kuaishou.png" width="35%">
-</p>
+<img src="docs/imgs/logo_kuaishou.png" width="35%" class="align-left" alt="Kuaishou Logo">
 
 * [Kuaishou Technology](https://www.kuaishou.com/en)
 
 
-
 ## **Releases and Contributing**
-OpenBox has a frequent release cycle. Please let us know if you encounter a bug by [filling an issue](https://github.com/PKU-DAIR/open-box/issues/new/choose).
+OpenBox has a frequent release cycle. Please let us know if you encounter a bug by 
+[filling an issue](https://github.com/PKU-DAIR/open-box/issues/new/choose).
 
-We appreciate all contributions. If you are planning to contribute any bug-fixes, please do so without further discussions.
+We appreciate all contributions. If you are planning to contribute any bug-fixes, 
+please do so without further discussions.
 
-If you plan to contribute new features, new modules, etc. please first open an issue or reuse an existing issue, and discuss the feature with us.
+If you plan to contribute new features, new modules, etc. please first open an issue or reuse an existing issue, 
+and discuss the feature with us.
 
-To learn more about making a contribution to OpenBox, please refer to our [How-to contribution page](https://github.com/PKU-DAIR/open-box/blob/master/CONTRIBUTING.md). 
+To learn more about making a contribution to OpenBox, please refer to our 
+[How-to contribution page](https://github.com/PKU-DAIR/open-box/blob/master/CONTRIBUTING.md). 
 
 We appreciate all contributions and thank all the contributors!
 
@@ -307,19 +334,20 @@ We appreciate all contributions and thank all the contributors!
 * Email us via [*Yang Li*](https://thomas-young-2013.github.io/) or *shenyu@pku.edu.cn*
 * [Q&A] Join the QQ group: 227229622
 
-## Related Projects
+## **Related Projects**
 
 Targeting at openness and advancing AutoML ecosystems, we had also released few other open-source projects.
 
-* [MindWare](https://github.com/PKU-DAIR/mindware): an open source system that provides end-to-end ML model training and inference capabilities.
+* [MindWare](https://github.com/PKU-DAIR/mindware): an open source system that provides end-to-end ML model training 
+  and inference capabilities.
 * [SGL](https://github.com/PKU-DAIR/SGL): a scalable graph learning toolkit for extremely large graph datasets.
+* [HyperTune](https://github.com/PKU-DAIR/HyperTune): a large-scale multi-fidelity hyper-parameter tuning system.
 
-
----------------------
 ## **Related Publications**
 
 **OpenBox: A Generalized Black-box Optimization Service.**
-Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu, Zhi Yang, Ce Zhang, Bin Cui; KDD 2021, CCF-A.
+Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu,
+Zhi Yang, Ce Zhang, Bin Cui; KDD 2021, CCF-A.
 https://arxiv.org/abs/2106.00421
 
 **MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements.**
@@ -335,7 +363,8 @@ Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Zhi Yang, Ce Zhang, Bin Cui; KDD 
 https://arxiv.org/abs/2206.02663
 
 **PaSca: a Graph Neural Architecture Search System under the Scalable Paradigm.**
-Wentao Zhang, Yu Shen, Zheyu Lin, Yang Li, Xiaosen Li, Wen Ouyang, Yangyu Tao, Zhi Yang, and Bin Cui; WWW 2022, CCF-A, 🏆 Best Student Paper Award.
+Wentao Zhang, Yu Shen, Zheyu Lin, Yang Li, Xiaosen Li, Wen Ouyang, Yangyu Tao, Zhi Yang, and Bin Cui; 
+WWW 2022, CCF-A, 🏆 Best Student Paper Award.
 https://arxiv.org/abs/2203.00638
 
 **Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale.**

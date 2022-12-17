@@ -1,5 +1,102 @@
 # For TOML reference
 # https://learnxinyminutes.com/docs/toml/
+#
+# Configuring setuptools using pyproject.toml files
+# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+#
+# Project metadata
+# https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openbox"
+description = "Efficient and generalized blackbox optimization (BBO) system"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
+authors = [
+    {name = "DAIR Lab @ Peking University"},
+]
+maintainers = [
+    {name = "Yang Li", email = "liyang.cs@pku.edu.cn"},
+    {name = "Huaijun Jiang", email = "jianghuaijun@pku.edu.cn"},
+    {name = "Yu Shen", email = "shenyu@pku.edu.cn"},
+]
+keywords = [
+    "blackbox optimization",
+    "Bayesian optimization",
+    "hyperparameter optimization",
+    "automated machine learning",
+    "multi-objective optimization",
+    "constrained optimization",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+[project.urls]
+GitHub = "https://github.com/PKU-DAIR/open-box"
+"Bug Tracker" = "https://github.com/PKU-DAIR/open-box/issues"
+Documentation = "https://open-box.readthedocs.io/"
+PyPI = "https://pypi.org/project/openbox/"
+
+[project.scripts]
+openbox = "openbox.__main__:main"  # this is called by `python -m openbox` or `openbox`
+
+# Warning: Support for declaring configurations not standardized by PEP 621 (i.e. the [tool.setuptools] table),
+# is still in beta stage and might change in future releases.
+# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#setuptools-specific-configuration
+[tool.setuptools]
+# Caution: do not specify "packages" as a list of packages, or you need to contain all sub-packages.
+# https://setuptools.pypa.io/en/latest/userguide/package_discovery.html
+# E.g., packages = ["openbox"]  # sub-packages in my_package are not intended to be included!
+#packages = ["openbox"]
+
+# Include data files (like .txt). Default: true.
+# Modify MANIFEST.in to control the files included.
+# https://packaging.python.org/en/latest/guides/using-manifest-in/
+include-package-data = true
+
+# Specify additional patterns to match files that may or may not be matched by MANIFEST.in.
+# Only files in a package directory are included.
+# If a directory doesn't contain an __init__.py file, the data files in it are not included,
+# or you have to treat data as a namespace package (set tool.setuptools.packages.find.namespaces = true).
+# We use MANIFEST.in only.
+# https://setuptools.pypa.io/en/latest/userguide/datafiles.html
+#[tool.setuptools.package-data]
+#"*" = ["*.txt"]
+
+[tool.setuptools.packages.find]
+where = ["."]  # list of folders that contain the packages (["."] by default)
+include = ["openbox*"]  # package names should match these glob patterns (["*"] by default)
+exclude = []  # exclude packages matching these glob patterns (empty by default)
+namespaces = false  # to disable scanning PEP 420 namespaces (true by default)
+
+[tool.setuptools.dynamic]
+version = {attr = "openbox.version"}
+dependencies = {file = "requirements/main.txt"}     # pip install .
+
+[tool.setuptools.dynamic.optional-dependencies]
+extra = {file = "requirements/extra.txt"}           # pip install ".[extra]"
+# service = service + extra                         # pip install ".[service]"
+service = {file = [
+    "requirements/service.txt",
+    "requirements/extra.txt",
+]}
+test = {file = "requirements/dev/test.txt"}         # pip install ".[test]"
+docs = {file = "requirements/dev/docs.txt"}         # pip install ".[docs]"
+format = {file = "requirements/dev/format.txt"}     # pip install ".[format]"
+# dev = test + docs + format
+dev = {file = [                                     # pip install ".[dev]"
+    "requirements/dev/test.txt",
+    "requirements/dev/docs.txt",
+    "requirements/dev/format.txt",
+]}
+
 
 [tool.pytest.ini_options]
 minversion = "6.0"  # minimum pytest version required. 6.0 is the first version to support TOML config files

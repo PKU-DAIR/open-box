@@ -1,3 +1,8 @@
-recursive-include openbox *.pyx
-include requirements/main.txt
-include requirements/dev.txt
+recursive-exclude docs *
+recursive-exclude test *
+recursive-include conf *.conf.template
+recursive-include examples *.py
+recursive-include requirements *.txt
+recursive-include scripts *.sh
+recursive-include openbox *.html *.js *.css *.woff *.woff2 *.json *.jpg
+recursive-include openbox py.typed

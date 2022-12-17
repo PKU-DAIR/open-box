@@ -16,12 +16,16 @@
 
 在安装OpenBox前，请保证SWIG已经被成功安装。
 
-接下来，将OpenBox的源代码clone到本地。命令如下：
+我们建议您在安装OpenBox之前通过以下命令更新`pip`，`setuptools`和`wheel`：
+```bash
+pip install --upgrade pip setuptools wheel
+```
 
+接下来，将OpenBox的源代码clone到本地进行安装。命令如下：
 ```bash
 git clone https://github.com/PKU-DAIR/open-box.git
 cd open-box
-python setup.py install
+pip install ".[service]"
 ```
 
 
@@ -118,4 +122,3 @@ cd <path to the source code>/open-box
 cd <path to the source code>/open-box
 ./scripts/manage_service.sh stop
 ```
-

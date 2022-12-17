@@ -178,7 +178,7 @@ history.visualize_hiplot()
 print(history.get_importance())
 ```
 
-```python
+```
 +-------------------+------------+
 | Parameters        | Importance |
 +-------------------+------------+

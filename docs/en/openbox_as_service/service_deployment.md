@@ -16,13 +16,18 @@ To install SWIG, please refer to [SWIG Installation Guide](../installation/insta
 
 Make sure that SWIG is installed correctly installing OpenBox.
 
-Then, clone the source code to the server where you want to deploy OpenBox service.
-The commands are as follows:
+Then we recommend you to update your `pip`, `setuptools` and `wheel` as follows:
+```bash
+pip install --upgrade pip setuptools wheel
+```
+
+Next, clone the source code to the server where you want to deploy OpenBox service,
+and install OpenBox from source code. The commands are as follows:
 
 ```bash
 git clone https://github.com/PKU-DAIR/open-box.git
 cd open-box
-python setup.py install
+pip install ".[service]"
 ```
 
 
@@ -126,4 +131,3 @@ To **stop the service**, run the <font color=#FF0000>**manage_service.sh script*
 cd <path to the source code>/open-box
 ./scripts/manage_service.sh stop
 ```
-

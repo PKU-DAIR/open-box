@@ -1,16 +1,14 @@
-<p align="center">
-<img src="docs/imgs/logo.png" width="40%">
-</p>
+<a href="https://github.com/PKU-DAIR/open-box">
+  <img src="docs/imgs/logo.png" width="40%" alt="OpenBox Logo" >
+</a>
 
 -----------
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://github.com/PKU-DAIR/open-box/blob/master/LICENSE)
 [![Issues](https://img.shields.io/github/issues-raw/PKU-DAIR/open-box.svg)](https://github.com/PKU-DAIR/open-box/issues?q=is%3Aissue+is%3Aopen)
-[![Bugs](https://img.shields.io/github/issues/PKU-DAIR/open-box/bug.svg)](https://github.com/PKU-DAIR/open-box/issues?q=is%3Aissue+is%3Aopen+label%3Abug)
 [![Pull Requests](https://img.shields.io/github/issues-pr-raw/PKU-DAIR/open-box.svg)](https://github.com/PKU-DAIR/open-box/pulls?q=is%3Apr+is%3Aopen)
 [![Version](https://img.shields.io/github/release/PKU-DAIR/open-box.svg)](https://github.com/PKU-DAIR/open-box/releases)
-[![Join the chat at https://gitter.im/bbo-open-box](https://badges.gitter.im/bbo-open-box.svg)](https://gitter.im/bbo-open-box?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Documentation Status](https://readthedocs.org/projects/open-box-zh-cn/badge/?version=latest)](https://open-box.readthedocs.io/zh_CN/latest/index.html)
+[![Documentation Status](https://readthedocs.org/projects/open-box-zh-cn/badge/?version=latest)](https://open-box.readthedocs.io/zh_CN/latest/)
 
 
 ## OpenBox: 通用高效的黑盒优化系统
