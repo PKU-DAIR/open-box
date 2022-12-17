@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2021 DAIR Lab @ Peking University
+Copyright (c) 2022 DAIR Lab @ Peking University
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -107,6 +107,3 @@ The externally maintained codes used by OpenBox are parts of:
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     '''
-
-
-
