@@ -1,0 +1,7 @@
+# For TOML reference
+# https://learnxinyminutes.com/docs/toml/
+
+[tool.pytest.ini_options]
+minversion = "6.0"  # minimum pytest version required. 6.0 is the first version to support TOML config files
+testpaths = ["test/examples"]  # path to the test directory  # todo: use the full test dir
+addopts = "-rap --durations=20 --verbose --capture=tee-sys"  # run `pytest -h` to see all options

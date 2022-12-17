@@ -1,4 +1,4 @@
-# In this example, we show how to transfer knowledge from two source tasks to the target task (branin_target).
+# In this example, we show how to transfer knowledge from source tasks to the target task.
 
 import numpy as np
 import matplotlib.pyplot as plt
