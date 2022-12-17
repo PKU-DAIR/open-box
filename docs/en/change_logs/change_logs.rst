@@ -2,5 +2,5 @@
 Change Logs
 ###########
 
-Coming Soon!
-
+.. include:: ../../../CHANGELOG.md
+   :parser: myst_parser.sphinx_

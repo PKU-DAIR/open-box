@@ -2,5 +2,5 @@
 更新历史
 ###########
 
-Coming Soon!
-
+.. include:: ../../../CHANGELOG.md
+   :parser: myst_parser.sphinx_
