@@ -23,7 +23,6 @@ env:
     -rap
     --durations=20
     --verbose
-    --capture=tee-sys
 
 # todo: Lint with flake8
 # todo: tests conda
