@@ -25,7 +25,7 @@ if __name__ == "__main__":
     # search space
     space = sp.Space()
     x1 = sp.Real("x1", 0, 1)
-    x2 = sp.Real("x2", 0, 1)
+    x2 = sp.Real("x2", 1e-6, 1)
     space.add_variables([x1, x2])
 
     # provide reference point if using EHVI method

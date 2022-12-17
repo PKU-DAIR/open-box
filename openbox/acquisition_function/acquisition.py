@@ -468,7 +468,7 @@ class PI(AbstractAcquisitionFunction):
                  par: float = 0.0,
                  **kwargs):
 
-        """Computes the probability of improvement for a given x over the best so far value as
+        r"""Computes the probability of improvement for a given x over the best so far value as
         acquisition value.
 
         :math:`P(f_{t+1}(\mathbf{X})\geq f(\mathbf{X^+})) :=
@@ -520,7 +520,7 @@ class LCB(AbstractAcquisitionFunction):
                  par: float = 1.0,
                  **kwargs):
 
-        """Computes the lower confidence bound for a given x over the best so far value as
+        r"""Computes the lower confidence bound for a given x over the best so far value as
         acquisition value.
 
         :math:`LCB(X) = \mu(\mathbf{X}) - \sqrt(\beta_t)\sigma(\mathbf{X})`
@@ -573,7 +573,7 @@ class Uncertainty(AbstractAcquisitionFunction):
                  par: float = 1.0,
                  **kwargs):
 
-        """Computes half of the difference between upper and lower confidence bound (Uncertainty).
+        r"""Computes half of the difference between upper and lower confidence bound (Uncertainty).
 
         :math:`LCB(X) = \mu(\mathbf{X}) - \sqrt(\beta_t)\sigma(\mathbf{X})`
         :math:`UCB(X) = \mu(\mathbf{X}) + \sqrt(\beta_t)\sigma(\mathbf{X})`

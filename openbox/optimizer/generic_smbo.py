@@ -265,7 +265,7 @@ class SMBO(BOBase):
                 logger.warning(str(e))
                 trial_state = TIMEOUT
             else:  # todo: log exception if objective function raises error
-                logger.warning('Exception when calling objective function: %s' % str(e))
+                logger.warning(f'Exception when calling objective function: {e}\nconfig: {config}')
                 trial_state = FAILED
             objectives = self.FAILED_PERF
             constraints = None
