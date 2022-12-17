@@ -83,7 +83,7 @@ class AbstractAcquisitionFunction(object, metaclass=abc.ABCMeta):
         acq = self._compute(X, **kwargs)
         if np.any(np.isnan(acq)):
             idx = np.where(np.isnan(acq))[0]
-            acq[idx, :] = -np.finfo(np.float).max
+            acq[idx, :] = -np.finfo(np.float64).max
         return acq
 
     @abc.abstractmethod

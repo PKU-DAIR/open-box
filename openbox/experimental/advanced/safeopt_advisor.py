@@ -68,10 +68,10 @@ class SetManager:
 
         self.vis_set = np.zeros(size, dtype=np.bool)  # Set of evaluated points. Added this to avoid repeated configs.
 
-        self.upper_conf = np.ones(size, dtype=np.float) * 1e100
-        self.lower_conf = np.ones(size, dtype=np.float) * -1e100
+        self.upper_conf = np.ones(size, dtype=np.float64) * 1e100
+        self.lower_conf = np.ones(size, dtype=np.float64) * -1e100
 
-        self.tmp = np.zeros(size, dtype=np.int)
+        self.tmp = np.zeros(size, dtype=int)
 
     def _presum(self):
         """

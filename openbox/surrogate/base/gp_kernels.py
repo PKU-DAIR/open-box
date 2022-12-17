@@ -191,8 +191,8 @@ class MagicMixin:
         if operate_on is not None and type(operate_on) in (list, np.ndarray):
             if not isinstance(operate_on, np.ndarray):
                 raise TypeError('argument operate_on needs to be of type np.ndarray, but is %s' % type(operate_on))
-            if operate_on.dtype != np.int:
-                raise ValueError('dtype of argument operate_on needs to be np.int, but is %s' % operate_on.dtype)
+            if operate_on.dtype != int:
+                raise ValueError('dtype of argument operate_on needs to be int, but is %s' % operate_on.dtype)
             self.operate_on = operate_on  # type: Optional[np.ndarray]
             self.len_active = len(operate_on)  # type: Optional[int]
         else:

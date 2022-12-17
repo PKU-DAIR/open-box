@@ -18,8 +18,8 @@ def create_gp_model(model_type, config_space, types, bounds, rng):
         prior=LognormalPrior(mean=0.0, sigma=1.0, rng=rng),
     )
 
-    cont_dims = np.nonzero(types == 0)[0].astype(np.int)
-    cat_dims = np.nonzero(types != 0)[0].astype(np.int)
+    cont_dims = np.nonzero(types == 0)[0].astype(int)
+    cat_dims = np.nonzero(types != 0)[0].astype(int)
 
     if len(cont_dims) > 0:
         exp_kernel = Matern(
