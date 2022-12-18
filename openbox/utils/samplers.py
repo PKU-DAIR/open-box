@@ -134,16 +134,10 @@ class SobolSampler(Sampler):
         super().__init__(config_space, size, lower_bounds, upper_bounds, random_state)
 
     def _generate(self):
-        try:
-            from torch.quasirandom import SobolEngine
-            skip = self.rng.randint(int(1e6))
-            sobol = SobolEngine(dimension=len(self.search_dims), scramble=True, seed=skip)
-            X = sobol.draw(n=self.size).numpy()
-        except ImportError:
-            skip = 2 ** (self.rng.randint(1, 4) + int(np.log2(self.size)))
-            sobol = Sobol(skip=skip)  # requires scikit-optimize>=0.9.0
-            X = sobol.generate(self.search_dims, self.size)
-            X = np.asarray(X)  # returns a list in scikit-optimize==0.9.0
+        skip = 2 ** (self.rng.randint(1, 4) + int(np.log2(self.size)))
+        sobol = Sobol(skip=skip)  # requires scikit-optimize>=0.9.0
+        X = sobol.generate(self.search_dims, self.size)
+        X = np.asarray(X)  # returns a list in scikit-optimize==0.9.0
         return X
 
 
