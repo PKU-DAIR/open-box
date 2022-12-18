@@ -6,8 +6,6 @@ on:
   push:
     branches:
       - master
-    tags:
-      - '**'
 
   pull_request:
     branches:
@@ -23,6 +21,7 @@ env:
     -rap
     --durations=20
     --verbose
+    --capture=fd
 
 # todo: Lint with flake8
 # todo: tests conda
