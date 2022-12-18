@@ -90,11 +90,13 @@ service = {file = [
 test = {file = "requirements/dev/test.txt"}         # pip install ".[test]"
 docs = {file = "requirements/dev/docs.txt"}         # pip install ".[docs]"
 format = {file = "requirements/dev/format.txt"}     # pip install ".[format]"
-# dev = test + docs + format
+build = {file = "requirements/dev/build.txt"}       # pip install ".[build]"
+# dev = test + docs + format + build
 dev = {file = [                                     # pip install ".[dev]"
     "requirements/dev/test.txt",
     "requirements/dev/docs.txt",
     "requirements/dev/format.txt",
+    "requirements/dev/build.txt",
 ]}
 
 
