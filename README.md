@@ -60,12 +60,13 @@ The design of OpenBox follows the following principles:
 + Blog post: [to appear soon]()
 
 ## News
-+ OpenBox based solutions achieved the First Place of [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup)
++ **OpenBox** based solutions achieved the **First Place** of 
+  [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup)
   (Track - Automated Hyperparameter Optimization of Recommendation System).
-+ OpenBox team won the Top Prize (special prize) in the open-source innovation competition at 
++ **OpenBox** team won the **Top Prize (special prize)** in the open-source innovation competition at 
   [2021 CCF ChinaSoft](http://chinasoft.ccf.org.cn/papers/chinasoft.html) conference.
-+ [Pasca](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search functionality, 
-  won the Best Student Paper Award at WWW'22.
++ [**Pasca**](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search 
+  functionality, won the **Best Student Paper Award at WWW'22**.
 
 ## OpenBox Capabilities in a Glance
 <table>
@@ -338,6 +339,8 @@ We appreciate all contributions and thank all the contributors!
   *shenyu@pku.edu.cn* or *jianghuaijun@pku.edu.cn*
 * [Q&A] Join the QQ group: 227229622
 
+<!-- start of related projects and publications (for docs) -->
+
 ## **Related Projects**
 
 Targeting at openness and advancing AutoML ecosystems, we had also released few other open-source projects.
@@ -374,6 +377,8 @@ https://arxiv.org/abs/2203.00638
 **Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale.**
 Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Jixiang Li, Ji Liu, Ce Zhang, Bin Cui; VLDB 2022, CCF-A.
 https://arxiv.org/abs/2201.06834
+
+<!-- end of related projects and publications (for docs) -->
 
 ## **License**
 

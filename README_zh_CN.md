@@ -53,12 +53,13 @@ OpenBox是一个提供通用黑盒优化服务的系统。用户可以使用REST
 + 博客: [即将到来]()
 
 ## 新闻
-+ OpenBox based solutions achieved the First Place of [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup)
++ **OpenBox** based solutions achieved the **First Place** of 
+  [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup)
   (Track - Automated Hyperparameter Optimization of Recommendation System).
-+ OpenBox team won the Top Prize (special prize) in the open-source innovation competition at 
++ **OpenBox** team won the **Top Prize (special prize)** in the open-source innovation competition at 
   [2021 CCF ChinaSoft](http://chinasoft.ccf.org.cn/papers/chinasoft.html) conference.
-+ [Pasca](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search functionality, 
-  won the Best Student Paper Award at WWW'22.
++ [**Pasca**](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search 
+  functionality, won the **Best Student Paper Award at WWW'22**.
 
 ## OpenBox功能概览
 <table>
@@ -325,6 +326,8 @@ history = opt.run()
   *shenyu@pku.edu.cn* 或 *jianghuaijun@pku.edu.cn*
 * [Q&A] 加入QQ群：227229622
 
+<!-- start of related projects and publications (for docs) -->
+
 ## **相关项目**
 
 以开放性和推进AutoML生态系统为目标，我们还发布了一些其他的开源项目：
@@ -360,6 +363,8 @@ https://arxiv.org/abs/2203.00638
 **Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale.**
 Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Jixiang Li, Ji Liu, Ce Zhang, Bin Cui; VLDB 2022, CCF-A.
 https://arxiv.org/abs/2201.06834
+
+<!-- end of related projects and publications (for docs) -->
 
 ## **许可协议**
 
