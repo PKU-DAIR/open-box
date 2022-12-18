@@ -64,7 +64,7 @@ class Visualizer(object):
             param_names = [self.cs_params[p].name for p in combi]
             plt.close()
             param_names = str(param_names)
-            param_names = re.sub('[!,@#\'\n$\[\]]', '', param_names)
+            param_names = re.sub(r'[!,@#\'\n$\[\]]', '', param_names)
             outfile_name = os.path.join(self.directory, str(param_names).replace(" ", "_") + ".png")
             logger.info("creating %s" % outfile_name)
             self.plot_pairwise_marginal(combi, three_d=three_d, **kwargs)
@@ -429,7 +429,7 @@ class Visualizer(object):
 
         for param1, param2 in most_important_pairwise_marginals:
             params, param_names, param_indices = self._get_parameter([param1, param2])
-            param_names_str = re.sub('[!,@#\'\n$\[\]]', '', str(param_names))
+            param_names_str = re.sub(r'[!,@#\'\n$\[\]]', '', str(param_names))
             outfile_name = os.path.join(self.directory, str(param_names_str).replace(" ", "_") + ".png")
             logger.info("creating %s" % outfile_name)
             self.plot_pairwise_marginal((param1, param2), show=False, three_d=three_d, resolution=resolution)

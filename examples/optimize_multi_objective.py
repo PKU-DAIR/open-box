@@ -41,7 +41,7 @@ if __name__ == "__main__":
         surrogate_type='gp',
         acq_type='ehvi',
         acq_optimizer_type='random_scipy',
-        initial_runs=6,
+        initial_runs=9,
         init_strategy='sobol',
         ref_point=ref_point,
         time_limit_per_trial=10,
