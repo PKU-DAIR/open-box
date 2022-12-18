@@ -16,15 +16,17 @@ from openbox.visualization import build_visualizer
 
 class SMBO(BOBase):
     """
+    Generic Optimizer
+
     Parameters
     ----------
     objective_function : callable
         Objective function to optimize.
-    config_space : openbox.space.Space
+    config_space : openbox.space.Space or ConfigSpace.ConfigurationSpace
         Configuration space.
-    num_objectives : int
+    num_objectives : int, default=1
         Number of objectives in objective function.
-    num_constraints : int
+    num_constraints : int, default=0
         Number of constraints in objective function.
     max_runs : int
         Number of optimization iterations.
@@ -39,12 +41,12 @@ class SMBO(BOBase):
         - 'ea': Evolutionary Algorithms
         - 'random': Random Search
         - 'mcadvisor': Bayesian Optimization with Monte Carlo Sampling
-    surrogate_type : str
+    surrogate_type : str, default='auto'
         Type of surrogate model in Bayesian optimization.
         - 'gp' (default): Gaussian Process. Better performance for mathematical problems.
         - 'prf': Probability Random Forest. Better performance for hyper-parameter optimization (HPO).
         - 'lightgbm': LightGBM.
-    acq_type : str
+    acq_type : str, default='auto'
         Type of acquisition function in Bayesian optimization.
         For single objective problem:
         - 'ei' (default): Expected Improvement
@@ -62,15 +64,15 @@ class SMBO(BOBase):
         For multi-objective problem with constraints:
         - 'ehvic' (default): Expected Hypervolume Improvement with Constraints
         - 'mesmoc': Multi-Objective Max-value Entropy Search with Constraints
-    acq_optimizer_type : str
+    acq_optimizer_type : str, default='auto'
         Type of optimizer to maximize acquisition function.
         - 'local_random' (default): Interleaved Local and Random Search
         - 'random_scipy': L-BFGS-B (Scipy) optimizer with random starting points
         - 'scipy_global': Differential Evolution
         - 'cma_es': Covariance Matrix Adaptation Evolution Strategy (CMA-ES)
-    initial_runs : int
+    initial_runs : int, default=3
         Number of initial iterations of optimization.
-    init_strategy : str
+    init_strategy : str, default='random_explore_first'
         Strategy to generate configurations for initial iterations.
         - 'random_explore_first' (default): Random sampled configs with maximized internal minimum distance
         - 'random': Random sampling
@@ -84,9 +86,9 @@ class SMBO(BOBase):
         Must be provided if using EHVI based acquisition function.
     transfer_learning_history : List[History], optional
         Historical data for transfer learning.
-    logging_dir : str
-        Directory to save log files.
-    task_id : str
+    logging_dir : str, default='logs'
+        Directory to save log files. If None, no log files will be saved.
+    task_id : str, default='OpenBox'
         Task identifier.
     visualization : ['none', 'basic', 'advanced'], default='none'
         HTML visualization option.
@@ -99,6 +101,10 @@ class SMBO(BOBase):
         Whether to automatically open the HTML file for visualization. Only works when `visualization` is not 'none'.
     random_state : int
         Random seed for RNG.
+    logger_kwargs : dict, optional
+        Additional keyword arguments for logger.
+    advisor_kwargs : dict, optional
+        Additional keyword arguments for advisor.
     """
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
