@@ -103,4 +103,8 @@ dev = {file = [                                     # pip install ".[dev]"
 [tool.pytest.ini_options]
 minversion = "6.0"  # minimum pytest version required. 6.0 is the first version to support TOML config files
 testpaths = ["test/examples"]  # path to the test directory  # todo: use the full test dir
-addopts = "-rap --durations=20 --verbose --capture=tee-sys"  # run `pytest -h` to see all options
+# Be aware of adding options here, as you need to change the CI config files accordingly.
+# (CI config files: .github/workflows/*.yml)
+# Unspecified commandline options will be read from this file!
+#addopts = "-rap --durations=20 --verbose --capture=tee-sys"
+addopts = "-rap"  # run `pytest -h` to see all options
