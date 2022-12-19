@@ -79,8 +79,7 @@ pip install "openbox[extra]"
 
 ## 5 疑难解答
 
-如果以下未能解决您的安装问题, 请在Github上[提交issue](https://github.com/PKU-DAIR/open-box/issues) 
-或发送邮件至*liyang.cs@pku.edu.cn*.
+如果以下未能解决您的安装问题, 请在Github上[提交issue](https://github.com/PKU-DAIR/open-box/issues) 。
 
 ### Windows
 

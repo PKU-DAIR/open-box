@@ -59,6 +59,8 @@ The design of OpenBox follows the following principles:
 + Conda package: [to appear soon]()
 + Blog post: [to appear soon]()
 
+<!-- start of news (for docs) -->
+
 ## News
 + **OpenBox** based solutions achieved the **First Place** of 
   [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup)
@@ -67,6 +69,8 @@ The design of OpenBox follows the following principles:
   [2021 CCF ChinaSoft](http://chinasoft.ccf.org.cn/papers/chinasoft.html) conference.
 + [**Pasca**](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search 
   functionality, won the **Best Student Paper Award at WWW'22**.
+
+<!-- end of news (for docs) -->
 
 ## OpenBox Capabilities in a Glance
 <table>

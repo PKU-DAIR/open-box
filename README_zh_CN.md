@@ -52,6 +52,8 @@ OpenBox是一个提供通用黑盒优化服务的系统。用户可以使用REST
 + Conda包: [即将到来]()
 + 博客: [即将到来]()
 
+<!-- start of news (for docs) -->
+
 ## 新闻
 + **OpenBox** based solutions achieved the **First Place** of 
   [ACM CIKM 2021 AnalyticCup](https://www.cikm2021.org/analyticup)
@@ -60,6 +62,8 @@ OpenBox是一个提供通用黑盒优化服务的系统。用户可以使用REST
   [2021 CCF ChinaSoft](http://chinasoft.ccf.org.cn/papers/chinasoft.html) conference.
 + [**Pasca**](https://github.com/PKU-DAIR/SGL), which adopts Openbox to support neural architecture search 
   functionality, won the **Best Student Paper Award at WWW'22**.
+
+<!-- end of news (for docs) -->
 
 ## OpenBox功能概览
 <table>

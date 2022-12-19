@@ -27,6 +27,13 @@ OpenBox: 高效通用的黑盒优化系统
 
 ------------------------------------------------
 
+.. include:: ../../README.md
+   :parser: myst_parser.sphinx_
+   :start-after: <!-- start of news (for docs) -->
+   :end-before: <!-- end of news (for docs) -->
+
+------------------------------------------------
+
 OpenBox 针对的用户群体
 ---------------------------------
 

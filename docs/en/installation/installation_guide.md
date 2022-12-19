@@ -79,8 +79,8 @@ If you encounter problems installing `pyrfr`, please refer to [Pyrfr Installatio
 
 ## 5 Trouble Shooting
 
-If you encounter problems not listed below, please [File an issue](https://github.com/PKU-DAIR/open-box/issues) 
-on GitHub or email us via *liyang.cs@pku.edu.cn*.
+If you encounter problems not listed below, please 
+[File an issue](https://github.com/PKU-DAIR/open-box/issues) on GitHub.
 
 ### Windows
 

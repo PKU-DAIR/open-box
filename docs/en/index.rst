@@ -29,6 +29,13 @@ and `Online BBO service <./openbox_as_service/service_introduction.html>`__.
 
 ------------------------------------------------
 
+.. include:: ../../README.md
+   :parser: myst_parser.sphinx_
+   :start-after: <!-- start of news (for docs) -->
+   :end-before: <!-- end of news (for docs) -->
+
+------------------------------------------------
+
 Who should consider using OpenBox
 ---------------------------------
 
