@@ -12,14 +12,14 @@
 #
 import os
 import sys
-import sphinx_rtd_theme
+from datetime import date
 
 sys.path.insert(0, os.path.abspath('./../../'))
 
 # -- Project information -----------------------------------------------------
 
 project = 'OpenBox'
-copyright = '2022, PKU-DAIR'
+copyright = f'{date.today().year}, PKU-DAIR'
 author = 'PKU-DAIR'
 
 # The full version, including alpha/beta/rc tags
@@ -33,6 +33,7 @@ release = 'beta'
 # ones.
 extensions = [
     'myst_parser',
+    'sphinx_copybutton',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
@@ -71,6 +72,12 @@ exclude_patterns = []
 language = 'en'
 root_doc = 'index'
 
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.txt': 'markdown',
+    '.md': 'markdown',
+}
+
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -79,23 +86,39 @@ root_doc = 'index'
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
 
+html_logo = '../imgs/logo.png'
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-# html_theme = 'alabaster'
-html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#
-html_theme_options = {
-    'logo_only': True,
-    'style_nav_header_background': 'black',
-}
-html_logo = '../imgs/logo.png'
 
-source_suffix = {
-    '.rst': 'restructuredtext',
-    '.txt': 'markdown',
-    '.md': 'markdown',
+# default theme
+# html_theme = 'alabaster'
+
+# sphinx_rtd_theme (pip install sphinx_rtd_theme) (https://sphinx-rtd-theme.readthedocs.io/)
+# import sphinx_rtd_theme
+# html_theme = "sphinx_rtd_theme"
+# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# html_theme_options = {
+#     'logo_only': True,
+#     'style_nav_header_background': 'black',
+# }
+
+# furo (pip install furo) (https://pradyunsg.me/furo/)
+html_theme = "furo"
+html_theme_options = {
+    "sidebar_hide_name": True,
+    "light_css_variables": {
+        "color-brand-primary": "#336790",  # "blue"
+        # "color-brand-content": "#336790",  # use the original blue for links in content
+        "color-inline-code-background": "#E6ECFF",  # original: #f8f9fb
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#E5B62F",  # "yellow"
+        "color-brand-content": "#E5B62F",
+        "color-inline-code-background": "#393939",  # original: #1a1c1e
+    },
 }
