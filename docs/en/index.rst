@@ -104,7 +104,7 @@ HpBandSter     ×          √    ×          ×       √
     Installation <installation/installation_guide>
     Quick Start <quick_start/quick_start>
     Examples <examples/examples>
-    Visualization <visualization/visualization>
+    Visualization (New!) <visualization/visualization>
     Advanced Usage <advanced_usage/advanced_usage>
     OpenBox as Service <openbox_as_service/openbox_as_service>
     Research and Publications <research_and_publications/research_and_publications>

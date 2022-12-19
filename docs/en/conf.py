@@ -23,7 +23,8 @@ copyright = f'{date.today().year}, PKU-DAIR'
 author = 'PKU-DAIR'
 
 # The full version, including alpha/beta/rc tags
-release = 'beta'
+# from openbox import version as _version
+# release = str(_version)
 
 
 # -- General configuration ---------------------------------------------------
