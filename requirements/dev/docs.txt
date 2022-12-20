@@ -4,3 +4,5 @@ myst-parser
 linkify-it-py
 furo
 sphinx_copybutton
+sphinx-notfound-page
+sphinx-hoverxref
