@@ -69,7 +69,7 @@ for task_idx in range(num_history_tasks):
 
 为了启用迁移学习，我们需要指定 `transfer_learning_history` 和 `surrogate_type`:
 + `transfer_learning_history`: 一个包含History的列表，每个History对应一个源任务。
-+ `surrogate_type`: 一个字符串。不同于 [Quick Start](../quick_start/quick_start) 中展示的"auto",
++ `surrogate_type`: 一个字符串。不同于 {ref}`快速入门教程 <quick_start/quick_start:快速入门>` 中展示的"auto",
   这里的`surrogate_type`包含三个部分：
   + 第一个部分必须是`"tlbo"`。
   + 第二个部分是迁移学习算法，包括 `"rgpe"`， `"sgpr"`， 和 `"topov3"`。
@@ -83,7 +83,7 @@ for task_idx in range(num_history_tasks):
 [examples/ask_and_tell_interface.py](https://github.com/PKU-DAIR/open-box/tree/master/examples/ask_and_tell_interface.py)
 中展示的相同API。
 
-您也可以定义一个 `Optimizer` ，参考 [Quick Start](../quick_start/quick_start)。
+您也可以定义一个 `Optimizer` ，参考 {ref}`快速入门教程 <quick_start/quick_start:快速入门>`。
 
 ```python
 tlbo_advisor = Advisor(

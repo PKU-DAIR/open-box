@@ -2,7 +2,7 @@
 
 本教程将指导您安装pyrfr。
 
-**首先，** 安装 SWIG 3.0. 请参考 [SWIG 安装教程](./install_swig.md).
+**首先，** 安装 SWIG 3.0. 请参考 {ref}`SWIG安装教程 <installation/install_swig:swig 安装教程>`。
 
 **其次，** 运行命令 `pip install pyrfr>=0.5.0`，pyrfr即安装完成。
 

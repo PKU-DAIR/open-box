@@ -7,9 +7,11 @@
 
 ## 如何使用可视化网页
 
-我们假定您已经知道如何在**OpenBox**中设置问题，如果您对此不熟悉，请参考[快速入门教程](../quick_start/quick_start)。
+我们假定您已经知道如何在**OpenBox**中设置问题，如果您对此不熟悉，请参考{ref}`快速入门教程 <quick_start/quick_start:快速入门>`。
 
-这里我们将基于[有约束条件的多目标黑盒优化](../examples/multi_objective_with_constraint)中的例子可视化优化过程。
+这里我们将基于
+{ref}`有约束条件的多目标黑盒优化 <examples/multi_objective_with_constraint:有约束条件的多目标黑盒优化>`
+中的例子可视化优化过程。
 
 
 ### 在优化前开启可视化

@@ -12,7 +12,7 @@
 
 + SWIG == 3.0
 
-关于 SWIG的安装，请参考 [SWIG 安装指南](../installation/install_swig.md)
+关于 SWIG的安装，请参考 {ref}`SWIG安装教程 <installation/install_swig:swig 安装教程>`
 
 在安装OpenBox前，请保证SWIG已经被成功安装。
 

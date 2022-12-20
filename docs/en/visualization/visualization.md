@@ -7,11 +7,11 @@ In this tutorial, we will explain how to use HTML visualization and understand t
 ## How to use HTML Visualization
 
 We assume that you already know how to set up a problem in **OpenBox**. 
-If not, please refer to the [Quick Start Tutorial](../quick_start/quick_start).
+If not, please refer to the {ref}`Quick Start Tutorial <quick_start/quick_start:quick start>`.
 
 Here we visualize the optimization process based on an example from
-[Multi-Objective Black-box Optimization with Constraints](../examples/multi_objective_with_constraint).
-
+{ref}`Multi-Objective Black-box Optimization with Constraints 
+<examples/multi_objective_with_constraint:multi-objective with constraints>`.
 
 ### Turn on visualization before optimization
 

@@ -131,7 +131,8 @@ history.visualize_hiplot()
 <img src="../../imgs/visualize_hiplot_branin.png" width="90%" class="align-center">
 
 Call <font color=#FF0000>**print(history.get_importance())**</font> to print the parameter importance:
-(Note that you need to install the `pyrfr` package to use this function. [Pyrfr Installation Guide](../installation/install_pyrfr.md))
+(Note that you need to install the `pyrfr` package to use this function.
+{ref}`Pyrfr Installation Guide <installation/install_pyrfr:pyrfr installation guide>`
 
 ```python
 print(history.get_importance())

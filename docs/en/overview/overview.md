@@ -58,13 +58,15 @@ The figure below shows the high-level architecture of OpenBox service.
 
 ### Standalone Python package
 Like other open-source packages, OpenBox has a frequent release cycle. Users can install the package via Pypi or
-source code on [GitHub](https://github.com/PKU-DAIR/open-box). For more installation details, refer to [Installation Guide](../installation/installation_guide.md).
+source code on [GitHub](https://github.com/PKU-DAIR/open-box). For more installation details, refer to 
+{ref}`Installation Guide <installation/installation_guide:installation guide>`.
 
 ### Distributed BBO service
 We adopt the "BBO as a service" paradigm and implement OpenBox as a managed general service for black-box optimization.
 Users can access this service via RESTful API conveniently, regardless of other issues such as
 environment setups, software maintenance, and execution optimization. Moreover, OpenBox also provide
-Web UI for users to track and manage their running tasks. For deployment details, refer to [Deployment Guide](../openbox_as_service/service_deployment.md).
+Web UI for users to track and manage their running tasks. For deployment details, refer to 
+{ref}`Service Deployment Guide <openbox_as_service/service_deployment:openBox service deployment>`.
 
 
 ## Performance Comparison
@@ -73,4 +75,3 @@ The performance rank (the lower, the better) is shown in the following figure.
 For dataset information and more experimental results, please refer to our [published article](https://arxiv.org/abs/2106.00421).
 
 <img src="../../imgs/ranking_lgb_7.svg" width="80%" class="align-center">
-

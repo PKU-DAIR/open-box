@@ -34,7 +34,7 @@ To install OpenBox from PyPI, simply run the following command:
 pip install openbox
 ```
 
-For advanced features, [install SWIG](./install_swig)
+For advanced features, {ref}`install SWIG <installation/install_swig:swig installation guide>`
 first and then run `pip install "openbox[extra]"`. 
 
 ### 3.2 Manual Installation from Source
@@ -45,7 +45,7 @@ git clone https://github.com/PKU-DAIR/open-box.git && cd open-box
 pip install .
 ```
 
-Also, for advanced features, [install SWIG](./install_swig)
+Also, for advanced features, {ref}`install SWIG <installation/install_swig:swig installation guide>`
 first and then run `pip install ".[extra]"`.
 
 ### 3.3 Test for Installation
@@ -70,12 +70,14 @@ If you encountered any problem during installation, please refer to the **Troubl
 ## 4 Installation for Advanced Features (Optional)
 
 To use advanced features such as `pyrfr` (probabilistic random forest) surrogate and get hyper-parameter 
-importance from history, please [Install SWIG](./install_swig) first, and then run:
+importance from history, please {ref}`install SWIG <installation/install_swig:swig installation guide>` 
+first, and then run:
 ```bash
 pip install "openbox[extra]"
 ```
 
-If you encounter problems installing `pyrfr`, please refer to [Pyrfr Installation Guide](./install_pyrfr.md).
+If you encounter problems installing `pyrfr`, please refer to 
+{ref}`Pyrfr Installation Guide <installation/install_pyrfr:pyrfr installation guide>`.
 
 ## 5 Trouble Shooting
 

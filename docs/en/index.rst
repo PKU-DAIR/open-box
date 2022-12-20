@@ -11,7 +11,7 @@ OpenBox: Generalized and Efficient Blackbox Optimization System
 
 **OpenBox** is an efficient open-source system designed for **solving
 generalized black-box optimization (BBO) problems**, such as
-`automatic hyper-parameter tuning <./examples/single_objective_hpo.html>`__,
+:ref:`automatic hyper-parameter tuning <examples/single_objective_hpo:single-objective black-box optimization>`,
 automatic A/B testing, experimental design, database knob tuning,
 processor architecture and circuit design,
 resource allocation, automatic chemical design, etc.
@@ -22,8 +22,8 @@ with a wide range of application scope, stable performance across problems
 and advantages such as ease of use, portability, and zero maintenance.
 
 There are two ways to use **OpenBox**:
-`Standalone python package <./installation/installation_guide.html>`__
-and `Online BBO service <./openbox_as_service/service_introduction.html>`__.
+:ref:`Standalone python package <installation/installation_guide:installation guide>`
+and :ref:`Online BBO service <openbox_as_service/service_introduction:introduction of openBox as service>`.
 
 **OpenBox GitHub:** https://github.com/PKU-DAIR/open-box
 

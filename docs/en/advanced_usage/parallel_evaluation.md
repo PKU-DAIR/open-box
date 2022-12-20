@@ -44,7 +44,8 @@ def branin(config):
     return {'objectives': [y]}
 ```
 
-If you are not familiar with the problem setup, please refer to [Quick Start Tutorial](../quick_start/quick_start).
+If you are not familiar with the problem setup, please refer to 
+{ref}`Quick Start Tutorial <quick_start/quick_start:quick start>`.
 
 ## Parallel Evaluation on Local
 

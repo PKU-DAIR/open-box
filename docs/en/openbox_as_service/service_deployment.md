@@ -12,7 +12,7 @@ Installation Requirements:
 
 + SWIG == 3.0
 
-To install SWIG, please refer to [SWIG Installation Guide](../installation/install_swig.md)
+To install SWIG, please refer to {ref}`SWIG Installation Guide <installation/install_swig:swig installation guide>`.
 
 Make sure that SWIG is installed correctly installing OpenBox.
 

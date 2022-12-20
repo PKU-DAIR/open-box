@@ -88,7 +88,7 @@ print(incumbents)
 + 重复 **get_suggestion** 和 **update_observation** 来完成优化。
 
 如果你对设置问题不熟悉，请参考
-[快速上手教程](../quick_start/quick_start).
+{ref}`快速入门教程 <quick_start/quick_start:快速入门>`。
 
 ## 在网页上监控一个任务
 

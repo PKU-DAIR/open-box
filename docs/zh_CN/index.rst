@@ -10,7 +10,7 @@ OpenBox: 高效通用的黑盒优化系统
 ###############################
 
 **OpenBox** 是一个高效的开源系统，旨在解决泛化的黑盒优化（BBO）问题，
-例如 `自动化超参数调优 <./examples/single_objective_hpo.html>`__ 、自动化A/B测试、
+例如 :ref:`自动化超参数调优 <examples/single_objective_hpo:单目标的黑盒优化>` 、自动化A/B测试、
 实验设计、数据库参数调优、处理器体系结构和电路设计、资源分配、自动化学设计等。
 
 **OnenBox** 的设计理念是将BBO作为一种服务提供给用户。
@@ -20,8 +20,8 @@ OpenBox: 高效通用的黑盒优化系统
 
 
 您可以使用以下两种方法使用 **OpenBox**：
-`单独的Python包 <./installation/installation_guide.html>`__
-和 `在线BBO服务 <./openbox_as_service/service_introduction.html>`__ 。
+:ref:`单独的Python包 <installation/installation_guide:安装指南>`
+和 :ref:`在线BBO服务 <openbox_as_service/service_introduction:服务简介>`。
 
 **OpenBox GitHub:** https://github.com/PKU-DAIR/open-box
 

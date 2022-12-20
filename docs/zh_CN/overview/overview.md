@@ -54,14 +54,14 @@ OpenBox是一个高效的通用黑盒优化系统。它的设计有如下特点�
 ### 单独的Python包
 和其它开源包一样，OpenBox也有一个频繁的维护周期。用户可以使用Pypi或者 [GitHub](https://github.com/PKU-DAIR/open-box) 
 上的源代码安装OpenBox。
-我们的 [安装指南](../installation/installation_guide.md) 中提供了更多的安装细节。
+我们的 {ref}`安装指南 <installation/installation_guide:安装指南>` 中提供了更多的安装细节。
 
 
 ### 将BBO作为一种服务
 我们的目标是"把BBO作为一种服务"。我们将OpenBox实现成一个为黑盒优化提供通用的管理框架的服务。
 用户可以方便地通过REStful API来访问这项服务，而无需考虑其它问题，例如环境配置，软件维护，执行优化等。
 此外，OpenBox也为用户提供了Web UI来方便地追踪和管理他们运行的任务。
-我们在 [部署指南](../openbox_as_service/service_deployment.md) 中提供了更多的部署细节。
+我们在 {ref}`服务部署指南 <openbox_as_service/service_deployment:openbox 服务部署>` 中提供了更多的部署细节。
 
 ## 性能对比
 我们在调优LightGBM任务上使用OpenBox和六个主流的开源BBO系统进行对比。对比中我们使用25个数据集。
@@ -70,4 +70,3 @@ OpenBox是一个高效的通用黑盒优化系统。它的设计有如下特点�
 
 
 <img src="../../imgs/ranking_lgb_7.svg" width="80%" class="align-center">
-

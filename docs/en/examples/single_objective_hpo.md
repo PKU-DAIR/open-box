@@ -172,7 +172,8 @@ history.visualize_hiplot()
 <img src="../../imgs/visualize_hiplot_hpo.png" width="90%" class="align-center">
 
 Call <font color=#FF0000>**print(history.get_importance())**</font> print the hyperparameter importance:
-(Note that you need to install the `pyrfr` package to use this function. [Pyrfr Installation Guide](../installation/install_pyrfr.md))
+(Note that you need to install the `pyrfr` package to use this function.
+{ref}`Pyrfr Installation Guide <installation/install_pyrfr:pyrfr installation guide>`
 
 ```python
 print(history.get_importance())

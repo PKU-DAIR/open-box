@@ -172,7 +172,7 @@ history.visualize_hiplot()
 <img src="../../imgs/visualize_hiplot_hpo.png" width="90%" class="align-center">
 
 调用 <font color=#FF0000>**print(history.get_importance())**</font> 来输出超参数的重要性：
-(注意：使用该功能需要额外安装`pyrfr`包：[Pyrfr安装教程](../installation/install_pyrfr.md))
+(注意：使用该功能需要额外安装`pyrfr`包：{ref}`Pyrfr安装教程 <installation/install_pyrfr:pyrfr 安装教程>`
 
 ```python
 print(history.get_importance())

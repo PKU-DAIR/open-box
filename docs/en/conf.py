@@ -82,7 +82,9 @@ myst_heading_anchors = 3  # e.g., [](../overview/overview.md#design-principle) (
 # https://sphinx-hoverxref.readthedocs.io/
 extensions += ['hoverxref.extension']
 hoverxref_auto_ref = True
-hoverxref_role_types = {}
+hoverxref_role_types = {
+    'ref': 'tooltip',
+}
 hoverxref_default_type = 'tooltip'  # 'modal' or 'tooltip'
 # hoverxref_sphinxtabs = True
 # hoverxref_mathjax = True

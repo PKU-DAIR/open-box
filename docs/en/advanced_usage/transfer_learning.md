@@ -72,8 +72,8 @@ for task_idx in range(num_history_tasks):
 
 To switch on transfer learning, we need to specify `transfer_learning_history` and `surrogate_type`:
 + `transfer_learning_history`: A list of History, which represents the observations from each source task.
-+ `surrogate_type`: A string. Different from "auto" as shown in [Quick Start](../quick_start/quick_start),
-`surrogate_type` here includes three parts.
++ `surrogate_type`: A string. Different from "auto" as shown in 
+  {ref}`Quick Start <quick_start/quick_start:quick start>`, `surrogate_type` here includes three parts.
   + The first part must be `"tlbo"`. 
   + The second part is the transfer learning algorithm, which are `"rgpe"`, `"sgpr"`, and `"topov3"`.
   + The third part is the surrogate type, e.g., `"gp"` or `"prf"`.
@@ -85,7 +85,7 @@ To switch on transfer learning, we need to specify `transfer_learning_history` a
 Here we define an `Advisor` and use the same APIs as shown in 
 [examples/ask_and_tell_interface.py](https://github.com/PKU-DAIR/open-box/tree/master/examples/ask_and_tell_interface.py).
 
-You can also define an `Optimizer` as shown in [Quick Start](../quick_start/quick_start).
+You can also define an `Optimizer` as shown in {ref}`Quick Start <quick_start/quick_start:quick start>`.
 
 ```python
 tlbo_advisor = Advisor(

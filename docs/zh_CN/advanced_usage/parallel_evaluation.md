@@ -41,7 +41,7 @@ def branin(config):
     return {'objectives': [y]}
 ```
 
-如果你对这个问题描述还不熟悉，请参考我们的[快速入门教程](../quick_start/quick_start)。
+如果你对这个问题描述还不熟悉，请参考我们的{ref}`快速入门教程 <quick_start/quick_start:快速入门>`。
 
 ## 单机并行验证
 
