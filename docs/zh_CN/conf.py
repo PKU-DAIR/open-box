@@ -87,7 +87,7 @@ hoverxref_role_types = {
 }
 hoverxref_default_type = 'tooltip'  # 'modal' or 'tooltip'
 # hoverxref_sphinxtabs = True
-# hoverxref_mathjax = True
+hoverxref_mathjax = True
 
 
 # Add any paths that contain templates here, relative to this directory.
