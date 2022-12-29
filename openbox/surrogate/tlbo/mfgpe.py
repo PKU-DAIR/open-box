@@ -46,7 +46,7 @@ class MFGPE(BaseTLSurrogate):
         for train_idx, val_idx in kf.split(X):
             idxs.extend(list(val_idx))
             X_train, X_val, y_train, y_val = X[train_idx, :], X[val_idx, :], y[train_idx], y[val_idx]
-            model = self.build_single_surrogate(X_train, y_train)
+            model = self.build_single_surrogate(X_train, y_train, normalize_y=False)
             mu, var = model.predict(X_val)
             mu, var = mu.flatten(), var.flatten()
             _mu.extend(list(mu))
