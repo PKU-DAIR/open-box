@@ -24,7 +24,7 @@ class RGPE(BaseTLSurrogate):
             # Weights for base surrogates and the target surrogate.
             self.w = [1. / self.K] * self.K + [0.]
             # Preventing weight dilution.
-            self.ignored_flag = [False] * self.K
+            self.ignored_flag = [False] * (self.K + 1)
         self.hist_ws = list()
         self.iteration_id = 0
 
@@ -127,18 +127,19 @@ class RGPE(BaseTLSurrogate):
         for id in range(self.K):
             median = sorted(ranking_loss_caches[:, id])[int(self.num_sample * 0.5)]
             self.ignored_flag[id] = median > threshold
-
-        if self.only_source:
-            self.w[-1] = 0.
-            if np.sum(self.w) == 0:
-                self.w = [1. / self.K] * self.K + [0.]
-            else:
-                self.w[:-1] = np.array(self.w[:-1]) / np.sum(self.w[:-1])
+        self.ignored_flag[-1] = self.only_source
+        if any(self.ignored_flag):
+            logger.info(f'weight ignore flag: {self.ignored_flag}')
 
         w = self.w.copy()
         for id in range(self.K):
             if self.ignored_flag[id]:
                 w[id] = 0.
+        sum_w = np.sum(w)
+        if sum_w == 0:
+            w = [1. / self.K] * self.K + [0.] if self.only_source else [0.] * self.K + [1.]
+        else:
+            w = (np.array(w) / sum_w).tolist()
         weight_str = ','.join([('%.2f' % item) for item in w])
         # logger.info('In iter-%d' % self.iteration_id)
         self.target_weight.append(w[-1])
