@@ -30,7 +30,7 @@ class RGPE(BaseTLSurrogate):
 
     def train(self, X: np.ndarray, y: np.array):
         # Build the target surrogate.
-        self.target_surrogate = self.build_single_surrogate(X, y)
+        self.target_surrogate = self.build_single_surrogate(X, y, normalize_y=True)
         if self.source_hpo_data is None:
             return
 
@@ -57,7 +57,7 @@ class RGPE(BaseTLSurrogate):
                     del row_indexs[i]
                     if (y[row_indexs] == y[row_indexs[0]]).all():
                         y[row_indexs[0]] += 1e-4
-                    model = self.build_single_surrogate(X[row_indexs, :], y[row_indexs])
+                    model = self.build_single_surrogate(X[row_indexs, :], y[row_indexs], normalize_y=False)
                     mu, var = model.predict(X)
                     cached_mu_list.append(mu)
                     cached_var_list.append(var)
@@ -73,7 +73,7 @@ class RGPE(BaseTLSurrogate):
                     if (y[row_indexs] == y[row_indexs[0]]).all():
                         y[row_indexs[0]] += 1e-4
 
-                    model = self.build_single_surrogate(X[row_indexs, :], y[row_indexs])
+                    model = self.build_single_surrogate(X[row_indexs, :], y[row_indexs], normalize_y=False)
                     mu, var = model.predict(X)
                     cached_mu_list.append(mu)
                     cached_var_list.append(var)

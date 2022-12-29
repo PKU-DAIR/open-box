@@ -90,14 +90,15 @@ class BaseTLSurrogate(object):
             self.source_surrogates.append(model)
         logger.info('Building base surrogates took %.3fs.' % (time.time() - start_time))
 
-    def build_single_surrogate(self, X: np.ndarray, y: np.array):
+    def build_single_surrogate(self, X: np.ndarray, y: np.array, normalize_y=False):
         model = build_surrogate(self.surrogate_type, self.config_space, np.random.RandomState(self.random_seed))
 
         if (y == y[0]).all():
             y[0] += 1e-4
-        y, mean, std = zero_mean_unit_var_normalization(y)
-        self.y_normalize_mean = mean
-        self.y_normalize_std = std
+        if normalize_y:
+            y, mean, std = zero_mean_unit_var_normalization(y)
+            self.y_normalize_mean = mean
+            self.y_normalize_std = std
 
         model.train(X, y)
         return model

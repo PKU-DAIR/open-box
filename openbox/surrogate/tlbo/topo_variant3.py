@@ -5,6 +5,7 @@ from sklearn.model_selection import KFold
 from openbox import logger
 from openbox.surrogate.tlbo.base import BaseTLSurrogate
 from openbox.surrogate.tlbo.scipy_solver import scipy_solve
+from openbox.utils.transform import zero_mean_unit_var_unnormalization
 
 _scale_method = 'scale'
 
@@ -30,6 +31,7 @@ class TOPO_V3(BaseTLSurrogate):
         pred_y = None
         for i in range(0, self.K):
             mu, _ = self.source_surrogates[i].predict(X)
+            mu = zero_mean_unit_var_unnormalization(mu, self.y_normalize_mean, self.y_normalize_std)
             if pred_y is not None:
                 pred_y = np.c_[pred_y, mu]
             else:
@@ -46,7 +48,7 @@ class TOPO_V3(BaseTLSurrogate):
         for train_idx, val_idx in kf.split(X):
             idxs.extend(list(val_idx))
             X_train, X_val, y_train, y_val = X[train_idx, :], X[val_idx, :], y[train_idx], y[val_idx]
-            model = self.build_single_surrogate(X_train, y_train)
+            model = self.build_single_surrogate(X_train, y_train, normalize_y=False)
             mu, var = model.predict(X_val)
             mu, var = mu.flatten(), var.flatten()
             _mu.extend(list(mu))
@@ -57,7 +59,7 @@ class TOPO_V3(BaseTLSurrogate):
     def train(self, X: np.ndarray, y: np.array):
         instance_num = X.shape[0]
         # Build the target surrogate.
-        self.target_surrogate = self.build_single_surrogate(X, y)
+        self.target_surrogate = self.build_single_surrogate(X, y, normalize_y=True)
         self.target_y_range = 0.5 * (np.max(y) - np.min(y))
         # print('Target y range', self.target_y_range)
         pred_y = self.batch_predict(X)
