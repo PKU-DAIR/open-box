@@ -99,3 +99,7 @@ append `--user` to the command line.
 + For macOS users who have trouble installing pyrfr, please refer to [tips](./install-pyrfr-on-macos.md).
 
 + For macOS users who have trouble building scikit-learn, this [documentation](./openmp_macos.md) might help. 
+
++ For macOS users who failed building wheel for lightgbm like [Issue #57](
+  https://github.com/PKU-DAIR/open-box/issues/57), the [LightGBM official installation guide](
+  https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html#macos) might help. 

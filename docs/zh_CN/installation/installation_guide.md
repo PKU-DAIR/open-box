@@ -94,4 +94,8 @@ pip install "openbox[extra]"
 
 + 对于 macOS 用户，如果您在安装 pyrfr 时遇到了困难，请参考 [提示](./install-pyrfr-on-macos.md)。
 
-+ 对于 macOS 用户，如果您在编译 scikit-learn 时遇到了困难。 [该教程](./openmp_macos.md) 或许对你有帮助。
++ 对于 macOS 用户，如果您在编译 scikit-learn 时遇到了困难。 [该教程](./openmp_macos.md) 或许对您有帮助。
+
++ 对于 macOS 用户，如果您在安装 lightgbm 时像 [Issue #57](https://github.com/PKU-DAIR/open-box/issues/57) 一样遇到
+  "Failed building wheel for lightgbm"，[LightGBM官方安装教程](
+  https://lightgbm.readthedocs.io/en/latest/Installation-Guide.html#macos) 或许对您有帮助。
