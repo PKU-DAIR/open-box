@@ -343,28 +343,34 @@ history = opt.run()
 ## **相关发表文章**
 
 **OpenBox: A Generalized Black-box Optimization Service.**
+
 Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu,
 Zhi Yang, Ce Zhang, Bin Cui; KDD 2021, CCF-A.
 https://arxiv.org/abs/2106.00421
 
 **MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements.**
+
 Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; AAAI 2021, CCF-A.
 https://arxiv.org/abs/2012.03011
 
 **Transfer Learning based Search Space Design for Hyperparameter Tuning.**
+
 Yang Li, Yu Shen, Huaijun Jiang, Tianyi Bai, Wentao Zhang, Ce Zhang, Bin Cui; KDD 2022, CCF-A.
 https://arxiv.org/abs/2206.02511
 
 **TransBO: Hyperparameter Optimization via Two-Phase Transfer Learning.**
+
 Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Zhi Yang, Ce Zhang, Bin Cui; KDD 2022, CCF-A.
 https://arxiv.org/abs/2206.02663
 
 **PaSca: a Graph Neural Architecture Search System under the Scalable Paradigm.**
+
 Wentao Zhang, Yu Shen, Zheyu Lin, Yang Li, Xiaosen Li, Wen Ouyang, Yangyu Tao, Zhi Yang, and Bin Cui; 
 WWW 2022, CCF-A, 🏆 Best Student Paper Award.
 https://arxiv.org/abs/2203.00638
 
 **Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale.**
+
 Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Jixiang Li, Ji Liu, Ce Zhang, Bin Cui; VLDB 2022, CCF-A.
 https://arxiv.org/abs/2201.06834
 
