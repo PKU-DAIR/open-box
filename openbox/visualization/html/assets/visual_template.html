@@ -33,10 +33,11 @@
                             <table id="task-inf-tab" class="table table-bordered table-hover table-striped">
                                 <thead>
                                     <tr>
-                                        <th> task_id </th>
+                                        <th> Task Id </th>
                                         <th> Advisor Type </th>
                                         <th> Surrogate Type </th>
-                                        <th> max_runs </th>
+                                        <th> Current Run </th>
+                                        <th> Max Runs </th>
                                         <th> Time Limit Per Trial </th>
                                     </tr>
                                 </thead>
@@ -110,7 +111,7 @@
                                 </script>
                                 <br>
                                 <script>
-                                    if (info.data["num_objectives"] > 1){
+                                    if (info.data["num_objectives"] > 1 && info.data["pareto_data"]["ref_point"] != null){
                                         document.write(
                                             "<div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"pareto_hv\" style=\"height: 500px; width: 800px; zoom:1.25\"></div></div>"
                                         );
@@ -125,7 +126,7 @@
                                 <script>
                                     if(info.data['advance'] == true) {
                                         document.write(
-                                            "<div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"pre_label_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
+                                            "<div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"pred_label_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
                                         )
                                         document.write("<br>")
                                         document.write(
@@ -134,7 +135,7 @@
                                         document.write("<br>")
                                         if (info.data["num_constraints"] > 0){
                                             document.write(
-                                                "<br><div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"cons_pre_label_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
+                                                "<br><div class=\"row\"><div class=\"col-md-6  col-lg-12\" id=\"cons_pred_label_scatter\" style=\"height: 500px; width: 650px; zoom:1.25\"></div></div>"
                                             );
                                         }
                                     }
@@ -152,45 +153,47 @@
                                 <script>
                                     if(info.data['advance'] == true) {
                                         document.write(
-                                            "<div class=\"col-md-6  col-lg-12\" id=\"para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
+                                            "<div class=\"col-md-6  col-lg-12\" id=\"para_importance\" style=\"height: 500px; width: 700px; zoom:1.25\"></div>"
                                         )
 
                                         if (info.data["num_constraints"] > 0){
                                             document.write(
-                                                "<br><div class=\"col-md-6  col-lg-12\" id=\"con_para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
+                                                "<br><div class=\"col-md-6  col-lg-12\" id=\"con_para_importance\" style=\"height: 500px; width: 700px; zoom:1.25\"></div>"
                                             );
                                         }
-                                        var len = info.data["num_objectives"];
-                                        document.write(
-                                            "<div class=\"col-lg-2\"><select class=\"form-control\" onchange=\"selectObjs(this)\">"
-                                        );
-                                        for(var i = 0; i < len; i++){
-                                            document.write("<option value=\"obj");
-                                            document.write(i);
-                                            document.write("\">objective ");
-                                            document.write(i);
-                                            document.write("</option>");
-                                        }
-                                        document.write("</select></div>");
-                                        document.write(
-                                            "<div class=\"col-md-6  col-lg-12\" id=\"single_para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
-                                        )
-                                        if (info.data["num_constraints"] > 0){
-                                            var len = info.data["num_constraints"];
+                                        if (info.data["importance_data"]["method"] == "shap"){
+                                            var len = info.data["num_objectives"];
                                             document.write(
-                                                "<div class=\"col-lg-2\"><select class=\"form-control\" onchange=\"selectCons(this)\">"
+                                                "<div class=\"col-lg-2\"><select class=\"form-control\" onchange=\"selectObjs(this)\">"
                                             );
                                             for(var i = 0; i < len; i++){
-                                                document.write("<option value=\"con");
+                                                document.write("<option value=\"obj");
                                                 document.write(i);
-                                                document.write("\">constraint ");
-                                                document.write(i);
+                                                document.write("\">objective ");
+                                                document.write((i+1).toString());
                                                 document.write("</option>");
                                             }
                                             document.write("</select></div>");
                                             document.write(
-                                                "<br><div class=\"col-md-6  col-lg-12\" id=\"con_single_para_importance\" style=\"height: 500px; width: 650px; zoom:1.25\"></div>"
-                                            );
+                                                "<div class=\"col-md-6  col-lg-12\" id=\"single_para_importance\" style=\"height: 500px; width: 700px; zoom:1.25\"></div>"
+                                            )
+                                            if (info.data["num_constraints"] > 0){
+                                                var len = info.data["num_constraints"];
+                                                document.write(
+                                                    "<div class=\"col-lg-2\"><select class=\"form-control\" onchange=\"selectCons(this)\">"
+                                                );
+                                                for(var i = 0; i < len; i++){
+                                                    document.write("<option value=\"con");
+                                                    document.write(i);
+                                                    document.write("\">constraint ");
+                                                    document.write((i+1).toString());
+                                                    document.write("</option>");
+                                                }
+                                                document.write("</select></div>");
+                                                document.write(
+                                                    "<br><div class=\"col-md-6  col-lg-12\" id=\"con_single_para_importance\" style=\"height: 500px; width: 700px; zoom:1.25\"></div>"
+                                                );
+                                            }
                                         }
                                     }
                                     else {
@@ -208,11 +211,11 @@
                                     <thead>
                                         <tr>
                                             <th> Index </th>
-                                            <th> Result </th>
-                                            <th> Constraint </th>
+                                            <th> Objectives </th>
+                                            <th> Constraints </th>
                                             <th> Configuration </th>
                                             <th> Status </th>
-                                            <th> Cost </th>
+                                            <th> Time </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -324,6 +327,8 @@
         tbody.rows[0].cells[3].appendChild(document.createTextNode(data["task_inf"]["table_data"][3]));
         tbody.rows[0].insertCell(4)
         tbody.rows[0].cells[4].appendChild(document.createTextNode(data["task_inf"]["table_data"][4]));
+        tbody.rows[0].insertCell(5)
+        tbody.rows[0].cells[5].appendChild(document.createTextNode(data["task_inf"]["table_data"][5]));
 
         var lineStyle = {
             normal: {
@@ -331,6 +336,7 @@
                 opacity: 0.75
             }
         };
+
 
         var mydataZoom = [
             {
@@ -345,6 +351,21 @@
                 start: 0,
                 end: 100
             },
+            {
+                type: 'slider',
+                orient: 'vertical',
+                yAxisIndex: 0,
+                start: 0,
+                end: 100
+            },
+            {
+                type: 'inside',
+                orient: 'vertical',
+                yAxisIndex: 0,
+                start: 0,
+                end: 100
+            },
+
         ]
 
 
@@ -356,7 +377,7 @@
 
 
 
-        var rh_config = {};
+        var rh_config = [];
         var task_id = "{{ task_id | safe}}";
         function show_config(rh_id) {
             $('#rh_config_div').html('');
@@ -388,19 +409,26 @@
             parallel: {
                 top: 100
             },
-            legend: {
-                left: 10,
-                top: 50,
-                'selected': {}
-            },
             visualMap: {
-                show: true,
+                show: false,
                 inRange: {
                     color: ['#d94e5d', '#eac736', '#50a3ba'],
-                }
+                },
+                min: data["parallel_data"]['visualMap']['min'],
+                max: data["parallel_data"]['visualMap']['max'],
+                dimension: data["parallel_data"]['visualMap']['dimension']
             },
 
             series: [
+                {
+                    name: 'obj ' + (i+1),
+                    type: 'parallel',
+                    smooth: true,
+                    lineStyle: lineStyle,
+                    inactiveOpacity: 0.1,
+                    activeOpacity: 1,
+                    data: data["parallel_data"]['data']
+                }
             ]
         };
 
@@ -408,7 +436,7 @@
         var line_chart = echarts.init($('#line')[0]);
         var line_option = {
             title:{
-                text: 'Objective Value',
+                text: 'Min Objective Value',
             },
             tooltip: {
                 trigger: 'item',
@@ -419,8 +447,8 @@
                     console.log(paras);
                     var res = paras.seriesName + "</br>";
                     res = res + "obj value: " + paras.value[1] + '</br>';
-                    if(data['num_constraints'] > 0 && paras.value[0] < data['cons_list_rev'].length) {
-                        res = res + "cons value: " + data['cons_list_rev'][paras.value[0]];
+                    if(data['num_constraints'] > 0 && paras.value[0] <= data['cons_list_rev'].length) {
+                        res = res + "cons value: " + data['cons_list_rev'][paras.value[0]-1];
                     }
 
                     console.log(res)
@@ -439,7 +467,7 @@
             },
             xAxis: {
 
-                name: 'Number of iterations n',
+                name: 'Iterations',
                 boundaryGap: false,
                 nameLocation: 'center',
                 nameRotate: '0',
@@ -458,7 +486,7 @@
             },
             yAxis: {
                 type: 'value',
-                name: 'Min objective value after n iterations',
+                name: 'Min objective value',
                 nameLocation: 'center',
                 nameRotate: '90',
                 nameTextStyle: {
@@ -480,11 +508,11 @@
         };
 
         // initialize the pareto hv line
-        if(data['num_objectives'] > 1) {
+        if(data['num_objectives'] > 1 && info.data["pareto_data"]["ref_point"] != null) {
             var pareto_hv_chart = echarts.init($('#pareto_hv')[0]);
             var pareto_hv_option = {
                 title:{
-                    text: 'Pareto Frontier Hypervolume',
+                    text: 'Hypervolume',
                     subtext: 'This shows the hypervolume surrounded by the Pareto frontier.'
                 },
                 tooltip: {
@@ -503,8 +531,7 @@
                     top: 90
                 },
                 xAxis: {
-
-                    name: 'Number of iterations n',
+                    name: 'Iterations',
                     boundaryGap: false,
                     nameLocation: 'center',
                     nameRotate: '0',
@@ -523,7 +550,7 @@
                 },
                 yAxis: {
                     type: 'value',
-                    name: 'Pareto frontier hypervolume value',
+                    name: 'Hypervolume',
                     nameLocation: 'center',
                     nameRotate: '90',
                     min: 'dataMin',
@@ -542,7 +569,7 @@
                 },
                 series: [
                     {
-                        name: 'pareto hv',
+                        name: 'hypervolume',
                         type: 'line',
                         smooth: false,
                         color: '#4fbfa8',
@@ -597,9 +624,10 @@
                     left: '100px',
                 },
                 legend: {
-                    left: 10,
-                    top: 10,
-                    'selected': {}
+                    left: 30,
+                    top: 30,
+                    'selected': {},
+                    selectedMode: 'single'
                 },
                 tooltip: {
                     trigger: 'axis',
@@ -610,7 +638,7 @@
                 dataZoom: mydataZoom,
                 xAxis: {
                     type: 'value',
-                    name: 'Number of iterations n',
+                    name: 'Iterations',
                     boundaryGap: false,
                     nameLocation: 'center',
                     nameRotate: '0',
@@ -629,7 +657,7 @@
                 },
                 yAxis: {
                     type: 'value',
-                    name: ' Constraint value after n iterations',
+                    name: ' Constraint value',
                     nameLocation: 'center',
                     nameRotate: '90',
                     nameTextStyle: {
@@ -665,28 +693,11 @@
             cons_line_option && cons_line_chart.setOption(cons_line_option);
         }
 
-
+        // initialize Pareto preface Chart
         if (data["num_objectives"] == 2){
             var pareto_chart = echarts.init($('#pareto_front')[0]);
             var pareto_option;
             var pareto_list = data["pareto_data"]["pareto_point"];
-
-            var no_point = [];
-            var yes_point = [];
-
-            for(var j=0; j<data["pareto_data"]["all_points"].length; j++){
-                var flag = 1;
-                for (var i = 0; i < data['num_constraints']; i++) {
-                    if (data['cons_line_data'][i][j][1] > 0){
-                        flag = 0;
-                        break;
-                    }
-                }
-                if (flag == 1)
-                    yes_point.push(data["pareto_data"]["all_points"][j]);
-                else   
-                    no_point.push(data["pareto_data"]["all_points"][j]);
-            }
 
             pareto_list .sort(function(a,b){
                 return b[0]-a[0];
@@ -699,31 +710,30 @@
                 tooltip: {
                     trigger: 'axis'
                 },
-                dataZoom: mydataZoom,
                 xAxis: {
-                    name: 'obj1\n',
+                    name: 'obj 1\n',
                     nameLocation:'center',
                     splitLine: {
                         show: false,
                     },
                 },
                 yAxis: {
-                    name: 'obj2\n',
+                    name: 'obj 2\n',
                     nameLocation:'center',
                 },
                 series: [
                     {
                         data: pareto_list,
                         type: 'line',
-                        smooth: true,
+                        smooth: false,
                     },
                     {
-                        data: yes_point,
+                        data: data["pareto_data"]["pareto_point_feasible"],
                         type: 'scatter',
                         symbol: 'circle'
                     },
                     {
-                        data: no_point,
+                        data: data["pareto_data"]["pareto_point_infeasible"],
                         type: 'scatter',
                         symbol: 'triangle'
                     },
@@ -765,7 +775,7 @@
                 xAxis3D: {
                     type: 'value',
                     min: 'dataMin',
-                    name: 'obj1\n',
+                    name: 'obj 1\n',
                     nameLocation: 'center',
                     axisLabel:{
                     formatter:function(value,index){
@@ -776,7 +786,7 @@
                 yAxis3D: {
                     type: 'value',
                     min: 'dataMin',
-                    name: 'obj2\n',
+                    name: 'obj 2\n',
                     nameLocation: 'center',
                     axisLabel:{
                     formatter:function(value,index){
@@ -787,7 +797,7 @@
                 zAxis3D: {
                     type: 'value',
                     min: 'dataMin',
-                    name: 'obj3\n',
+                    name: 'obj 3\n',
                     nameLocation: 'center',
                     axisLabel:{
                     formatter:function(value,index){
@@ -836,10 +846,10 @@
 
 
 
-        if(data['pre_label_data'] != null) {
+        if(data['pred_label_data'] != null) {
             verify_surrogate_model();
         }
-        if(data['cons_pre_label_data'] != null) {
+        if(data['cons_pred_label_data'] != null) {
             verify_cons_surrogate_model();
         }
 
@@ -852,19 +862,30 @@
 
                 series_list.push(
                 {
-                      name: key,
-                      type: 'bar',
-                      data: data["importance_data"]["data"][key],
-                      markPoint: {
-                        data: [
-                          { type: 'max', name: 'Max' },
-                          { type: 'min', name: 'Min' }
-                        ]
-                      },
-                      markLine: {
-                        data: [{ type: 'average', name: 'Avg' }]
-                      }
+                    name: key,
+                    type: 'bar',
+                    data: data["importance_data"]["data"][key],
+                    // markPoint: {
+                    //     data: [
+                    //         {type: 'max', name: 'Max'},
+                    //         {type: 'min', name: 'Min'}
+                    //     ]
+                    // },
+                    markLine: {
+                        data: [{type: 'average', name: 'Avg'}]
+                    },
+                    itemStyle:{
+                        normal:{
+                            label:{
+                                show: true,
+                                position: 'top',
+                                formatter: function(params){
+                                    return params.value.toFixed(6);
+                                }
+                            }
+                        }
                     }
+                }
                 )
             }
             var para_chart = echarts.init($('#para_importance')[0]);
@@ -886,7 +907,11 @@
                     {
                       type: 'category',
                       // prettier-ignore
-                      data: data["importance_data"]["x"]
+                      data: data["importance_data"]["x"],
+                      axisLabel: {
+                        interval: 0,
+                        show: true
+                      }
                     }
                   ],
                 yAxis: [
@@ -900,22 +925,35 @@
             para_option && para_chart.setOption(para_option);
 
             if (data["num_constraints"] > 0){
+                let legend_data = [];
                 let series_data = [];
-                for(var key in data["importance_data"]["con_data"]) {
+                for (var key in data["importance_data"]["con_data"]) {
+                    legend_data.push(key);
                     series_data.push(
-                    {
-                        name: key,
-                        type: 'bar',
-                        data: data["importance_data"]["con_data"][key],
-                        markPoint: {
-                            data: [
-                            { type: 'max', name: 'Max' },
-                            { type: 'min', name: 'Min' }
-                            ]
-                        },
-                        markLine: {
-                            data: [{ type: 'average', name: 'Avg' }]
-                        }
+                        {
+                            name: key,
+                            type: 'bar',
+                            data: data["importance_data"]["con_data"][key],
+                            // markPoint: {
+                            //     data: [
+                            //         {type: 'max', name: 'Max'},
+                            //         {type: 'min', name: 'Min'}
+                            //     ]
+                            // },
+                            markLine: {
+                                data: [{type: 'average', name: 'Avg'}]
+                            },
+                            itemStyle:{
+                                normal:{
+                                    label:{
+                                        show: true,
+                                        position: 'top',
+                                        formatter: function(params){
+                                            return params.value.toFixed(6);
+                                        }
+                                    }
+                                }
+                            }
                         }
                     )
                 }
@@ -929,14 +967,18 @@
                         trigger: 'axis'
                     },
                     legend: {
-                        data: legend_list,
+                        data: legend_data,
                         top: '30'
                     },
                     grid:{
                         top: '60'
                     },
                     xAxis: {
-                        data: data["importance_data"]["x"]
+                        data: data["importance_data"]["x"],
+                        axisLabel: {
+                        interval: 0,
+                        show: true
+                      }
                     },
                     yAxis: {},
                     series: series_data
@@ -947,7 +989,7 @@
         }
 
         // initialize the Single Parameter Importance Chart
-        if(data["importance_data"] != null) {
+        if(data["importance_data"] != null && data["importance_data"]["method"] == "shap") {
             let X = data["importance_data"]["X"];
             let para_num = data["importance_data"]["x"].length;
             let obj_shap_value = data["importance_data"]["obj_shap_value"];
@@ -1012,7 +1054,7 @@
 
 
         // initialize the Constraints Single Parameter Importance Chart
-        if (data["importance_data"] != null && data["num_constraints"] > 0){
+        if (data["importance_data"] != null && data["num_constraints"] > 0 && data["importance_data"]["method"] == "shap"){
             let X = data["importance_data"]["X"];
             let para_num = data["importance_data"]["x"].length;
             let con_shap_value = data["importance_data"]["con_shap_value"];
@@ -1089,7 +1131,7 @@
             $.each(parallel_option['schema'], function (i, text) {
                 let item = {};
                 if (i === 0) {
-                    item = { dim: 0, name: text, inverse: true, max: 31, nameLocation: 'start' }
+                    item = { dim: 0, name: text, inverse: true, nameLocation: 'start' }
                 } else {
                     item['name'] = text;
                     item['dim'] = i;
@@ -1098,26 +1140,7 @@
             });
 
             parallel_coordinates_option['parallelAxis'] = parallel_parallelAxis;
-            console.log(parallel_coordinates_option)
-            for (var i = 0; i < data['num_objectives']; i++) {
-                parallel_coordinates_option['series'].push(
-                {
-                    name: 'obj ' + (i+1),
-                    type: 'parallel',
-                    lineStyle: lineStyle,
-                    inactiveOpacity: 0.1,
-                    activeOpacity: 1,
-                    data: parallel_option['data'][i]
-                })
-                if(i != 0) {
-                    parallel_coordinates_option['legend']['selected']['obj ' + (i+1)] = false;
-                }
-            }
 
-
-            parallel_coordinates_option['visualMap']['min'] = parallel_option['visualMap']['min'];
-            parallel_coordinates_option['visualMap']['max'] = parallel_option['visualMap']['max'];
-            parallel_coordinates_option['visualMap']['dimension'] = parallel_option['visualMap']['dimension'];
             parallel_coordinates_option && parallel_coordinates_chart.setOption(parallel_coordinates_option);
 
             for (var i = 0; i < data['num_objectives']; i++) {
@@ -1127,20 +1150,20 @@
                     smooth: false,
                     symbol: 'circle',
                     symbolSize: '10',
-                    data: data['line_data'][i]['ok']
+                    data: data['line_data'][i]['best']
                 })
                 line_option['series'].push({
                     name: 'obj ' + (i+1),
                     type: 'scatter',
                     color: 'grey',
-                    data: data['line_data'][i]['other']
+                    data: data['line_data'][i]['feasible']
                 })
                 line_option['series'].push({
                     name: 'obj ' + (i+1),
                     type: 'scatter',
                     color: 'grey',
                     symbol: 'triangle',
-                    data: data['line_data'][i]['no']
+                    data: data['line_data'][i]['infeasible']
                 })
                 if(i != 0) {
                     line_option['legend']['selected']['obj ' + (i+1)] = false;
@@ -1149,21 +1172,21 @@
 
             line_option && line_chart.setOption(line_option);
 
-            rh_config = data['rh_config'];
             let table_list = data['table_list'];
             let rows = [];
             let cons = '';
             let config_str = '';
 
             for (let r in table_list) {
-                config_str = table_list[r][3] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_config"+ onclick="show_config(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
-                console.log(rh_config[table_list[r][0]])
+                rh_config.push(table_list[r][3])
+                config_str = table_list[r][4] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_config"+ onclick="show_config(\'' + r + '\')"><strong>...</strong></a>';
+
                 var result_str = table_list[r][1]
                 if(table_list[r][1].length > 1) {
                     var _result = {}
                     for(var i = 0; i < table_list[r][1].length; i++) _result['obj '+(i+1)] = table_list[r][1][i];
                     rh_result.push(_result)
-                    result_str = table_list[r][1][0] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_result"+ onclick="show_result(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+                    result_str = table_list[r][1][0] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_result"+ onclick="show_result(\'' + r + '\')"><strong>...</strong></a>';
                 }
 
                 cons = table_list[r][2] == null ? 'Null' : table_list[r][2]
@@ -1172,10 +1195,10 @@
                     var _constraint = {}
                     for(var i = 0; i < table_list[r][2].length; i++) _constraint['cons '+(i+1)] = table_list[r][2][i];
                     rh_constraint.push(_constraint)
-                    cons_str = table_list[r][2][0] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_constraint"+ onclick="show_constraint(\'' + table_list[r][0] + '\')"><strong>...</strong></a>';
+                    cons_str = table_list[r][2][0] + '<a style="color:#4fbfa8;cursor:pointer;" id="show_constraint"+ onclick="show_constraint(\'' + r + '\')"><strong>...</strong></a>';
                 }
 
-                rows.push([table_list[r][0], result_str, cons_str, config_str, table_list[r][4], table_list[r][5]])
+                rows.push([table_list[r][0], result_str, cons_str, config_str, table_list[r][5], table_list[r][6]])
             }
             console.log(rows)
             history_table.clear().draw();
@@ -1184,34 +1207,9 @@
         }
 
         function verify_surrogate_model() {
-            var sur_markLineOpt1 = {
-                animation: false,
-                label: {
-                    formatter: 'y = x',
-                    align: 'right'
-                },
-                lineStyle: {
-                    type: 'solid'
-                },
-                tooltip: {
-                    formatter: 'y = x'
-                },
-                data: [
-                    [
-                        {
-                            coord: [data['pre_label_data']['min'], data['pre_label_data']['min']],
-                            symbol: 'none'
-                        },
-                        {
-                            coord: [data['pre_label_data']['max'], data['pre_label_data']['max']],
-                            symbol: 'none'
-                        }
-                    ]
-                ]
-            };
             // initialize Predict-Label Scatter Chart
-            var pre_label_chart = echarts.init($('#pre_label_scatter')[0]);
-            var pre_label_option = {
+            var pred_label_chart = echarts.init($('#pred_label_scatter')[0]);
+            var pred_label_option = {
                 title:{
                     text: 'Predicted Objective Value',
                 },
@@ -1233,7 +1231,7 @@
                 dataZoom: mydataZoom,
                 xAxis: {
                     type: 'value',
-                    name: 'Predicted objective value',
+                    name: 'Predicted value',
                     boundaryGap: false,
                     nameLocation: 'center',
                     nameRotate: '0',
@@ -1249,8 +1247,8 @@
                         //     type: 'solid'
                         // }
                     },
-                    min: data['pre_label_data']['min'],
-                    max: data['pre_label_data']['max']
+                    min: data['pred_label_data']['min_array'][0],
+                    max: data['pred_label_data']['max_array'][0],
                 },
                 yAxis: {
                     type: 'value',
@@ -1269,8 +1267,8 @@
                         //     type: 'solid'
                         // }
                     },
-                    min: data['pre_label_data']['min'],
-                    max: data['pre_label_data']['max']
+                    min: data['pred_label_data']['min_array'][0],
+                    max: data['pred_label_data']['max_array'][0],
                 },
                 series: [
 
@@ -1278,20 +1276,58 @@
             }
 
             for (var i = 0; i < data['num_objectives']; i++) {
-                pre_label_option['series'].push(
+                pred_label_option['series'].push(
                 {
                     name: 'obj ' + (i+1),
                     type: 'scatter',
                     color: '#50a3ba',
-                    data: data['pre_label_data']['data'][i],
-                    markLine: sur_markLineOpt1
+                    data: data['pred_label_data']['data'][i],
+                    markLine: {
+                        animation: false,
+                        label: {
+                            formatter: 'y = x',
+                            align: 'right'
+                        },
+                        lineStyle: {
+                            type: 'solid'
+                        },
+                        tooltip: {
+                            formatter: 'y = x'
+                        },
+                        data: [
+                            [
+                                {
+                                    coord: [data['pred_label_data']['min_array'][i], data['pred_label_data']['min_array'][i]],
+                                    symbol: 'none'
+                                },
+                                {
+                                    coord: [data['pred_label_data']['max_array'][i], data['pred_label_data']['max_array'][i]],
+                                    symbol: 'none'
+                                }
+                            ]
+                        ]
+                    },
                 })
                 if(i != 0) {
-                    pre_label_option['legend']['selected']['obj ' + (i+1)] = false;
+                    pred_label_option['legend']['selected']['obj ' + (i+1)] = false;
                 }
             }
 
-            pre_label_option && pre_label_chart.setOption(pre_label_option);
+            pred_label_option && pred_label_chart.setOption(pred_label_option);
+
+            pred_label_chart.on('legendselectchanged', function(params){
+                console.log(params);
+                for (var i = 0; i < data['num_objectives']; i++) {
+                    if (params.selected['obj ' + (i+1)]){
+                        pred_label_option.xAxis.min = data['pred_label_data']['min_array'][i]
+                        pred_label_option.xAxis.max = data['pred_label_data']['max_array'][i]
+                        pred_label_option.yAxis.min = data['pred_label_data']['min_array'][i]
+                        pred_label_option.yAxis.max = data['pred_label_data']['max_array'][i]
+                    }
+                }
+                pred_label_option['legend']['selected'] = params.selected
+                pred_label_chart.setOption(pred_label_option)
+            })
 
             var sur_markLineOpt2 = {
                 animation: false,
@@ -1342,7 +1378,7 @@
                 dataZoom: mydataZoom,
                 xAxis: {
                     type: 'value',
-                    name: 'Predicted objective value rank',
+                    name: 'Predicted value rank',
                     boundaryGap: false,
                     nameLocation: 'center',
                     nameRotate: '0',
@@ -1399,34 +1435,8 @@
         }
 
         function verify_cons_surrogate_model() {
-            var cons_sur_markLineOpt1 = {
-                animation: false,
-                label: {
-                    formatter: 'y = x',
-                    align: 'right'
-                },
-                lineStyle: {
-                    type: 'solid'
-                },
-                tooltip: {
-                    formatter: 'y = x'
-                },
-                data: [
-                    [
-                        {
-                            coord: [data['cons_pre_label_data']['min'], data['cons_pre_label_data']['min']],
-                            symbol: 'none'
-                        },
-                        {
-                            coord: [data['cons_pre_label_data']['max'], data['cons_pre_label_data']['max']],
-                            symbol: 'none'
-                        }
-                    ]
-                ]
-            };
-            // initialize Predict-Label Scatter Chart
-            var cons_pre_label_chart = echarts.init($('#cons_pre_label_scatter')[0]);
-            var cons_pre_label_option = {
+            var cons_pred_label_chart = echarts.init($('#cons_pred_label_scatter')[0]);
+            var cons_pred_label_option = {
                 title:{
                     text: 'Predicted Constraint Value',
                 },
@@ -1448,7 +1458,7 @@
                 dataZoom: mydataZoom,
                 xAxis: {
                     type: 'value',
-                    name: 'Predicted constraint value',
+                    name: 'Predicted value',
                     boundaryGap: false,
                     nameLocation: 'center',
                     nameRotate: '0',
@@ -1464,8 +1474,8 @@
                         //     type: 'solid'
                         // }
                     },
-                    min: data['cons_pre_label_data']['min'],
-                    max: data['cons_pre_label_data']['max']
+                    min: data['cons_pred_label_data']['min_array'][0],
+                    max: data['cons_pred_label_data']['max_array'][0],
                 },
                 yAxis: {
                     type: 'value',
@@ -1484,27 +1494,69 @@
                         //     type: 'solid'
                         // }
                     },
-                    min: data['cons_pre_label_data']['min'],
-                    max: data['cons_pre_label_data']['max']
+                    min: data['cons_pred_label_data']['min_array'][0],
+                    max: data['cons_pred_label_data']['max_array'][0],
                 },
                 series: [
 
                 ]
             }
-            for (var i = 0; i < data['num_objectives']; i++) {
-                cons_pre_label_option['series'].push(
+
+            for (var i = 0; i < data['num_constraints']; i++) {
+                cons_pred_label_option['series'].push(
                 {
                     name: 'cons ' + (i+1),
                     type: 'scatter',
                     color: '#50a3ba',
-                    data: data['cons_pre_label_data']['data'][i],
-                    markLine: cons_sur_markLineOpt1
+                    data: data['cons_pred_label_data']['data'][i],
+                    markLine: {
+                        animation: false,
+                        label: {
+                            formatter: 'y = x',
+                            align: 'right'
+                        },
+                        lineStyle: {
+                            type: 'solid'
+                        },
+                        tooltip: {
+                            formatter: 'y = x'
+                        },
+                        data: [
+                            [
+                                {
+                                    coord: [data['cons_pred_label_data']['min_array'][i], data['cons_pred_label_data']['min_array'][i]],
+                                    symbol: 'none'
+                                },
+                                {
+                                    coord: [data['cons_pred_label_data']['max_array'][i], data['cons_pred_label_data']['max_array'][i]],
+                                    symbol: 'none'
+                                }
+                            ]
+                        ]
+                    },
                 })
                 if(i != 0) {
-                    cons_pre_label_option['legend']['selected']['cons ' + (i+1)] = false;
+                    cons_pred_label_option['legend']['selected']['cons ' + (i+1)] = false;
                 }
             }
-            cons_pre_label_option && cons_pre_label_chart.setOption(cons_pre_label_option);
+
+            cons_pred_label_option && cons_pred_label_chart.setOption(cons_pred_label_option);
+
+            cons_pred_label_chart.on('legendselectchanged', function(params){
+                console.log(params);
+                for (var i = 0; i < data['num_objectives']; i++) {
+                    if (params.selected['cons ' + (i+1)]){
+                        cons_pred_label_option.xAxis.min = data['cons_pred_label_data']['min_array'][i]
+                        cons_pred_label_option.xAxis.max = data['cons_pred_label_data']['max_array'][i]
+                        cons_pred_label_option.yAxis.min = data['cons_pred_label_data']['min_array'][i]
+                        cons_pred_label_option.yAxis.max = data['cons_pred_label_data']['max_array'][i]
+                        break
+                    }
+                }
+                cons_pred_label_option['legend']['selected'] = params.selected
+                cons_pred_label_chart.setOption(cons_pred_label_option)
+            })
+            cons_pred_label_option && cons_pred_label_chart.setOption(cons_pred_label_option);
 
 
         }

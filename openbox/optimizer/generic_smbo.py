@@ -227,7 +227,10 @@ class SMBO(BOBase):
         else:
             raise ValueError('Invalid advisor type!')
 
-        self.visualizer = build_visualizer(visualization, self, auto_open_html=auto_open_html)
+        self.visualizer = build_visualizer(
+            option=visualization, history=self.get_history(),
+            logging_dir=self.output_dir, optimizer=self, advisor=None, auto_open_html=auto_open_html,
+        )
         self.visualizer.setup()
 
     def run(self) -> History:

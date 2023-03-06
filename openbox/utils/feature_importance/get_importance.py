@@ -85,7 +85,7 @@ def get_shap_importance(X: np.ndarray, Y: np.ndarray, **kwargs):
     assert Y.ndim == 1 and Y.shape[0] == X.shape[0]
 
     # Fit a LightGBMRegressor with observations
-    lgbr = LGBMRegressor(n_jobs=1, random_state=1, **kwargs)
+    lgbr = LGBMRegressor(n_jobs=1, random_state=1, min_child_samples=3, **kwargs)
     lgbr.fit(X, Y)
     explainer = shap.TreeExplainer(lgbr)
     shap_values = explainer.shap_values(X)

@@ -1,8 +1,18 @@
 import abc
 from typing import Union
+from openbox import History
 
 
-def build_visualizer(option: Union[str, bool], optimizer, **kwargs):
+def build_visualizer(
+        option: Union[str, bool],
+        history: History,
+        *,
+        logging_dir='logs/',
+        task_info=None,
+        optimizer=None,
+        advisor=None,
+        **kwargs,
+):
     """
     Build visualizer for optimizer.
 
@@ -10,10 +20,16 @@ def build_visualizer(option: Union[str, bool], optimizer, **kwargs):
     ----------
     option : ['none', 'basic', 'advanced']
         Visualizer option.
-
-    optimizer : Optimizer
-        Optimizer to visualize.
-
+    history : History
+        History to visualize.
+    logging_dir : str, default='logs/'
+        The directory to save the visualization.
+    task_info : dict, optional
+        Task information for visualizer to use.
+    optimizer : Optimizer, optional
+        Optimizer to extract task_info from.
+    advisor : Advisor, optional
+        Advisor to extract task_info from.
     kwargs : dict
         Other arguments for visualizer.
         For HTMLVisualizer, available arguments are:
@@ -32,20 +48,19 @@ def build_visualizer(option: Union[str, bool], optimizer, **kwargs):
     if option == 'none':
         visualizer = NullVisualizer()
     elif option in ['basic', 'advanced']:
-        advisor = optimizer.config_advisor
+        if task_info is None:
+            task_info = dict()
+        _task_info = extract_task_info(optimizer=optimizer, advisor=advisor)
+        _task_info.update(task_info)
+
         from openbox.visualization.html_visualizer import HTMLVisualizer
         visualizer = HTMLVisualizer(
-            logging_dir=optimizer.output_dir,
-            history=optimizer.get_history(),
+            logging_dir=logging_dir,
+            history=history,
+            task_info=_task_info,
             auto_open_html=kwargs.get('auto_open_html', False),
             advanced_analysis=(option == 'advanced'),
             advanced_analysis_options=kwargs.get('advanced_analysis_options'),
-            advisor_type=optimizer.advisor_type,
-            surrogate_type=advisor.surrogate_type if hasattr(advisor, 'surrogate_type') else None,
-            max_iterations=optimizer.max_iterations,
-            time_limit_per_trial=optimizer.time_limit_per_trial,
-            surrogate_model=advisor.surrogate_model if hasattr(advisor, 'surrogate_model') else None,
-            constraint_models=advisor.constraint_models if hasattr(advisor, 'constraint_models') else None,
         )
     else:
         raise ValueError('Unknown visualizer option: %s' % option)
@@ -64,6 +79,49 @@ def _parse_option(option: Union[str, bool]):
 
     assert option in ['none', 'basic', 'advanced']
     return option
+
+
+def extract_task_info(*, optimizer=None, advisor=None):
+    """
+    Extract task information from optimizer or advisor.
+
+    Parameters
+    ----------
+    optimizer : Optimizer, optional
+        Optimizer to extract task_info from.
+
+    advisor : Advisor, optional
+        Advisor to extract task_info from.
+
+    Returns
+    -------
+    task_info : dict
+        Task information for visualizer to use.
+    """
+    if optimizer is None and advisor is None:
+        return dict()
+
+    if advisor is None:
+        advisor = optimizer.config_advisor if hasattr(optimizer, 'config_advisor') else None
+
+    task_info = dict()
+
+    if optimizer is not None:
+        task_info.update({
+            'advisor_type': optimizer.advisor_type,
+            'max_iterations': optimizer.max_iterations,
+            'time_limit_per_trial': optimizer.time_limit_per_trial,
+        })
+    if advisor is not None:
+        task_info.update({
+            # todo: if model is altered, this will not be updated
+            'surrogate_type': advisor.surrogate_type if hasattr(advisor, 'surrogate_type') else None,
+            'constraint_surrogate_type': advisor.constraint_surrogate_type if hasattr(
+                advisor, 'constraint_surrogate_type') else None,
+            'transfer_learning_history': advisor.transfer_learning_history if hasattr(
+                advisor, 'transfer_learning_history') else None,
+        })
+    return task_info
 
 
 class BaseVisualizer(object, metaclass=abc.ABCMeta):
