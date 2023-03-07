@@ -30,7 +30,7 @@ mth = 'hyperopt'
 
 problem = get_problem(problem_str)
 cs = problem.get_configspace(optimizer='tpe')
-time_limit_per_trial = 600
+max_trial_runtime = 600
 
 
 def evaluate(mth, run_i, seed):

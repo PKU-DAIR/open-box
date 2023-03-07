@@ -78,7 +78,7 @@ if batch_size == 1:
         max_runs = 10000
 else:
     max_runs = 10000
-time_limit_per_trial = 600
+max_trial_runtime = 600
 
 try:
     data_dir = '../soln-ml/data/cls_datasets/'
@@ -108,7 +108,7 @@ def evaluate_parallel(problem, mth, batch_size, seed, ip, port):
                                  initial_runs=initial_runs,     # default: 3
                                  init_strategy='random',
                                  max_runs=10000,
-                                 time_limit_per_trial=time_limit_per_trial,
+                                 max_trial_runtime=max_trial_runtime,
                                  sample_strategy='random',
                                  parallel_strategy='async', batch_size=batch_size,
                                  ip='', port=port, task_id=task_id, random_state=seed)
@@ -118,7 +118,7 @@ def evaluate_parallel(problem, mth, batch_size, seed, ip, port):
                                  initial_runs=initial_runs,     # default: 3
                                  init_strategy=init_strategy,   # default: random_explore_first
                                  max_runs=10000,
-                                 time_limit_per_trial=time_limit_per_trial,
+                                 max_trial_runtime=max_trial_runtime,
                                  parallel_strategy=mth, batch_size=batch_size,
                                  ip='', port=port, task_id=task_id, random_state=seed)
 
@@ -166,7 +166,7 @@ def evaluate(problem, seed):
               initial_runs=initial_runs,                # default: 3
               init_strategy=init_strategy,              # default: random_explore_first
               max_runs=max_runs,
-              time_limit_per_trial=time_limit_per_trial, task_id=task_id, random_state=seed)
+              max_trial_runtime=max_trial_runtime, task_id=task_id, random_state=seed)
     # bo.run()
     config_list = []
     perf_list = []

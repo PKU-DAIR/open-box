@@ -19,14 +19,14 @@ class async_mqHyperband(async_mqSuccessiveHalving):
                  random_state=1,
                  method_id='mqAsyncHyperband',
                  restart_needed=True,
-                 time_limit_per_trial=600,
+                 max_trial_runtime=None,
                  runtime_limit=None,
                  ip='',
                  port=13579,
                  authkey=b'abc',):
         super().__init__(objective_func, config_space, R, eta=eta,
                          random_state=random_state, method_id=method_id, restart_needed=restart_needed,
-                         time_limit_per_trial=time_limit_per_trial, runtime_limit=runtime_limit,
+                         max_trial_runtime=max_trial_runtime, runtime_limit=runtime_limit,
                          ip=ip, port=port, authkey=authkey)
 
         self.skip_outer_loop = skip_outer_loop

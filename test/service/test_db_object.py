@@ -42,7 +42,7 @@ task_config = {
     "advisor_type": 'default',
     "max_runs": 50,
     "surrogate_type": 'gp',
-    "time_limit_per_trial": 5,
+    "max_trial_runtime": 5,
     "logging_dir": 'logs',
     "task_id": 'hp1'
 }
@@ -74,7 +74,7 @@ def test_task():
     #             'advisor_type': 'smbo',
     #             'max_run': 200,
     #             'surrogate_type': 'gp',
-    #             'time_limit_per_trial': 300,
+    #             'max_trial_runtime': 300,
     #             'active_worker_num': 1,
     #             'parallel_type': 'async'
     #             }
@@ -86,7 +86,7 @@ def test_task():
     items = task.find_all({'owner': ObjectId('605c76e8db226d5d47a5b409')},
                           ['task_name', 'owner', 'create_time', 'config_space',
                            'status', 'advisor_type', 'max_run', 'surrogate_type',
-                           'time_limit_per_trial', 'active_worker_num',
+                           'max_trial_runtime', 'active_worker_num',
                            'parallel_type'])
     pprint.pprint(list(items))
 

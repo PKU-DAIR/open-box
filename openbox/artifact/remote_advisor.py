@@ -23,12 +23,12 @@ class RemoteAdvisor(object):
                  surrogate_type=None,
                  acq_type=None,
                  acq_optimizer_type='local_random',
-                 max_runs=200,
+                 max_runs=100,
                  init_strategy='random_explore_first',
                  initial_configurations=None,
                  initial_runs=3,
                  random_state=None,
-                 time_limit_per_trial=300,
+                 max_trial_runtime=None,
                  active_worker_num=1,
                  parallel_type='async',
                  ):
@@ -53,7 +53,7 @@ class RemoteAdvisor(object):
         # Set options
         if initial_configurations is not None and isinstance(initial_configurations[0], Configuration):
             initial_configurations = [config.get_dictionary() for config in initial_configurations]
-        self.max_iterations = max_runs
+        self.max_runs = max_runs
         options = {
             'optimization_strategy': sample_strategy,
             'surrogate_type': surrogate_type,
@@ -73,8 +73,8 @@ class RemoteAdvisor(object):
                             data={'email': self.email, 'password': self.password, 'task_name': task_name,
                                   'config_space_json': config_space_json,
                                   'num_constraints': num_constraints, 'num_objectives': num_objectives,
-                                  'max_runs': self.max_iterations,
-                                  'options': json.dumps(options), 'time_limit_per_trial': time_limit_per_trial,
+                                  'max_runs': self.max_runs,
+                                  'options': json.dumps(options), 'max_trial_runtime': max_trial_runtime,
                                   'active_worker_num': active_worker_num, 'parallel_type': parallel_type})
         res = json.loads(res.text)
 

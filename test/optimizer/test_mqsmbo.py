@@ -101,7 +101,7 @@ if role == 'master':
     batch_size = args.batch_size
     parallel = args.parallel
 
-    bo = mqSMBO(None, cs, max_runs=run_count, time_limit_per_trial=60, logging_dir='logs',
+    bo = mqSMBO(None, cs, max_runs=run_count, max_trial_runtime=60, logging_dir='logs',
                 parallel_strategy=parallel, batch_size=batch_size, ip='', port=port, task_id='test_mqsmbo')
     bo.run()
     inc_value = bo.get_incumbents()

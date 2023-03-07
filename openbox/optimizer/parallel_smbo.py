@@ -1,8 +1,6 @@
 # License: MIT
 
-import sys
 import time
-import traceback
 from typing import List
 from multiprocessing import Lock
 import numpy as np
@@ -10,7 +8,7 @@ import numpy as np
 from openbox import logger
 from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.core.computation.parallel_process import ParallelEvaluation
-from openbox.utils.limit import time_limit, TimeoutException
+from openbox.utils.limit import run_obj_func
 from openbox.utils.util_funcs import parse_result, deprecate_kwarg
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
@@ -20,35 +18,37 @@ from openbox.optimizer.base import BOBase
 
 
 def wrapper(param):
-    objective_function, config, time_limit_per_trial = param
-    trial_state = SUCCESS
-    start_time = time.time()
-    try:
-        args, kwargs = (config,), dict()
-        timeout_status, _result = time_limit(objective_function, time_limit_per_trial,
-                                             args=args, kwargs=kwargs)
-        if timeout_status:
-            raise TimeoutException('Timeout: time limit for this evaluation is %.1fs' % time_limit_per_trial)
-        else:
-            objectives, constraints, extra_info = parse_result(_result)
-    except Exception as e:
-        if isinstance(e, TimeoutException):
-            trial_state = TIMEOUT
-        else:
-            traceback.print_exc(file=sys.stdout)
-            trial_state = FAILED
-        objectives = None
-        constraints = None
-        extra_info = None
-    elapsed_time = time.time() - start_time
-    return Observation(
+    objective_function, config, timeout, FAILED_PERF = param
+
+    # evaluate configuration on objective_function
+    obj_args, obj_kwargs = (config,), dict()
+    result = run_obj_func(objective_function, obj_args, obj_kwargs, timeout)
+
+    # parse result
+    ret, timeout_status, traceback_msg, elapsed_time = (
+        result['result'], result['timeout'], result['traceback'], result['elapsed_time'])
+    if timeout_status:
+        trial_state = TIMEOUT
+    elif traceback_msg is not None:
+        trial_state = FAILED
+        print(f'Exception raised in objective function:\n{traceback_msg}\nconfig: {config}')
+    else:
+        trial_state = SUCCESS
+    if trial_state == SUCCESS:
+        objectives, constraints, extra_info = parse_result(ret)
+    else:
+        objectives, constraints, extra_info = FAILED_PERF.copy(), None, None
+
+    observation = Observation(
         config=config, objectives=objectives, constraints=constraints,
         trial_state=trial_state, elapsed_time=elapsed_time, extra_info=extra_info,
     )
+    return observation
 
 
 class pSMBO(BOBase):
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
+    @deprecate_kwarg('time_limit_per_trial', 'max_trial_runtime', 'a future version')
     def __init__(
             self,
             objective_function,
@@ -59,8 +59,8 @@ class pSMBO(BOBase):
             batch_size=4,
             batch_strategy='default',
             sample_strategy: str = 'bo',
-            max_runs=200,
-            time_limit_per_trial=180,
+            max_runs=100,
+            max_trial_runtime=None,
             surrogate_type='auto',
             acq_type='auto',
             acq_optimizer_type='auto',
@@ -84,7 +84,7 @@ class pSMBO(BOBase):
         self.FAILED_PERF = [np.inf] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
-                         sample_strategy=sample_strategy, time_limit_per_trial=time_limit_per_trial,
+                         sample_strategy=sample_strategy, max_trial_runtime=max_trial_runtime,
                          transfer_learning_history=transfer_learning_history, logger_kwargs=logger_kwargs)
 
         self.parallel_strategy = parallel_strategy
@@ -167,27 +167,25 @@ class pSMBO(BOBase):
             raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
 
     def callback(self, observation: Observation):
-        if observation.objectives is None:
-            observation.objectives = self.FAILED_PERF.copy()
         # Report the result, and remove the config from the running queue.
         with self.advisor_lock:
             # Parent process: collect the result and increment id.
             self.config_advisor.update_observation(observation)
-            logger.info('Update observation %d: %s.' % (self.iteration_id + 1, str(observation)))
             self.iteration_id += 1  # must increment id after updating
+            logger.info('Update observation %d: %s.' % (self.iteration_id, str(observation)))
 
     # TODO: Wrong logic. Need to wait before return?
     def async_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
-            while self.iteration_id < self.max_iterations:
+            while self.iteration_id < self.max_runs:
                 with self.advisor_lock:
                     _config = self.config_advisor.get_suggestion()
-                _param = [self.objective_function, _config, self.time_limit_per_trial]
+                _param = [self.objective_function, _config, self.max_trial_runtime, self.FAILED_PERF]
                 # Submit a job to worker.
                 proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback)
                 while len(self.config_advisor.running_configs) >= self.batch_size:
                     # Wait for workers.
-                    time.sleep(0.3)
+                    time.sleep(0.1)
 
     # Asynchronously evaluate n configs
     def async_iterate(self, n=1) -> List[Observation]:
@@ -197,12 +195,12 @@ class pSMBO(BOBase):
             while iter_id < n:
                 with self.advisor_lock:
                     _config = self.config_advisor.get_suggestion()
-                _param = [self.objective_function, _config, self.time_limit_per_trial]
+                _param = [self.objective_function, _config, self.max_trial_runtime, self.FAILED_PERF]
                 # Submit a job to worker.
                 res_list.append(proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback))
                 while len(self.config_advisor.running_configs) >= self.batch_size:
                     # Wait for workers.
-                    time.sleep(0.3)
+                    time.sleep(0.1)
                 iter_id += 1
             for res in res_list:
                 res.wait()
@@ -212,24 +210,23 @@ class pSMBO(BOBase):
 
     def sync_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
-            batch_num = (self.max_iterations + self.batch_size - 1) // self.batch_size
-            if self.batch_size > self.config_advisor.init_num:
-                batch_num += 1  # fix bug
-            batch_id = 0
-            while batch_id < batch_num:
+            batch_id, config_count = 0, 0
+            while True:
+                batch_id += 1
                 configs = self.config_advisor.get_suggestions()
                 logger.info('Running on %d configs in the %d-th batch.' % (len(configs), batch_id))
-                params = [(self.objective_function, config, self.time_limit_per_trial) for config in configs]
+                param_list = [(self.objective_function, config, self.max_trial_runtime, self.FAILED_PERF)
+                              for config in configs]
                 # Wait all workers to complete their corresponding jobs.
-                observations = proc.parallel_execute(params)
+                observations = proc.parallel_execute(param_list)
                 # Report their results.
                 for idx, observation in enumerate(observations):
-                    if observation.objectives is None:
-                        observation.objectives = self.FAILED_PERF.copy()
                     self.config_advisor.update_observation(observation)
                     logger.info('In the %d-th batch [%d/%d], observation: %s.'
-                                     % (batch_id, idx+1, len(configs), observation))
-                batch_id += 1
+                                % (batch_id, idx+1, len(configs), observation))
+                config_count += len(configs)
+                if config_count >= self.max_runs:
+                    break
 
     def run(self) -> History:
         if self.parallel_strategy == 'async':

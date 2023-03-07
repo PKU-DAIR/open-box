@@ -60,7 +60,6 @@ opt = Optimizer(
     surrogate_type='gp',
     acq_optimizer_type='random_scipy',
     max_runs=50,
-    time_limit_per_trial=10,
     task_id='soc',
 )
 history = opt.run()
@@ -72,8 +71,6 @@ history = opt.run()
 + **num_objectives=1** 和 **num_constraints=1** 表示我们的函数返回一个有约束条件的单目标值。
 
 + **max_runs=50** 表示优化过程进行50轮（优化目标函数50次）。
-
-+ **time_limit_per_trial** 为每个目标函数评估设定最大时间预算（单位：秒）。一旦评估时间超过这个限制，目标函数返回一个失败状态。
 
 + **task_id** 用来识别优化过程。
 

@@ -44,7 +44,6 @@ def test_examples_optimize_multi_objective_with_constraint():
         initial_runs=9,
         init_strategy='sobol',
         ref_point=ref_point,
-        time_limit_per_trial=10,
         task_id='moc',
         random_state=1,
         logging_dir='logs/pytest/',

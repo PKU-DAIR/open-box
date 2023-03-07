@@ -27,7 +27,6 @@ def test_examples_quick_example():
         max_runs=50,
         # surrogate_type='gp',
         surrogate_type='auto',
-        time_limit_per_trial=30,
         task_id='quick_start',
         logging_dir='logs/pytest/',
     )

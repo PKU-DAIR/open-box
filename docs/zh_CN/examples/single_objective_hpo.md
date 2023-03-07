@@ -100,7 +100,6 @@ opt = Optimizer(
     num_constraints=0,
     max_runs=100,
     surrogate_type='prf',
-    time_limit_per_trial=180,
     task_id='so_hpo',
 )
 history = opt.run()
@@ -116,8 +115,6 @@ history = opt.run()
 + **surrogate_type='prf'** 对于数学问题，我们推荐用高斯过程 (**'gp'**) 做贝叶斯优化的替代模型。
 对于实际问题，比如超参数优化（HPO）问题，我们推荐使用随机森林(**'prf'**)。
 
-+ **time_limit_per_trial** 为每个目标函数评估设定最大时间预算（单位：秒）。一旦评估时间超过这个限制，目标函数返回一个失败状态。
-  
 + **task_id** 用来识别优化过程。
 
 然后，调用 <font color=#FF0000>**opt.run()**</font> 启动优化过程。

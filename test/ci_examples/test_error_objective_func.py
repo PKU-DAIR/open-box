@@ -46,7 +46,7 @@ bo = SMBO(branin,
           num_constraints=0,
           max_runs=50,
           surrogate_type='gp',
-          time_limit_per_trial=180,
+          max_trial_runtime=180,
           task_id='test_error')
 history = bo.run()
 

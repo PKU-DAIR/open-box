@@ -33,7 +33,7 @@ class NSGABase(object, metaclass=abc.ABCMeta):
         self.config_space = config_space
         self.config_space.seed(self.rng.randint(MAXINT))
         self.objective_function = objective_function
-        self.max_iterations = max_runs
+        self.max_runs = max_runs
 
     def run(self):
         raise NotImplementedError()

@@ -60,7 +60,6 @@ opt = Optimizer(
     surrogate_type='gp',
     acq_optimizer_type='random_scipy',
     max_runs=50,
-    time_limit_per_trial=10,
     task_id='soc',
 )
 history = opt.run()
@@ -73,9 +72,6 @@ The other parameters are:
 + **num_objectives=1** and **num_constraints=1** indicate that our function returns a single value with one constraint. 
 
 + **max_runs=50** means the optimization will take 50 rounds (optimizing the objective function 50 times). 
-
-+ **time_limit_per_trial** sets the time budget (seconds) of each objective function evaluation. Once the 
-evaluation time exceeds this limit, objective function will return as a failed trial.
 
 + **task_id** is set to identify the optimization process.
 

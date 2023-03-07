@@ -37,7 +37,7 @@ if __name__ == "__main__":
         max_runs=50,
         surrogate_type='gp',
         acq_optimizer_type='random_scipy',
-        time_limit_per_trial=30,
+        max_trial_runtime=30,
         task_id='test_cs',
         random_state=1,
     )

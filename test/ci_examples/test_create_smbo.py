@@ -32,7 +32,7 @@ config_dict = {
     "advisor_type": 'default',
     "max_runs": 50,
     "surrogate_type": 'gp',
-    "time_limit_per_trial": 5,
+    "max_trial_runtime": 5,
     "logging_dir": 'logs',
     "task_id": 'hp1'
 }

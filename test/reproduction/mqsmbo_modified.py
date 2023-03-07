@@ -14,12 +14,12 @@ class mqSMBO_modified(mqSMBO):
     def async_run_with_limit(self, runtime_limit):
         config_num = 0
         result_num = 0
-        while result_num < self.max_iterations:
+        while result_num < self.max_runs:
             # Add jobs to masterQueue.
-            while len(self.config_advisor.running_configs) < self.batch_size and config_num < self.max_iterations:
+            while len(self.config_advisor.running_configs) < self.batch_size and config_num < self.max_runs:
                 config_num += 1
                 config = self.config_advisor.get_suggestion()
-                msg = [config, self.time_limit_per_trial]
+                msg = [config, self.max_trial_runtime]
                 logger.info("Master: Add config %d." % config_num)
                 self.master_messager.send_message(msg)
 
@@ -48,7 +48,7 @@ class mqSMBO_modified(mqSMBO):
                 return
 
     def sync_run_with_limit(self, runtime_limit):
-        batch_num = (self.max_iterations + self.batch_size - 1) // self.batch_size
+        batch_num = (self.max_runs + self.batch_size - 1) // self.batch_size
         if self.batch_size > self.config_advisor.init_num:
             batch_num += 1  # fix bug
         batch_id = 0
@@ -56,7 +56,7 @@ class mqSMBO_modified(mqSMBO):
             configs = self.config_advisor.get_suggestions()
             # Add batch configs to masterQueue.
             for config in configs:
-                msg = [config, self.time_limit_per_trial]
+                msg = [config, self.max_trial_runtime]
                 self.master_messager.send_message(msg)
             logger.info('Master: %d-th batch. %d configs sent.' % (batch_id, len(configs)))
             # Get batch results from workerQueue.
@@ -91,7 +91,7 @@ class mqSMBO_modified(mqSMBO):
                 return
 
     def run_with_limit(self, runtime_limit):
-        self.max_iterations = max(self.max_iterations, 10000)
+        self.max_runs = max(self.max_runs, 10000)
         self.sleep_time = 0.1
         self.global_start_time = time.time()
         self.config_list = []

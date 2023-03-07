@@ -100,7 +100,6 @@ opt = Optimizer(
     num_constraints=0,
     max_runs=100,
     surrogate_type='prf',
-    time_limit_per_trial=180,
     task_id='so_hpo',
 )
 history = opt.run()
@@ -116,9 +115,6 @@ The other parameters are:
 
 + **surrogate_type='prf'**. For mathematical problem, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
 model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
-
-+ **time_limit_per_trial** sets the time budget (seconds) of each objective function evaluation. Once the 
-evaluation time exceeds this limit, objective function will return as a failed trial.
 
 + **task_id** is set to identify the optimization process.
 

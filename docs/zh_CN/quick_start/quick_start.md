@@ -64,7 +64,6 @@ opt = Optimizer(
     space,
     max_runs=50,
     surrogate_type='gp',
-    time_limit_per_trial=30,
     task_id='quick_start',
 )
 history = opt.run()
@@ -79,8 +78,6 @@ history = opt.run()
 
 + **surrogate_type='gp'**： 对于数学问题，我们推荐用高斯过程 (**'gp'**) 作为贝叶斯优化的代理模型。
 对于实际的问题，例如超参数优化 (HPO)，我们推荐用随机森林 (**'prf'**)。
-
-+ **time_limit_per_trial** 为每个目标函数评估设定最大时间预算（单位：秒）。一旦评估时间超过这个限制，目标函数返回一个失败状态。
 
 + **task_id** 被用来区别不同优化过程。
 

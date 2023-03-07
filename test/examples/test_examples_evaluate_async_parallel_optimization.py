@@ -32,7 +32,6 @@ def test_examples_evaluate_async_parallel_optimization():
         max_runs=50,
         # surrogate_type='gp',
         surrogate_type='auto',
-        time_limit_per_trial=180,
         task_id='parallel_async',
         logging_dir='logs/pytest/',
     )

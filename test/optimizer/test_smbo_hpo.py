@@ -50,7 +50,7 @@ bo = SMBO(objective_function,
           num_constraints=0,
           max_runs=100,
           surrogate_type='prf',
-          time_limit_per_trial=180,
+          max_trial_runtime=180,
           task_id='so_hpo')
 bo.run()
 

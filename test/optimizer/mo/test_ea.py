@@ -25,7 +25,7 @@ if __name__ == "__main__":
         space,
         advisor_type='ea',
         max_runs=max_runs,
-        time_limit_per_trial=30,
+        max_trial_runtime=30,
         task_id='test_ea',
     )
     history = opt.run()
@@ -39,7 +39,7 @@ if __name__ == "__main__":
         batch_size=batch_size,
         sample_strategy='ea',
         max_runs=max_runs,
-        time_limit_per_trial=30,
+        max_trial_runtime=30,
         task_id='test_ea',
     )
     history = opt.run()
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         batch_size=batch_size,
         sample_strategy='ea',
         max_runs=max_runs,
-        time_limit_per_trial=30,
+        max_trial_runtime=30,
         task_id='test_ea',
     )
     history = opt.run()
