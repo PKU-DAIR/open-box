@@ -59,7 +59,7 @@ bo = SMBO(multi_objective_func, cs, num_objectives=num_objectives, max_runs=max_
           # surrogate_type='gp_rbf',    # use default
           acq_type=mth,
           # initial_configurations=X_init, initial_runs=10,
-          time_limit_per_trial=60, task_id='mo', random_state=seed)
+          max_trial_runtime=60, task_id='mo', random_state=seed)
 bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
 bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
 #bo.config_advisor.acquisition_function.random_state = seed      # set random_state
@@ -86,7 +86,7 @@ print('hv_diffs:', hv_diffs)
 
 # Evaluate the random search.
 bo_r = SMBO(multi_objective_func, cs, num_objectives=num_objectives, max_runs=max_runs,
-            time_limit_per_trial=60, sample_strategy='random', task_id='mo_random')
+            max_trial_runtime=60, sample_strategy='random', task_id='mo_random')
 print('Random', '='*30)
 # bo_r.run()
 for i in range(max_runs):

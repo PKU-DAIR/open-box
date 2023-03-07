@@ -31,7 +31,6 @@ def test_examples_quick_example_with_json():
         "max_runs": 50,
         # "surrogate_type": "gp",
         "surrogate_type": "auto",
-        "time_limit_per_trial": 5,
         "task_id": "quick_example",
         "logging_dir": "logs/pytest/",
     }

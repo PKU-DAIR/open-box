@@ -39,7 +39,6 @@ if __name__ == "__main__":
         surrogate_type='gp',
         acq_optimizer_type='random_scipy',
         max_runs=50,
-        time_limit_per_trial=10,
         task_id='soc',
     )
     history = opt.run()

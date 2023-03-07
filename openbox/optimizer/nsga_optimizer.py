@@ -56,7 +56,7 @@ class NSGAOptimizer(NSGABase):
         # set algorithm
         if self.algo == 'nsgaii':
             population_size = kwargs.get('population_size', 100)
-            if self.max_iterations <= population_size:
+            if self.max_runs <= population_size:
                 logger.warning('max_runs <= population_size! Please check.')
                 population_size = min(max_runs, population_size)
             variator = get_variator(config_space)
@@ -65,9 +65,9 @@ class NSGAOptimizer(NSGABase):
             raise ValueError('Unsupported algorithm: %s' % self.algo)
 
     def run(self):
-        logger.info('Start optimization. max_iterations: %d' % (self.max_iterations,))
+        logger.info('Start optimization. max_runs: %d' % (self.max_runs,))
         start_time = time.time()
-        self.algorithm.run(self.max_iterations)
+        self.algorithm.run(self.max_runs)
         end_time = time.time()
         logger.info('Optimization is complete. Time: %.2fs.' % (end_time - start_time))
         return self

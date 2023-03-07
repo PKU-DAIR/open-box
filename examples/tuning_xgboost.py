@@ -24,7 +24,6 @@ if __name__ == "__main__":
         config_space,
         max_runs=100,
         surrogate_type='prf',
-        time_limit_per_trial=180,
         task_id='tuning_xgboost',
     )
     history = opt.run()

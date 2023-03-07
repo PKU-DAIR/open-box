@@ -58,7 +58,6 @@ if __name__ == "__main__":
             max_runs=50,
             # surrogate_type='gp',
             surrogate_type='auto',
-            time_limit_per_trial=180,
             task_id='distributed_opt',
             ip="",
             port=port,

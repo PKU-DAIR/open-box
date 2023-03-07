@@ -35,12 +35,12 @@ cs.add_hyperparameters([x1, x2])
 i = 10
 bo = SMBO(branin, cs, advisor_type='default', surrogate_type='gp',
           acq_optimizer_type='local_random', initial_runs=3,
-          task_id='local_random_bo', random_state=i, max_runs=31, time_limit_per_trial=3, logging_dir='logs')
+          task_id='local_random_bo', random_state=i, max_runs=31, max_trial_runtime=3, logging_dir='logs')
 bo.run()
 
 bo2 = SMBO(branin, cs, advisor_type='default', surrogate_type='gp',
            acq_optimizer_type='random_scipy', initial_runs=3,
-           task_id='random_scipy_bo', random_state=i, max_runs=31, time_limit_per_trial=3, logging_dir='logs')
+           task_id='random_scipy_bo', random_state=i, max_runs=31, max_trial_runtime=3, logging_dir='logs')
 bo2.run()
 
 print(bo.get_incumbents())

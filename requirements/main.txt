@@ -1,4 +1,3 @@
-dill
 cython
 psutil
 setuptools

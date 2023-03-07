@@ -60,7 +60,7 @@ except Exception:
     pass
 
 cs = problem.get_configspace(optimizer='smac')
-time_limit_per_trial = 3600
+max_trial_runtime = 3600
 
 
 def evaluate(mth, run_i, seed):
@@ -82,7 +82,7 @@ def evaluate(mth, run_i, seed):
               initial_runs=initial_runs,                # default: 3
               init_strategy=init_strategy,              # default: random_explore_first
               max_runs=max_runs,
-              time_limit_per_trial=time_limit_per_trial, task_id=task_id, random_state=seed)
+              max_trial_runtime=max_trial_runtime, task_id=task_id, random_state=seed)
     if advisor_type == 'tpe':
         bo.config_advisor.num_samples = tpe_num_samples
 

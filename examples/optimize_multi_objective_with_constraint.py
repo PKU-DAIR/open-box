@@ -44,7 +44,6 @@ if __name__ == "__main__":
         initial_runs=9,
         init_strategy='sobol',
         ref_point=ref_point,
-        time_limit_per_trial=10,
         task_id='moc',
         random_state=1,
     )

@@ -58,7 +58,6 @@ opt = Optimizer(
     initial_runs=2*(dim+1),
     init_strategy='sobol',
     ref_point=prob.ref_point,
-    time_limit_per_trial=10,
     task_id='mo',
     random_state=1,
 )
@@ -92,9 +91,6 @@ using **'local_random'**.
 hypervolume. If using EHVI method, a reference point must be provided. In practice, the reference point can be
 set 1) using domain knowledge to be slightly worse than the upper bound of objective values, where the upper bound is
 the maximum acceptable value of interest for each objective, or 2) using a dynamic reference point selection strategy.
-
-+ **time_limit_per_trial** sets the time budget (seconds) of each objective function evaluation. Once the 
-evaluation time exceeds this limit, objective function will return as a failed trial.
 
 + **task_id** is set to identify the optimization process.
 

@@ -90,7 +90,7 @@ def objective_function(config):
 
 ### Optimization
 
-After defining the search space and the objective function, we can use the built-in optimization framework to perform optimization. In the following example, we set *max_runs* to 100, which means OpenBox will tune XGBoost 100 times. In addition, each run is given a time limit of 180 seconds by setting *time_limit_per_trial*. 
+After defining the search space and the objective function, we can use the built-in optimization framework to perform optimization. In the following example, we set *max_runs* to 100, which means OpenBox will tune XGBoost 100 times.
 
 ```python
 from openbox import Optimizer
@@ -98,7 +98,6 @@ opt = Optimizer(
     objective_function,
     config_space,
     max_runs=100,
-    time_limit_per_trial=180,
     surrogate_type='prf',
     task_id='tuning_xgboost',
 )

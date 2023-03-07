@@ -29,7 +29,6 @@ def run_test():
             branin,
             space,
             max_runs=max_runs,
-            time_limit_per_trial=30,
             task_id='test_install',
         )
         history = opt.run()

@@ -39,7 +39,6 @@ def test_examples_optimize_problem_with_constraint():
         surrogate_type='gp',
         acq_optimizer_type='random_scipy',
         max_runs=50,
-        time_limit_per_trial=10,
         task_id='soc',
         logging_dir='logs/pytest/',
     )

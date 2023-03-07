@@ -75,7 +75,7 @@ config_dict = {
     # "advisor_type": "default",
     "max_runs": 100,
     # "surrogate_type": "prf",
-    "time_limit_per_trial": 180,
+    "max_trial_runtime": 180,
     # "logging_dir": "logs",
     "task_id": "so_hpo"
 }

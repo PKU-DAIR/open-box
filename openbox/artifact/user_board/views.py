@@ -61,7 +61,7 @@ def task_detail(request, task_id: str):
         context['task_field'] = ['Advisor Type', 'Surrogate Type', 'Time Limit Per Trial', 'Active Worker Num',
                                  'Parallel Type']
         task = Task().find_one({'_id': ObjectId(task_id)})
-        context['task'] = [task['advisor_type'], task['surrogate_type'], task['time_limit_per_trial'],
+        context['task'] = [task['advisor_type'], task['surrogate_type'], task['max_trial_runtime'],
                            task['active_worker_num'], task['parallel_type'], ]
         context['rh_field'] = ['Result', 'Configuration', 'Status', 'Trial Info', 'Worker Id', 'Cost']
         context['task_id'] = task_id

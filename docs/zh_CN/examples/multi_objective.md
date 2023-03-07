@@ -58,7 +58,6 @@ opt = Optimizer(
     initial_runs=2*(dim+1),
     init_strategy='sobol',
     ref_point=prob.ref_point,
-    time_limit_per_trial=10,
     task_id='mo',
     random_state=1,
 )
@@ -88,8 +87,6 @@ opt.run()
 + **ref_point** 指定参考点，它是用于计算超体积的目标的上限。
   如果使用EHVI方法，则必须提供参考点。
   在实践中，可以1）使用领域知识将参考点设置为略差于目标值的上界，其中上界是每个目标感兴趣的最大可接受值，或者2）使用动态的参考点选择策略。
-  
-+ **time_limit_per_trial** 为每个目标函数评估设定最大时间预算（单位：秒）。一旦评估时间超过这个限制，目标函数返回一个失败状态。
 
 + **task_id** 用来识别优化过程。
 

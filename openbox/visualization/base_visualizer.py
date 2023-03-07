@@ -109,8 +109,8 @@ def extract_task_info(*, optimizer=None, advisor=None):
     if optimizer is not None:
         task_info.update({
             'advisor_type': optimizer.advisor_type,
-            'max_iterations': optimizer.max_iterations,
-            'time_limit_per_trial': optimizer.time_limit_per_trial,
+            'max_runs': optimizer.max_runs,
+            'max_trial_runtime': optimizer.max_trial_runtime,
         })
     if advisor is not None:
         task_info.update({

@@ -18,7 +18,7 @@ class HTMLVisualizer(BaseVisualizer):
     )
     _task_info_keys = [
         'task_id',
-        'advisor_type', 'max_iterations', 'time_limit_per_trial',
+        'advisor_type', 'max_runs', 'max_trial_runtime',
         'surrogate_type', 'constraint_surrogate_type', 'transfer_learning_history'
     ]
 
@@ -80,7 +80,7 @@ class HTMLVisualizer(BaseVisualizer):
 
     def update(self, update_importance=None, verify_surrogate=None):
         iter_id = len(self.history)
-        max_iter = self.task_info['max_iterations'] or np.inf
+        max_iter = self.task_info['max_runs'] or np.inf
         if update_importance is None:
             if not self.advanced_analysis:
                 update_importance = False
@@ -252,8 +252,8 @@ class HTMLVisualizer(BaseVisualizer):
                 'table_field': ['Task Id', 'Advisor Type', 'Surrogate Type', 'Current Run', 'Max Runs',
                                 'Time Limit Per Trial'],
                 'table_data': [self.task_info['task_id'], self.task_info['advisor_type'],
-                               self.task_info['surrogate_type'], len(self.history), self.task_info['max_iterations'],
-                               self.task_info['time_limit_per_trial']]
+                               self.task_info['surrogate_type'], len(self.history), self.task_info['max_runs'],
+                               self.task_info['max_trial_runtime']]
             },
             'importance_data': None,
             'pred_label_data': None,

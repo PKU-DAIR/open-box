@@ -23,7 +23,7 @@ class mqBaseFacade(object):
                  method_name='default_method_name',
                  log_directory='logs',
                  data_directory='data',
-                 time_limit_per_trial=600,
+                 max_trial_runtime=None,
                  runtime_limit=None,
                  max_queue_len=300,
                  ip='',
@@ -61,7 +61,7 @@ class mqBaseFacade(object):
         if self.method_name is None:
             raise ValueError('Method name must be specified! NOT NONE.')
 
-        self.time_limit_per_trial = time_limit_per_trial
+        self.max_trial_runtime = max_trial_runtime
         self.runtime_limit = runtime_limit
 
         max_queue_len = max(300, max_queue_len)
@@ -112,7 +112,7 @@ class mqBaseFacade(object):
 
         # Add batch configs to masterQueue.
         for config, extra_conf in conf_list:
-            msg = [config, extra_conf, self.time_limit_per_trial, n_iteration, self.global_trial_counter]
+            msg = [config, extra_conf, self.max_trial_runtime, n_iteration, self.global_trial_counter]
             self.master_messager.send_message(msg)
             self.global_trial_counter += 1
         logger.info('Master: %d configs sent.' % (len(conf_list)))

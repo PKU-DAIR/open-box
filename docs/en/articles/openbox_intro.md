@@ -226,7 +226,6 @@ config_dict = {
     "num_objectives": 1,
     "num_constraints": 0,
     "max_runs": 100,
-    "time_limit_per_trial": 180,
     "task_id": "tuning_lightgbm"
 }
 ```
