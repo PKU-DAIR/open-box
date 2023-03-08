@@ -73,7 +73,9 @@ class ModularEAAdvisor(EAAdvisor):
             res = self._gen(count - len(self.cached_config) - len(temp))
             if not res:
                 break
+            # @bugfix: too many repeated configs here
             temp.extend(res)
+            temp = list(set(temp))
 
         if self.filter_gen_population is not None:
             temp = self.filter_gen_population(temp)
