@@ -29,7 +29,7 @@ from .utils.tuning import get_config_space, get_objective_function
 from .utils.test_install import run_test
 
 
-__version__ = version = "0.8.0"
+__version__ = version = "0.8.1"
 
 
 __all__ = [
