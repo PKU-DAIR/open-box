@@ -169,9 +169,8 @@ class HTMLVisualizer(BaseVisualizer):
             else:
                 config_str = config_str[1:-1]
 
-            table_list.append(
-                [idx + 1, objectives, constraints, config_dic, config_str, obs.trial_state,
-                 round(obs.elapsed_time, 3)])
+            elapsed_time = round(obs.elapsed_time, 3) if obs.elapsed_time is not None else None
+            table_list.append([idx + 1, objectives, constraints, config_dic, config_str, obs.trial_state, elapsed_time])
 
             config_values = list(config_dic.values())
 
