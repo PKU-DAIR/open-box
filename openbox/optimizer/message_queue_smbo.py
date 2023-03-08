@@ -15,6 +15,7 @@ from openbox.utils.util_funcs import deprecate_kwarg
 
 class mqSMBO(BOBase):
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
+    @deprecate_kwarg('time_limit_per_trial', 'max_runtime_per_trial', 'a future version')
     def __init__(
             self,
             objective_function,
@@ -26,7 +27,7 @@ class mqSMBO(BOBase):
             num_constraints=0,
             sample_strategy: str = 'bo',
             max_runs=100,
-            max_trial_runtime=None,
+            max_runtime_per_trial=None,
             surrogate_type='auto',
             acq_type='auto',
             acq_optimizer_type='auto',
@@ -53,7 +54,7 @@ class mqSMBO(BOBase):
         self.FAILED_PERF = [np.inf] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
-                         sample_strategy=sample_strategy, max_trial_runtime=max_trial_runtime,
+                         sample_strategy=sample_strategy, max_runtime_per_trial=max_runtime_per_trial,
                          transfer_learning_history=transfer_learning_history, logger_kwargs=logger_kwargs)
 
         self.parallel_strategy = parallel_strategy
@@ -114,7 +115,7 @@ class mqSMBO(BOBase):
             while len(self.config_advisor.running_configs) < self.batch_size and config_num < self.max_runs:
                 config_num += 1
                 config = self.config_advisor.get_suggestion()
-                msg = [config, self.max_trial_runtime, self.FAILED_PERF]
+                msg = [config, self.max_runtime_per_trial, self.FAILED_PERF]
                 logger.info("Master: Add config %d." % config_num)
                 self.master_messager.send_message(msg)
 
@@ -138,7 +139,7 @@ class mqSMBO(BOBase):
             configs = self.config_advisor.get_suggestions()
             # Add batch configs to masterQueue.
             for config in configs:
-                msg = [config, self.max_trial_runtime, self.FAILED_PERF]
+                msg = [config, self.max_runtime_per_trial, self.FAILED_PERF]
                 self.master_messager.send_message(msg)
             logger.info('Master: %d-th batch. %d configs sent.' % (batch_id, len(configs)))
             # Get batch results from workerQueue.

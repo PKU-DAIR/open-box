@@ -5,10 +5,10 @@ test time:
 python test/reproduction/so/benchmark_parallel_smbo_lightgbm.py --datasets optdigits --n 100 --n_jobs 2 --batch_size 1 --rep 1 --start_id 0
 
 run serial:
-python test/reproduction/so/benchmark_parallel_smbo_lightgbm.py --datasets optdigits --runtime_limit 1200 --n_jobs 2 --batch_size 1 --rep 1 --start_id 0
+python test/reproduction/so/benchmark_parallel_smbo_lightgbm.py --datasets optdigits --max_runtime 1200 --n_jobs 2 --batch_size 1 --rep 1 --start_id 0
 
 run parallel:
-python test/reproduction/so/benchmark_parallel_smbo_lightgbm.py --mth sync --datasets optdigits --runtime_limit 1200 --n_jobs 2 --batch_size 8 --rep 1 --start_id 0
+python test/reproduction/so/benchmark_parallel_smbo_lightgbm.py --mth sync --datasets optdigits --max_runtime 1200 --n_jobs 2 --batch_size 8 --rep 1 --start_id 0
 
 """
 
@@ -34,7 +34,7 @@ parser.add_argument('--mth', type=str, default='sync', choices=['sync', 'async',
 parser.add_argument('--datasets', type=str, default=default_datasets)
 parser.add_argument('--n_jobs', type=int, default=2)
 parser.add_argument('--n', type=int, default=0)
-parser.add_argument('--runtime_limit', type=int, default=1200)
+parser.add_argument('--max_runtime', type=int, default=1200)
 parser.add_argument('--rep', type=int, default=1)
 parser.add_argument('--start_id', type=int, default=0)
 
@@ -51,7 +51,7 @@ args = parser.parse_args()
 test_datasets = args.datasets.split(',')
 mth = args.mth
 max_runs = args.n
-runtime_limit = args.runtime_limit
+max_runtime = args.max_runtime
 n_jobs = args.n_jobs
 rep = args.rep
 start_id = args.start_id
@@ -73,12 +73,12 @@ else:
 if batch_size == 1:
     mth = 'serial'
     if max_runs > 0:    # test serial time
-        runtime_limit = 999999
+        max_runtime = 999999
     else:               # benchmark serial
         max_runs = 10000
 else:
     max_runs = 10000
-max_trial_runtime = 600
+max_runtime_per_trial = 600
 
 try:
     data_dir = '../soln-ml/data/cls_datasets/'
@@ -108,7 +108,7 @@ def evaluate_parallel(problem, mth, batch_size, seed, ip, port):
                                  initial_runs=initial_runs,     # default: 3
                                  init_strategy='random',
                                  max_runs=10000,
-                                 max_trial_runtime=max_trial_runtime,
+                                 max_runtime_per_trial=max_runtime_per_trial,
                                  sample_strategy='random',
                                  parallel_strategy='async', batch_size=batch_size,
                                  ip='', port=port, task_id=task_id, random_state=seed)
@@ -118,11 +118,11 @@ def evaluate_parallel(problem, mth, batch_size, seed, ip, port):
                                  initial_runs=initial_runs,     # default: 3
                                  init_strategy=init_strategy,   # default: random_explore_first
                                  max_runs=10000,
-                                 max_trial_runtime=max_trial_runtime,
+                                 max_runtime_per_trial=max_runtime_per_trial,
                                  parallel_strategy=mth, batch_size=batch_size,
                                  ip='', port=port, task_id=task_id, random_state=seed)
 
-        bo.run_with_limit(runtime_limit)
+        bo.run_with_limit(max_runtime)
         return_list.append((bo.config_list, bo.perf_list, bo.time_list))
 
     def worker_run(i):
@@ -166,7 +166,7 @@ def evaluate(problem, seed):
               initial_runs=initial_runs,                # default: 3
               init_strategy=init_strategy,              # default: random_explore_first
               max_runs=max_runs,
-              max_trial_runtime=max_trial_runtime, task_id=task_id, random_state=seed)
+              max_runtime_per_trial=max_runtime_per_trial, task_id=task_id, random_state=seed)
     # bo.run()
     config_list = []
     perf_list = []
@@ -179,7 +179,7 @@ def evaluate(problem, seed):
         config_list.append(config)
         perf_list.append(objectives[0])
         time_list.append(global_time)
-        if global_time >= runtime_limit:
+        if global_time >= max_runtime:
             break
 
     return config_list, perf_list, time_list
@@ -208,7 +208,7 @@ with timeit('%s all' % (mth,)):
 
                 mth_str = '%s-%d' % (mth, batch_size)
                 timestamp = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-                dir_path = 'logs/parallel_benchmark_%s_%d/%s/' % (problem_str, runtime_limit, mth_str)
+                dir_path = 'logs/parallel_benchmark_%s_%d/%s/' % (problem_str, max_runtime, mth_str)
                 file = 'benchmark_%s_%04d_%s.pkl' % (mth_str, seed, timestamp)
                 if not os.path.exists(dir_path):
                     os.makedirs(dir_path)

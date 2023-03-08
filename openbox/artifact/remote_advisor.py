@@ -28,7 +28,7 @@ class RemoteAdvisor(object):
                  initial_configurations=None,
                  initial_runs=3,
                  random_state=None,
-                 max_trial_runtime=None,
+                 max_runtime_per_trial=None,
                  active_worker_num=1,
                  parallel_type='async',
                  ):
@@ -74,7 +74,7 @@ class RemoteAdvisor(object):
                                   'config_space_json': config_space_json,
                                   'num_constraints': num_constraints, 'num_objectives': num_objectives,
                                   'max_runs': self.max_runs,
-                                  'options': json.dumps(options), 'max_trial_runtime': max_trial_runtime,
+                                  'options': json.dumps(options), 'max_runtime_per_trial': max_runtime_per_trial,
                                   'active_worker_num': active_worker_num, 'parallel_type': parallel_type})
         res = json.loads(res.text)
 

@@ -37,7 +37,7 @@ bo = pSMBO(branin,
            num_constraints=0,
            max_runs=50,
            surrogate_type='gp',
-           max_trial_runtime=180,
+           max_runtime_per_trial=180,
            task_id='parallel')
 bo.run()
 

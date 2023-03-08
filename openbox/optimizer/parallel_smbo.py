@@ -48,7 +48,7 @@ def wrapper(param):
 
 class pSMBO(BOBase):
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
-    @deprecate_kwarg('time_limit_per_trial', 'max_trial_runtime', 'a future version')
+    @deprecate_kwarg('time_limit_per_trial', 'max_runtime_per_trial', 'a future version')
     def __init__(
             self,
             objective_function,
@@ -60,7 +60,7 @@ class pSMBO(BOBase):
             batch_strategy='default',
             sample_strategy: str = 'bo',
             max_runs=100,
-            max_trial_runtime=None,
+            max_runtime_per_trial=None,
             surrogate_type='auto',
             acq_type='auto',
             acq_optimizer_type='auto',
@@ -84,7 +84,7 @@ class pSMBO(BOBase):
         self.FAILED_PERF = [np.inf] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
-                         sample_strategy=sample_strategy, max_trial_runtime=max_trial_runtime,
+                         sample_strategy=sample_strategy, max_runtime_per_trial=max_runtime_per_trial,
                          transfer_learning_history=transfer_learning_history, logger_kwargs=logger_kwargs)
 
         self.parallel_strategy = parallel_strategy
@@ -180,7 +180,7 @@ class pSMBO(BOBase):
             while self.iteration_id < self.max_runs:
                 with self.advisor_lock:
                     _config = self.config_advisor.get_suggestion()
-                _param = [self.objective_function, _config, self.max_trial_runtime, self.FAILED_PERF]
+                _param = [self.objective_function, _config, self.max_runtime_per_trial, self.FAILED_PERF]
                 # Submit a job to worker.
                 proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback)
                 while len(self.config_advisor.running_configs) >= self.batch_size:
@@ -195,7 +195,7 @@ class pSMBO(BOBase):
             while iter_id < n:
                 with self.advisor_lock:
                     _config = self.config_advisor.get_suggestion()
-                _param = [self.objective_function, _config, self.max_trial_runtime, self.FAILED_PERF]
+                _param = [self.objective_function, _config, self.max_runtime_per_trial, self.FAILED_PERF]
                 # Submit a job to worker.
                 res_list.append(proc.process_pool.apply_async(wrapper, (_param,), callback=self.callback))
                 while len(self.config_advisor.running_configs) >= self.batch_size:
@@ -215,7 +215,7 @@ class pSMBO(BOBase):
                 batch_id += 1
                 configs = self.config_advisor.get_suggestions()
                 logger.info('Running on %d configs in the %d-th batch.' % (len(configs), batch_id))
-                param_list = [(self.objective_function, config, self.max_trial_runtime, self.FAILED_PERF)
+                param_list = [(self.objective_function, config, self.max_runtime_per_trial, self.FAILED_PERF)
                               for config in configs]
                 # Wait all workers to complete their corresponding jobs.
                 observations = proc.parallel_execute(param_list)

@@ -58,10 +58,10 @@ def show_task(request, user_id: str):
 def task_detail(request, task_id: str):
     if request.method == 'GET':
         context = {}
-        context['task_field'] = ['Advisor Type', 'Surrogate Type', 'Time Limit Per Trial', 'Active Worker Num',
+        context['task_field'] = ['Advisor Type', 'Surrogate Type', 'Max Runtime Per Trial', 'Active Worker Num',
                                  'Parallel Type']
         task = Task().find_one({'_id': ObjectId(task_id)})
-        context['task'] = [task['advisor_type'], task['surrogate_type'], task['max_trial_runtime'],
+        context['task'] = [task['advisor_type'], task['surrogate_type'], task['max_runtime_per_trial'],
                            task['active_worker_num'], task['parallel_type'], ]
         context['rh_field'] = ['Result', 'Configuration', 'Status', 'Trial Info', 'Worker Id', 'Cost']
         context['task_id'] = task_id

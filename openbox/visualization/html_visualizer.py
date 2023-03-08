@@ -18,7 +18,7 @@ class HTMLVisualizer(BaseVisualizer):
     )
     _task_info_keys = [
         'task_id',
-        'advisor_type', 'max_runs', 'max_trial_runtime',
+        'advisor_type', 'max_runs', 'max_runtime_per_trial',
         'surrogate_type', 'constraint_surrogate_type', 'transfer_learning_history'
     ]
 
@@ -250,10 +250,10 @@ class HTMLVisualizer(BaseVisualizer):
             'pareto_data': pareto,
             'task_inf': {
                 'table_field': ['Task Id', 'Advisor Type', 'Surrogate Type', 'Current Run', 'Max Runs',
-                                'Time Limit Per Trial'],
+                                'Max Runtime Per Trial'],
                 'table_data': [self.task_info['task_id'], self.task_info['advisor_type'],
                                self.task_info['surrogate_type'], len(self.history), self.task_info['max_runs'],
-                               self.task_info['max_trial_runtime']]
+                               self.task_info['max_runtime_per_trial']]
             },
             'importance_data': None,
             'pred_label_data': None,

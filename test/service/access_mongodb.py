@@ -56,7 +56,7 @@ task_config = {
     "advisor_type": 'default',
     "max_runs": 50,
     "surrogate_type": 'gp',
-    "max_trial_runtime": 5,
+    "max_runtime_per_trial": 5,
     "logging_dir": 'logs',
     "task_id": 'hp1'
 }

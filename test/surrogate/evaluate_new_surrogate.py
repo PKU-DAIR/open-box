@@ -14,7 +14,7 @@ bo = SMBO(branin.evaluate,      # objective function
           num_constraints=branin.num_constraints,  # number of constraints
           max_runs=50,          # number of optimization rounds
           surrogate_type=args.surrogate,
-          max_trial_runtime=180,
+          max_runtime_per_trial=180,
           task_id='quick_start')
 history = bo.run()
 print(history)

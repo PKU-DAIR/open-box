@@ -24,8 +24,8 @@ class async_mqBaseFacade(object):
                  method_name='default_method_name',
                  log_directory='logs',
                  data_directory='data',
-                 max_trial_runtime=None,
-                 runtime_limit=None,
+                 max_runtime_per_trial=None,
+                 max_runtime=None,
                  max_queue_len=300,
                  ip='',
                  port=13579,
@@ -47,7 +47,7 @@ class async_mqBaseFacade(object):
         self.recorder = list()
 
         self.global_start_time = time.time()
-        self.runtime_limit = None
+        self.max_runtime = None
         self._history = {"time_elapsed": list(), "performance": list(),
                          "best_trial_id": list(), "configuration": list()}
         self.global_incumbent = 1e10
@@ -68,9 +68,9 @@ class async_mqBaseFacade(object):
         if self.method_name is None:
             raise ValueError('Method name must be specified! NOT NONE.')
 
-        self.max_trial_runtime = max_trial_runtime
-        self.runtime_limit = runtime_limit
-        assert self.runtime_limit is not None
+        self.max_runtime_per_trial = max_runtime_per_trial
+        self.max_runtime = max_runtime
+        assert self.max_runtime is not None
 
         max_queue_len = max(300, max_queue_len)
         self.master_messager = MasterMessager(ip, port, authkey, max_queue_len, max_queue_len)
@@ -96,7 +96,7 @@ class async_mqBaseFacade(object):
         try:
             worker_num = 0
             while True:
-                if self.runtime_limit is not None and time.time() - self.global_start_time > self.runtime_limit:
+                if self.max_runtime is not None and time.time() - self.global_start_time > self.max_runtime:
                     logger.info('RUNTIME BUDGET is RUNNING OUT.')
                     return
 
@@ -131,7 +131,7 @@ class async_mqBaseFacade(object):
                 t = time.time()
                 config, n_iteration, extra_conf = self.get_job()
                 logger.info('get_job() cost %.2fs.' % (time.time()-t, ))
-                msg = [config, extra_conf, self.max_trial_runtime, n_iteration, self.global_trial_counter]
+                msg = [config, extra_conf, self.max_runtime_per_trial, n_iteration, self.global_trial_counter]
                 self.master_messager.send_message(msg)
                 self.global_trial_counter += 1
                 logger.info('Master send job: %s.' % (msg,))

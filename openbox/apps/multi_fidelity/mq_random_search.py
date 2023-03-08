@@ -17,15 +17,15 @@ class mqRandomSearch(mqBaseFacade):
                  random_state=1,
                  method_id='mqRandomSearch',
                  restart_needed=True,
-                 max_trial_runtime=None,
-                 runtime_limit=None,
+                 max_runtime_per_trial=None,
+                 max_runtime=None,
                  ip='',
                  port=13579,
                  authkey=b'abc',):
         max_queue_len = max(100, 3 * n_workers)  # conservative design
         super().__init__(objective_func, method_name=method_id,
-                         restart_needed=restart_needed, max_trial_runtime=max_trial_runtime,
-                         runtime_limit=runtime_limit,
+                         restart_needed=restart_needed, max_runtime_per_trial=max_runtime_per_trial,
+                         max_runtime=max_runtime,
                          max_queue_len=max_queue_len, ip=ip, port=port, authkey=authkey)
         self.seed = random_state
         self.config_space = config_space

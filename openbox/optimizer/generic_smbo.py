@@ -31,7 +31,7 @@ class SMBO(BOBase):
         Number of optimization iterations.
     max_runtime : int or float, optional
         Time budget for the whole optimization process. None means no limit.
-    max_trial_runtime : int or float, optional
+    max_runtime_per_trial : int or float, optional
         Time budget for a single evaluation trial. None means no limit.
     advisor_type : str
         Type of advisor to produce configuration suggestion.
@@ -106,7 +106,7 @@ class SMBO(BOBase):
         Additional keyword arguments for advisor.
     """
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
-    @deprecate_kwarg('time_limit_per_trial', 'max_trial_runtime', 'a future version')
+    @deprecate_kwarg('time_limit_per_trial', 'max_runtime_per_trial', 'a future version')
     @deprecate_kwarg('runtime_limit', 'max_runtime', 'a future version')
     def __init__(
             self,
@@ -117,7 +117,7 @@ class SMBO(BOBase):
             sample_strategy: str = 'bo',
             max_runs=100,
             max_runtime=None,
-            max_trial_runtime=None,
+            max_runtime_per_trial=None,
             advisor_type='default',
             surrogate_type='auto',
             acq_type='auto',
@@ -144,7 +144,7 @@ class SMBO(BOBase):
         self.FAILED_PERF = [np.inf] * num_objectives
         super().__init__(objective_function, config_space, task_id=task_id, output_dir=logging_dir,
                          random_state=random_state, initial_runs=initial_runs, max_runs=max_runs,
-                         max_runtime=max_runtime, max_trial_runtime=max_trial_runtime,
+                         max_runtime=max_runtime, max_runtime_per_trial=max_runtime_per_trial,
                          sample_strategy=sample_strategy, transfer_learning_history=transfer_learning_history,
                          logger_kwargs=logger_kwargs)
 
@@ -253,11 +253,11 @@ class SMBO(BOBase):
             logger.warning('Evaluating duplicated configuration: %s' % config)
 
         if time_left is None:
-            timeout = self.max_trial_runtime
-        elif self.max_trial_runtime is None:
+            timeout = self.max_runtime_per_trial
+        elif self.max_runtime_per_trial is None:
             timeout = time_left
         else:
-            timeout = min(time_left, self.max_trial_runtime)
+            timeout = min(time_left, self.max_runtime_per_trial)
         if np.isinf(timeout):
             timeout = None
 

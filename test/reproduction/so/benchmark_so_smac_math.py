@@ -30,7 +30,7 @@ mth = 'smac'
 
 problem = get_problem(problem_str)
 cs = problem.get_configspace(optimizer='smac')
-max_trial_runtime = 600
+max_runtime_per_trial = 600
 
 
 def evaluate(mth, run_i, seed):
@@ -47,7 +47,7 @@ def evaluate(mth, run_i, seed):
     scenario = Scenario({"run_obj": "quality",
                          "runcount_limit": max_runs,
                          "cs": cs,
-                         "cutoff_time": max_trial_runtime,
+                         "cutoff_time": max_runtime_per_trial,
                          "initial_incumbent": "RANDOM",
                          "deterministic": "true",
                          })

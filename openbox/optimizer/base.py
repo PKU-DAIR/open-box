@@ -11,7 +11,7 @@ from openbox.utils.history import History
 
 
 class BOBase(object, metaclass=abc.ABCMeta):
-    @deprecate_kwarg('time_limit_per_trial', 'max_trial_runtime', 'a future version')
+    @deprecate_kwarg('time_limit_per_trial', 'max_runtime_per_trial', 'a future version')
     @deprecate_kwarg('runtime_limit', 'max_runtime', 'a future version')
     def __init__(
             self,
@@ -23,7 +23,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
             initial_runs=3,
             max_runs=100,
             max_runtime=None,
-            max_trial_runtime=None,
+            max_runtime_per_trial=None,
             sample_strategy='bo',
             transfer_learning_history: List[History] = None,
             logger_kwargs: dict = None,
@@ -43,7 +43,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
         self.max_runs = max_runs
         self.max_runtime = np.inf if max_runtime is None else max_runtime
         self.time_left = self.max_runtime
-        self.max_trial_runtime = max_trial_runtime
+        self.max_runtime_per_trial = max_runtime_per_trial
         self.iteration_id = 0
         self.sample_strategy = sample_strategy
         self.transfer_learning_history = transfer_learning_history

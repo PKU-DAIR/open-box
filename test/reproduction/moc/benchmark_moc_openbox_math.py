@@ -57,7 +57,7 @@ problem = get_problem(problem_str)
 if initial_runs == 0:
     initial_runs = 2 * (problem.dim + 1)
 cs = problem.get_configspace(optimizer='smac')
-max_trial_runtime = 600
+max_runtime_per_trial = 600
 task_id = '%s_%s_%s' % (mth, acq_type, problem_str)
 
 
@@ -81,7 +81,7 @@ def evaluate(mth, run_i, seed):
               init_strategy=init_strategy,              # default: sobol
               max_runs=max_runs,
               ref_point=problem.ref_point,
-              max_trial_runtime=max_trial_runtime, task_id=task_id, random_state=seed)
+              max_runtime_per_trial=max_runtime_per_trial, task_id=task_id, random_state=seed)
 
     # bo.run()
     hv_diffs = []

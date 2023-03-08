@@ -50,7 +50,7 @@ for dataset in dataset_list:
     num_objectives = setup['num_objectives']
     referencePoint = setup['referencePoint']
     real_hv = setup['real_hv']
-    max_trial_runtime = 2*setup['time_limit']
+    max_runtime_per_trial = 2*setup['time_limit']
 
     _x, _y = load_data(dataset, data_dir)
     multi_objective_func = partial(multi_objective_func, x=_x, y=_y)
@@ -60,7 +60,7 @@ for dataset in dataset_list:
               # surrogate_type='gp_rbf',    # use default
               acq_type=mth,
               # initial_configurations=X_init, initial_runs=10,
-              max_trial_runtime=max_trial_runtime, task_id='mo', random_state=seed)
+              max_runtime_per_trial=max_runtime_per_trial, task_id='mo', random_state=seed)
     bo.config_advisor.optimizer.random_chooser.prob = rand_prob     # set rand_prob, default 0
     bo.config_advisor.acquisition_function.sample_num = sample_num  # set sample_num
     #bo.config_advisor.acquisition_function.random_state = seed      # set random_state
@@ -86,7 +86,7 @@ for dataset in dataset_list:
 
     # Evaluate the random search.
     bo_r = SMBO(multi_objective_func, cs, num_objectives=num_objectives, max_runs=max_runs,
-                max_trial_runtime=60, sample_strategy='random', task_id='mo_random')
+                max_runtime_per_trial=60, sample_strategy='random', task_id='mo_random')
     print('Random', '='*30)
     # bo_r.run()
     hv_diffs_r = []

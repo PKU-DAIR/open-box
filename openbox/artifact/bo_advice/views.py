@@ -54,7 +54,7 @@ def task_register(request):
             num_objectives = int(request.POST.get('num_objectives', 1))
             options = json.loads(request.POST.get('options', '{}'))
 
-            max_trial_runtime = int(request.POST.get('max_trial_runtime', 300))
+            max_runtime_per_trial = int(request.POST.get('max_runtime_per_trial', 300))
             active_worker_num = int(request.POST.get('active_worker_num', 1))
             parallel_type = request.POST.get('parallel_type', 'async')
             task_name = request.POST.get('task_name', 'task')
@@ -73,7 +73,7 @@ def task_register(request):
                                              'advisor_type': advisor_type,
                                              'max_run': max_runs,
                                              'surrogate_type': options['surrogate_type'],
-                                             'max_trial_runtime': max_trial_runtime,
+                                             'max_runtime_per_trial': max_runtime_per_trial,
                                              'active_worker_num': active_worker_num,
                                              'parallel_type': parallel_type
                                              }))

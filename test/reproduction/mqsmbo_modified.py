@@ -11,7 +11,7 @@ class mqSMBO_modified(mqSMBO):
     single objective only.
     """
 
-    def async_run_with_limit(self, runtime_limit):
+    def async_run_with_limit(self, max_runtime):
         config_num = 0
         result_num = 0
         while result_num < self.max_runs:
@@ -19,7 +19,7 @@ class mqSMBO_modified(mqSMBO):
             while len(self.config_advisor.running_configs) < self.batch_size and config_num < self.max_runs:
                 config_num += 1
                 config = self.config_advisor.get_suggestion()
-                msg = [config, self.max_trial_runtime]
+                msg = [config, self.max_runtime_per_trial]
                 logger.info("Master: Add config %d." % config_num)
                 self.master_messager.send_message(msg)
 
@@ -44,10 +44,10 @@ class mqSMBO_modified(mqSMBO):
                 self.time_list.append(global_time)
 
             global_time = time.time() - self.global_start_time
-            if global_time >= runtime_limit:
+            if global_time >= max_runtime:
                 return
 
-    def sync_run_with_limit(self, runtime_limit):
+    def sync_run_with_limit(self, max_runtime):
         batch_num = (self.max_runs + self.batch_size - 1) // self.batch_size
         if self.batch_size > self.config_advisor.init_num:
             batch_num += 1  # fix bug
@@ -56,7 +56,7 @@ class mqSMBO_modified(mqSMBO):
             configs = self.config_advisor.get_suggestions()
             # Add batch configs to masterQueue.
             for config in configs:
-                msg = [config, self.max_trial_runtime]
+                msg = [config, self.max_runtime_per_trial]
                 self.master_messager.send_message(msg)
             logger.info('Master: %d-th batch. %d configs sent.' % (batch_id, len(configs)))
             # Get batch results from workerQueue.
@@ -87,10 +87,10 @@ class mqSMBO_modified(mqSMBO):
             batch_id += 1
 
             global_time = time.time() - self.global_start_time
-            if global_time >= runtime_limit:
+            if global_time >= max_runtime:
                 return
 
-    def run_with_limit(self, runtime_limit):
+    def run_with_limit(self, max_runtime):
         self.max_runs = max(self.max_runs, 10000)
         self.sleep_time = 0.1
         self.global_start_time = time.time()
@@ -98,6 +98,6 @@ class mqSMBO_modified(mqSMBO):
         self.perf_list = []
         self.time_list = []
         if self.parallel_strategy == 'async':
-            self.async_run_with_limit(runtime_limit)
+            self.async_run_with_limit(max_runtime)
         else:
-            self.sync_run_with_limit(runtime_limit)
+            self.sync_run_with_limit(max_runtime)

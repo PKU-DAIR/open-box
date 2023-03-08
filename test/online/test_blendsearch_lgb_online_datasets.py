@@ -47,7 +47,7 @@ if __name__ == "__main__":
         function,
         space,
         max_runs=MAX_RUNS,
-        max_trial_runtime=10,
+        max_runtime_per_trial=10,
     )
 
     history = opt.run()

@@ -46,7 +46,7 @@ mth = 'openbox'
 
 problem = get_problem(problem_str)
 cs = problem.get_configspace(optimizer='smac')
-max_trial_runtime = 600
+max_runtime_per_trial = 600
 task_id = '%s_%s' % (mth, problem_str)
 
 
@@ -64,7 +64,7 @@ def evaluate(mth, run_i, seed):
               initial_runs=initial_runs,  # default: 3
               init_strategy=init_strategy,  # default: random_explore_first
               max_runs=max_runs + initial_runs,
-              max_trial_runtime=max_trial_runtime, task_id=task_id, random_state=seed)
+              max_runtime_per_trial=max_runtime_per_trial, task_id=task_id, random_state=seed)
     # bo.run()
     config_list = []
     perf_list = []

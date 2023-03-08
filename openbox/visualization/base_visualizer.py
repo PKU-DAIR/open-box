@@ -110,7 +110,7 @@ def extract_task_info(*, optimizer=None, advisor=None):
         task_info.update({
             'advisor_type': optimizer.advisor_type,
             'max_runs': optimizer.max_runs,
-            'max_trial_runtime': optimizer.max_trial_runtime,
+            'max_runtime_per_trial': optimizer.max_runtime_per_trial,
         })
     if advisor is not None:
         task_info.update({
