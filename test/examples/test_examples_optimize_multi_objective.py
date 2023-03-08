@@ -22,6 +22,8 @@ def BraninCurrin(config: sp.Configuration):
 
 
 def test_examples_optimize_multi_objective():
+    max_runs = 20
+
     # search space
     space = sp.Space()
     x1 = sp.Real("x1", 0, 1)
@@ -37,7 +39,7 @@ def test_examples_optimize_multi_objective():
         space,
         num_objectives=2,
         num_constraints=0,
-        max_runs=50,
+        max_runs=max_runs,
         surrogate_type='gp',
         acq_type='ehvi',
         acq_optimizer_type='random_scipy',
@@ -64,4 +66,10 @@ def test_examples_optimize_multi_objective():
     plt.savefig('logs/pytest/mo_hypervolumes.png')
     plt.close()
 
-    assert history.trial_states.count(SUCCESS) == 50
+    # Have a try on the new HTML visualization feature!
+    # You can also call visualize_html() after optimization.
+    # For 'show_importance' and 'verify_surrogate', run 'pip install "openbox[extra]"' first
+    history.visualize_html(open_html=False, show_importance=True, verify_surrogate=True, optimizer=opt,
+                           logging_dir='logs/pytest/')
+
+    assert history.trial_states.count(SUCCESS) == max_runs

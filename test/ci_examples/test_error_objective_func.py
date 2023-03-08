@@ -14,9 +14,8 @@ config_space.add_hyperparameters([x1, x2])
 
 # Define Objective Function
 def branin(config):
-    config_dict = config.get_dictionary()
-    x1 = config_dict['x1']
-    x2 = config_dict['x2']
+    x1 = config['x1']
+    x2 = config['x2']
 
     a = 1.
     b = 5.1 / (4. * np.pi ** 2)

@@ -48,7 +48,7 @@ class BaseSingleObjectiveProblem:
     @staticmethod
     def get_config_dict(config, optimizer='smac'):
         if optimizer == 'smac':
-            config_dict = config.get_dictionary()
+            config_dict = config.get_dictionary().copy()
         elif optimizer == 'tpe':
             config_dict = config
         else:
@@ -471,4 +471,3 @@ class svc(BaseSingleObjectiveProblem):
             return space
         else:
             raise ValueError('Unknown optimizer %s when getting configspace' % optimizer)
-

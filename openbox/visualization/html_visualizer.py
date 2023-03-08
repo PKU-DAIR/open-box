@@ -162,7 +162,7 @@ class HTMLVisualizer(BaseVisualizer):
                 constraints = [round(v, 6) for v in obs.constraints]
                 cons_list_rev.append(constraints)
 
-            config_dic = obs.config.get_dictionary()
+            config_dic = obs.config.get_dictionary().copy()
             config_str = str(config_dic)
             if len(config_str) > 35:
                 config_str = config_str[1:35]

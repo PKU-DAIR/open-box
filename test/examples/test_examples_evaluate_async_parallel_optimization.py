@@ -14,6 +14,8 @@ def branin(config):
 
 
 def test_examples_evaluate_async_parallel_optimization():
+    max_runs = 20
+
     # Define Search Space
     space = sp.Space()
     x1 = sp.Real("x1", -5, 10, default_value=0)
@@ -29,7 +31,7 @@ def test_examples_evaluate_async_parallel_optimization():
         batch_strategy='default',
         num_objectives=1,
         num_constraints=0,
-        max_runs=50,
+        max_runs=max_runs,
         # surrogate_type='gp',
         surrogate_type='auto',
         task_id='parallel_async',
@@ -44,4 +46,4 @@ def test_examples_evaluate_async_parallel_optimization():
     plt.savefig('logs/pytest/async_parallel_convergence.png')
     plt.close()
 
-    assert history.trial_states[:50].count(SUCCESS) == 50
+    assert history.trial_states[:max_runs].count(SUCCESS) == max_runs

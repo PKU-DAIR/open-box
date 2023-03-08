@@ -4,8 +4,7 @@ from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperpara
 
 
 def townsend(config):
-    config_dict = config.get_dictionary()
-    X = np.array([config_dict['x%d' % i] for i in range(2)])
+    X = np.array([config['x%d' % i] for i in range(2)])
     res = dict()
     res['objectives'] = (-(np.cos((X[0]-0.1)*X[1])**2 + X[0] * np.sin(3*X[0]+X[1])), )
     res['constraints'] = (-(-np.cos(1.5*X[0]+np.pi)*np.cos(1.5*X[1])+np.sin(1.5*X[0]+np.pi)*np.sin(1.5*X[1])), )
@@ -23,8 +22,7 @@ townsend_cs.add_hyperparameters([UniformFloatHyperparameter(name, *para)
 
 
 def mishra(config):
-    config_dict = config.get_dictionary()
-    X = np.array([config_dict['x%d' % i] for i in range(2)])
+    X = np.array([config['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]
     t1 = np.sin(y) * np.exp((1 - np.cos(x))**2)
     t2 = np.cos(x) * np.exp((1 - np.sin(y))**2)
@@ -65,4 +63,3 @@ history.plot_convergence(true_minimum=mishra_optimal_value)
 import matplotlib.pyplot as plt
 plt.show()
 #plt.savefig('logs/plot_convergence_mishra.png')
-

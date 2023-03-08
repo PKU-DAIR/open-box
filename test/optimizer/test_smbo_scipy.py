@@ -10,7 +10,7 @@ from openbox.utils.config_space import ConfigurationSpace
 
 
 def branin(x):
-    xs = x.get_dictionary()
+    xs = x.get_dictionary().copy()
     x1 = xs['x1']
     x2 = xs['x2']
     a = 1.

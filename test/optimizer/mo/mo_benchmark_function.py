@@ -38,9 +38,8 @@ def get_setup_bc():
     scale2 = [0, 1]
 
     def multi_objective_func_bc(config):
-        xs = config.get_dictionary()
-        x0 = (xs['x0'] + scale1[0]) / (scale1[0] + scale1[1])
-        x1 = (xs['x1'] + scale2[0]) / (scale2[0] + scale2[1])
+        x0 = (config['x0'] + scale1[0]) / (scale1[0] + scale1[1])
+        x1 = (config['x1'] + scale2[0]) / (scale2[0] + scale2[1])
         x = [x0, x1]  # x0, x1 in [0, 1]. test scale
         y1 = branin(x)
         y2 = Currin(x)
@@ -147,7 +146,7 @@ def get_setup_lightgbm(dataset, time_limit=None):
         """
         start_time = time.time()
 
-        params = config.get_dictionary()
+        params = config.get_dictionary().copy()
         model = LightGBM(**params)
         x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, stratify=y, random_state=1)
         model.fit(x_train, y_train)
@@ -210,4 +209,3 @@ def get_setup_lightgbm(dataset, time_limit=None):
 
 
 # === benchmark 4
-

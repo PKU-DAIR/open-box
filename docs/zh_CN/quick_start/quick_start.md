@@ -17,7 +17,7 @@ space.add_variables([x1, x2])
 ```
 
 在这个例子中，我们创建了一个空的搜索空间，而后向它内部添加了两个实数型（浮点型）变量。
-第一个变量**x1**的取值范围是-5到10，第二个变量**x2**的取值范围是0到15。
+第一个变量 `x1` 的取值范围是-5到10，第二个变量 `x2` 的取值范围是0到15。
 
 **OpenBox**也支持其它类型的变量。
 下面是定义**整型**和**类别型**变量的方法：
@@ -29,8 +29,10 @@ i = sp.Int("i", 0, 100)
 kernel = sp.Categorical("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
 ```
 
+对于更高级的用法，请参考 {ref}`复杂搜索空间的问题定义 <advanced_usage/complex_space:复杂搜索空间的问题定义>`。
+
 **OpenBox**的搜索空间基于**ConfigSpace**包实现。
-对于更高级的用法，请参考 [ConfigSpace 官方文档](https://automl.github.io/ConfigSpace/master/index.html) 。
+您也可以参考 [ConfigSpace 官方文档](https://automl.github.io/ConfigSpace/master/index.html) 。
 
 ## 定义优化目标
 
@@ -65,28 +67,37 @@ opt = Optimizer(
     max_runs=50,
     surrogate_type='gp',
     task_id='quick_start',
+    # Have a try on the new HTML visualization feature!
+    # visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+    # auto_open_html=True,        # open the visualization page in your browser automatically
 )
 history = opt.run()
 ```
 
-这里我们创建了一个 <font color=#FF0000>**Optimizer**</font> 实例，传入目标函数 **branin** 和搜索空间 **space**。 
+这里我们创建了一个 `Optimizer` 实例，传入目标函数 `branin` 和搜索空间 `space`。 
 其余参数的含义是：
 
-+ **num_objectives=1** 和 **num_constraints=0** 表明我们的 branin 函数返回一个没有约束条件的单目标值。
++ `num_objectives=1` 和 `num_constraints=0` 表明我们的 branin 函数返回一个没有约束条件的单目标值。
 
-+ **max_runs=50** 表示优化过程共50轮 （优化目标函数50次）。
++ `max_runs=50` 表示优化过程共50轮 （优化目标函数50次）。
 
-+ **surrogate_type='gp'**： 对于数学问题，我们推荐用高斯过程 (**'gp'**) 作为贝叶斯优化的代理模型。
-对于实际的问题，例如超参数优化 (HPO)，我们推荐用随机森林 (**'prf'**)。
++ `surrogate_type='gp'`： 对于数学问题，我们推荐用高斯过程 (`'gp'`) 作为贝叶斯优化的代理模型。
+对于实际的问题，例如超参数优化 (HPO)，我们推荐用随机森林 (`'prf'`)。
 
-+ **task_id** 被用来区别不同优化过程。
++ `task_id` 被用来区别不同优化过程。
 
-接下来，调用 <font color=#FF0000>**opt.run()**</font> 启动优化过程。
++ `visualization`: `'none'`， `'basic'` 或 `'advanced'`。
+详见 {ref}`可视化网页 <visualization/visualization:可视化网页>`。
+
++ `auto_open_html`: 是否自动在浏览器中打开可视化网页。
+详见 {ref}`可视化网页 <visualization/visualization:可视化网页>`。
+
+接下来，调用 `opt.run()` 启动优化过程。
 
 ## 可视化
 
-在优化完成后， **opt.run()** 返回优化的历史信息。
-可以通过调用 <font color=#FF0000>**print(history)**</font> 来看结果：
+在优化完成后， `opt.run()` 返回优化的历史信息。
+可以通过调用 `print(history)` 来看结果：
 
 ```python
 print(history)
@@ -105,7 +116,7 @@ print(history)
 +-------------------------+-------------------+
 ```
 
-调用 <font color=#FF0000>**history.plot_convergence()**</font> 来可视化优化过程：
+调用 `history.plot_convergence()` 来可视化优化过程：
 
 ```python
 import matplotlib.pyplot as plt
@@ -115,15 +126,7 @@ plt.show()
 
 <img src="../../imgs/plot_convergence_branin.png" width="60%" class="align-center">
 
-如果你在用 Jupyter Notebook 环境，调用 <font color=#FF0000>**history.visualize_hiplot()**</font> 来可视化每个测试：
-
-```python
-history.visualize_hiplot()
-```
-
-<img src="../../imgs/visualize_hiplot_branin.png" width="90%" class="align-center">
-
-调用 <font color=#FF0000>**print(history.get_importance())**</font> 来输出参数的重要性：
+调用 `print(history.get_importance())` 来输出参数的重要性：
 (注意：使用该功能需要额外安装`pyrfr`包：{ref}`Pyrfr安装教程 <installation/install_pyrfr:pyrfr 安装教程>`
 
 ```python
@@ -138,3 +141,15 @@ print(history.get_importance())
 | x2         | 0.327570   |
 +------------+------------+
 ```
+
+<font color=#FF0000>(新功能!)</font>
+调用 `history.visualize_html()` 来显示可视化网页。
+对于 `show_importance` 和 `verify_surrogate`，需要先运行 `pip install "openbox[extra]"`。
+详细说明请参考 {ref}`可视化网页 <visualization/visualization:可视化网页>`。
+
+```python
+history.visualize_html(open_html=True, show_importance=True,
+                       verify_surrogate=True, optimizer=opt)
+```
+
+<img src="../../imgs/visualization/html_example_quick_start.jpg" width="80%" class="align-center">

@@ -44,7 +44,7 @@ def get_configspace():
 
 
 def objective_function(config: sp.Configuration):
-    params = config.get_dictionary()
+    params = config.get_dictionary().copy()
     params['n_jobs'] = 2
     params['random_state'] = 47
 
@@ -58,27 +58,27 @@ def objective_function(config: sp.Configuration):
 
 下面给出了一些定义搜索空间的提示：
 
-+ 当我们定义 **n_estimators** 时，我们设置 **q=50**，
++ 当我们定义 `n_estimators` 时，我们设置 `q=50`，
 表示超参数配置采样的间隔是50。
 
-+ 当我们定义 **learning_rate** 时，我们设置 **log=True**，
++ 当我们定义 `learning_rate` 时，我们设置 `log=True`，
 表示超参数的值以对数方式采样。
 
-**objective function** 的输入是一个从 **space** 中采样的 **Configuration** 实例。
-你可以调用 <font color=#FF0000>**config.get_dictionary()**</font> 来把 **Configuration** 转化成一个 Python **dict**。
+`objective_function` 的输入是一个从 `space` 中采样的 `Configuration` 实例。
+你可以调用 `config.get_dictionary().copy()` 来把 `Configuration` 转化成一个 Python `dict`。
 
 在这个超参数优化任务中，一旦采样出一个新的超参数配置，我们就根据输入配置构建模型。
 然后，对模型进行拟合，评价模型的预测性能。
 这些步骤在目标函数中执行。
 
-评估性能后，目标函数返回一个 <font color=#FF0000>**dict (Recommended)**</font>
+评估性能后，目标函数需要返回一个 `dict` **(推荐)**
 其中的结果包含：
 
-+ **'objectives'**：一个 **要被最小化目标值** 的 **列表/元组**。
++ `'objectives'`：一个 **要被最小化目标值** 的 **列表/元组**。
 在这个例子中，我们只有一个目标，所以这个元组只包含一个值。
 
-+ **'constraints**'：一个含有 **约束值** 的 **列表/元组**。
-如果问题没有约束，返回 **None** 或者不要把这个 key 放入字典。 非正的约束值 (**"<=0"**) 表示可行。
++ `'constraints'`：一个含有 **约束值** 的 **列表/元组**。
+如果问题没有约束，返回 `None` 或者不要把这个 key 放入字典。 非正的约束值 (**"<=0"**) 表示可行。
 
 
 除了返回字典以外，对于无约束条件的单目标优化问题，我们也可以返回一个单独的值。
@@ -101,29 +101,38 @@ opt = Optimizer(
     max_runs=100,
     surrogate_type='prf',
     task_id='so_hpo',
+    # Have a try on the new HTML visualization feature!
+    # visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+    # auto_open_html=True,        # open the visualization page in your browser automatically
 )
 history = opt.run()
 ```
 
-这里我们创建一个 <font color=#FF0000>**Optimizer**</font> 实例，传入目标函数和配置空间。
+这里我们创建一个 `Optimizer` 实例，传入目标函数和配置空间。
 其它的参数是：
 
-+ **num_objectives=1** 和 **num_constraints=0** 表示我们的函数返回一个没有约束的单目标值。
++ `num_objectives=1` 和 `num_constraints=0` 表示我们的函数返回一个没有约束的单目标值。
 
-+ **max_runs=100** 表示优化会进行100轮（优化目标函数100次）。
++ `max_runs=100` 表示优化会进行100轮（优化目标函数100次）。
 
-+ **surrogate_type='prf'** 对于数学问题，我们推荐用高斯过程 (**'gp'**) 做贝叶斯优化的替代模型。
-对于实际问题，比如超参数优化（HPO）问题，我们推荐使用随机森林(**'prf'**)。
++ `surrogate_type='prf'` 对于数学问题，我们推荐用高斯过程 (`'gp'`) 做贝叶斯优化的替代模型。
+对于实际问题，比如超参数优化（HPO）问题，我们推荐使用随机森林(`'prf'`)。
 
-+ **task_id** 用来识别优化过程。
++ `task_id` 用来识别优化过程。
 
-然后，调用 <font color=#FF0000>**opt.run()**</font> 启动优化过程。
++ `visualization`: `'none'`， `'basic'` 或 `'advanced'`。
+详见 {ref}`可视化网页 <visualization/visualization:可视化网页>`。
+
++ `auto_open_html`: 是否自动在浏览器中打开可视化网页。
+详见 {ref}`可视化网页 <visualization/visualization:可视化网页>`。
+
+然后，调用 `opt.run()` 启动优化过程。
 
 
 ## 可视化
 
-在优化完成后，opt.run() 会返回优化的历史过程。或者你可以调用 <font color=#FF0000>**opt.get_history()**</font> 来获得优化历史。
-接下来，调用 print(history) 来查看结果：
+在优化完成后，`opt.run()` 会返回优化的历史过程。或者你可以调用 `opt.get_history()` 来获得优化历史。
+接下来，调用 `print(history)` 来查看结果：
 
 
 ```python
@@ -149,7 +158,7 @@ print(history)
 +-------------------------+----------------------+
 ```
 
-调用 <font color=#FF0000>**history.plot_convergence()**</font> 来可视化优化过程：
+调用 `history.plot_convergence()` 来可视化优化过程：
 
 ```python
 import matplotlib.pyplot as plt
@@ -159,16 +168,7 @@ plt.show()
 
 <img src="../../imgs/plot_convergence_hpo.png" width="60%" class="align-center">
 
-
-如果你在用 Jupyter Notebook 环境，调用 <font color=#FF0000>**history.visualize_hiplot()**</font> 来可视化每个测试：
-
-```python
-history.visualize_hiplot()
-```
-
-<img src="../../imgs/visualize_hiplot_hpo.png" width="90%" class="align-center">
-
-调用 <font color=#FF0000>**print(history.get_importance())**</font> 来输出超参数的重要性：
+调用 `print(history.get_importance())` 来输出超参数的重要性：
 (注意：使用该功能需要额外安装`pyrfr`包：{ref}`Pyrfr安装教程 <installation/install_pyrfr:pyrfr 安装教程>`
 
 ```python
@@ -190,3 +190,15 @@ print(history.get_importance())
 ```
 
 在本任务中，3个最重要的超参数是 *learning_rate*，*min_child_samples*，和 *n_estimators*。
+
+<font color=#FF0000>(新功能!)</font>
+调用 `history.visualize_html()` 来显示可视化网页。
+对于 `show_importance` 和 `verify_surrogate`，需要先运行 `pip install "openbox[extra]"`。
+详细说明请参考 {ref}`可视化网页 <visualization/visualization:可视化网页>`。
+
+```python
+history.visualize_html(open_html=True, show_importance=True,
+                       verify_surrogate=True, optimizer=opt)
+```
+
+<img src="../../imgs/visualization/html_example_so_hpo.jpg" width="90%" class="align-center">

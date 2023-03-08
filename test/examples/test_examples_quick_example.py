@@ -14,6 +14,8 @@ def branin(config):
 
 
 def test_examples_quick_example():
+    max_runs = 20
+
     # Define Search Space
     space = sp.Space()
     x1 = sp.Real("x1", -5, 10, default_value=0)
@@ -24,11 +26,14 @@ def test_examples_quick_example():
     opt = Optimizer(
         branin,
         space,
-        max_runs=50,
+        max_runs=max_runs,
         # surrogate_type='gp',
         surrogate_type='auto',
         task_id='quick_start',
         logging_dir='logs/pytest/',
+        # Have a try on the new HTML visualization feature!
+        visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+        auto_open_html=False,       # open the visualization page in your browser automatically
     )
     history = opt.run()
 
@@ -42,4 +47,10 @@ def test_examples_quick_example():
     # install pyrfr to use get_importance()
     print(history.get_importance())
 
-    assert history.trial_states.count(SUCCESS) == 50
+    # Have a try on the new HTML visualization feature!
+    # You can also call visualize_html() after optimization.
+    # For 'show_importance' and 'verify_surrogate', run 'pip install "openbox[extra]"' first
+    history.visualize_html(open_html=False, show_importance=True, verify_surrogate=True, optimizer=opt,
+                           logging_dir='logs/pytest/')
+
+    assert history.trial_states.count(SUCCESS) == max_runs

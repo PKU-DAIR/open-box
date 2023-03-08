@@ -6,8 +6,7 @@ from openbox import Optimizer, space as sp
 
 
 def mishra(config: sp.Configuration):
-    config_dict = config.get_dictionary()
-    X = np.array([config_dict['x%d' % i] for i in range(2)])
+    X = np.array([config['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]
     t1 = np.sin(y) * np.exp((1 - np.cos(x))**2)
     t2 = np.cos(x) * np.exp((1 - np.sin(y))**2)
@@ -40,6 +39,9 @@ if __name__ == "__main__":
         acq_optimizer_type='random_scipy',
         max_runs=50,
         task_id='soc',
+        # Have a try on the new HTML visualization feature!
+        # visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+        # auto_open_html=True,  # open the visualization page in your browser automatically
     )
     history = opt.run()
 
@@ -47,3 +49,11 @@ if __name__ == "__main__":
 
     history.plot_convergence(true_minimum=-106.7645367)
     plt.show()
+
+    # install pyrfr to use get_importance()
+    # print(history.get_importance())
+
+    # Have a try on the new HTML visualization feature!
+    # You can also call visualize_html() after optimization.
+    # For 'show_importance' and 'verify_surrogate', run 'pip install "openbox[extra]"' first
+    # history.visualize_html(open_html=True, show_importance=True, verify_surrogate=True, optimizer=opt)

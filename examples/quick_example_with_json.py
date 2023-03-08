@@ -30,7 +30,10 @@ config_dict = {
     "max_runs": 50,
     # "surrogate_type": "gp",
     "surrogate_type": "auto",
-    "task_id": "quick_example"
+    "task_id": "quick_example",
+    # Have a try on the new HTML visualization feature!
+    # 'visualization': 'advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+    # 'auto_open_html': True,        # open the visualization page in your browser automatically
 }
 
 
@@ -41,3 +44,11 @@ if __name__ == "__main__":
     print(history)
     history.plot_convergence(true_minimum=0.397887)
     plt.show()
+
+    # install pyrfr to use get_importance()
+    # print(history.get_importance())
+
+    # Have a try on the new HTML visualization feature!
+    # You can also call visualize_html() after optimization.
+    # For 'show_importance' and 'verify_surrogate', run 'pip install "openbox[extra]"' first
+    # history.visualize_html(open_html=True, show_importance=True, verify_surrogate=True, optimizer=opt)

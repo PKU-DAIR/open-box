@@ -48,4 +48,6 @@ if __name__ == "__main__":
     # install pyrfr to use get_importance()
     # print(history.get_importance())
 
-    # history.visualize_hiplot()
+    # Have a try on the new HTML visualization feature!
+    # For 'show_importance' and 'verify_surrogate', run 'pip install "openbox[extra]"' first
+    # history.visualize_html(open_html=True, show_importance=True, verify_surrogate=True, advisor=advisor)

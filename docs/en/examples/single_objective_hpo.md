@@ -43,7 +43,7 @@ def get_configspace():
 
 
 def objective_function(config: sp.Configuration):
-    params = config.get_dictionary()
+    params = config.get_dictionary().copy()
     params['n_jobs'] = 2
     params['random_state'] = 47
 
@@ -57,28 +57,28 @@ def objective_function(config: sp.Configuration):
 
 Here are some instructions on how to **define a configuration space**:
 
-+ When we define **n_estimators**, we set **q=50**,
++ When we define `n_estimators`, we set `q=50`,
 which means the values of the hyperparameter will be sampled at an interval of 50.
 
-+ When we define **learning_rate**, we set **log=True**,
++ When we define `learning_rate`, we set `log=True`,
 which means the values of the hyperparameter will be sampled on a logarithmic scale.
 
-The input of the **objective function** is a **Configuration** instance sampled from the **space**.
-You can call <font color=#FF0000>**config.get_dictionary()**</font> to convert **Configuration** into Python **dict**.
+The input of the `objective_function` is a `Configuration` instance sampled from the `space`.
+You can call `config.get_dictionary().copy()` to convert `Configuration` into Python `dict`.
 
 During this hyperparameter optimization task, once a new hyperparameter configuration is suggested,
 we rebuild the model based on the input configuration. 
 Then, we fit the model, and evaluate the model's predictive performance.
 These steps are carried out in the objective function.
 
-After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
+After evaluation, the objective function returns a `dict` **(Recommended)**.
 The result dictionary should contain:
 
-+ **'objectives'**: A **list/tuple** of **objective values (to be minimized)**. 
++ `'objectives'`: A **list/tuple** of **objective values (to be minimized)**. 
 In this example, we have only one objective so the tuple contains a single value.
 
-+ **'constraints**': A **list/tuple** of **constraint values**.
-If the problem is not constrained, return **None** or do not include this key in the dictionary.
++ `'constraints'`: A **list/tuple** of **constraint values**.
+If the problem is not constrained, return `None` or do not include this key in the dictionary.
 Non-positive constraint values (**"<=0"**) imply feasibility.
 
 In addition to returning a dictionary, for single-objective problems with no constraints,
@@ -101,30 +101,39 @@ opt = Optimizer(
     max_runs=100,
     surrogate_type='prf',
     task_id='so_hpo',
+    # Have a try on the new HTML visualization feature!
+    # visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+    # auto_open_html=True,        # open the visualization page in your browser automatically
 )
 history = opt.run()
 ```
 
-Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function 
+Here we create a `Optimizer` instance, and pass the objective function 
 and the configuration space to it. 
 The other parameters are:
 
-+ **num_objectives=1** and **num_constraints=0** indicate that our function returns a single value with no constraint. 
++ `num_objectives=1` and `num_constraints=0` indicate that our function returns a single value with no constraint. 
 
-+ **max_runs=100** means the optimization will take 100 rounds (optimizing the objective function 100 times). 
++ `max_runs=100` means the optimization will take 100 rounds (optimizing the objective function 100 times). 
 
-+ **surrogate_type='prf'**. For mathematical problem, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
-model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
++ `surrogate_type='prf'`. For mathematical problem, we suggest using Gaussian Process (`'gp'`) as Bayesian surrogate
+model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (`'prf'`).
 
-+ **task_id** is set to identify the optimization process.
++ `task_id` is set to identify the optimization process.
 
-Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimization process.
++ `visualization`: `'none'`, `'basic'` or `'advanced'`.
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>`.
+
++ `auto_open_html`: whether to open the visualization page in your browser automatically. 
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>`.
+
+Then, `opt.run()` is called to start the optimization process.
 
 ## Visualization
 
-After the optimization, opt.run() returns the optimization history. Or you can call 
-<font color=#FF0000>**opt.get_history()**</font> to get the history.
-Then, call print(history) to see the result:
+After the optimization, `opt.run()` returns the optimization history. Or you can call 
+`opt.get_history()` to get the history.
+Then, call `print(history)` to see the result:
 
 ```python
 history = opt.get_history()
@@ -149,7 +158,7 @@ print(history)
 +-------------------------+----------------------+
 ```
 
-Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the optimization process:
+Call `history.plot_convergence()` to visualize the optimization process:
 
 ```python
 import matplotlib.pyplot as plt
@@ -159,15 +168,7 @@ plt.show()
 
 <img src="../../imgs/plot_convergence_hpo.png" width="60%" class="align-center">
 
-If you are using the Jupyter Notebook environment, call history.visualize_hiplot() for visualization of each trial:
-
-```python
-history.visualize_hiplot()
-```
-
-<img src="../../imgs/visualize_hiplot_hpo.png" width="90%" class="align-center">
-
-Call <font color=#FF0000>**print(history.get_importance())**</font> print the hyperparameter importance:
+Call `print(history.get_importance())` to print the hyperparameter importance:
 (Note that you need to install the `pyrfr` package to use this function.
 {ref}`Pyrfr Installation Guide <installation/install_pyrfr:pyrfr installation guide>`
 
@@ -190,3 +191,15 @@ print(history.get_importance())
 ```
 
 In this task, the top-3 influential hyperparameters are *learning_rate*, *min_child_samples*, and *n_estimators*.
+
+<font color=#FF0000>(New Feature!)</font>
+Call `history.visualize_html()` to visualize the optimization process in an HTML page.
+For `show_importance` and `verify_surrogate`, run `pip install "openbox[extra]"` first.
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>` for more details.
+
+```python
+history.visualize_html(open_html=True, show_importance=True,
+                       verify_surrogate=True, optimizer=opt)
+```
+
+<img src="../../imgs/visualization/html_example_so_hpo.jpg" width="90%" class="align-center">

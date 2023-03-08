@@ -46,6 +46,9 @@ if __name__ == "__main__":
         ref_point=ref_point,
         task_id='moc',
         random_state=1,
+        # Have a try on the new HTML visualization feature!
+        # visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+        # auto_open_html=True,  # open the visualization page in your browser automatically
     )
     history = opt.run()
     print(history)
@@ -58,3 +61,11 @@ if __name__ == "__main__":
     # plot hypervolume (optimal hypervolume of CONSTR is approximated using NSGA-II)
     history.plot_hypervolumes(optimal_hypervolume=92.02004226679216, logy=True)
     plt.show()
+
+    # install pyrfr to use get_importance()
+    # print(history.get_importance())
+
+    # Have a try on the new HTML visualization feature!
+    # You can also call visualize_html() after optimization.
+    # For 'show_importance' and 'verify_surrogate', run 'pip install "openbox[extra]"' first
+    # history.visualize_html(open_html=True, show_importance=True, verify_surrogate=True, optimizer=opt)

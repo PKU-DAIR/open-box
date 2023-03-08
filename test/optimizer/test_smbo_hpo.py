@@ -28,7 +28,7 @@ def get_configspace():
 
 
 def objective_function(config):
-    params = config.get_dictionary()
+    params = config.get_dictionary().copy()
     params['n_jobs'] = 2
     params['random_state'] = 47
 

@@ -17,10 +17,10 @@ space.add_variables([x1, x2])
 ```
 
 In this example, we create an empty search space, and then add two real (floating-point) variables into it.
-The first variable **x1** ranges from -5 to 10, and the second one **x2** ranges from 0 to 15.
+The first variable `x1` ranges from -5 to 10, and the second one `x2` ranges from 0 to 15.
 
 OpenBox also supports other types of variables.
-Here are examples of how to define **Integer** and **Categorical** variables:
+Here are examples of how to define `Int` and `Categorical` variables:
 
 ```python
 from openbox import space as sp
@@ -29,8 +29,10 @@ i = sp.Int("i", 0, 100)
 kernel = sp.Categorical("kernel", ["rbf", "poly", "sigmoid"], default_value="rbf")
 ```
 
-The **Space** in **OpenBox** is implemented based on **ConfigSpace** package.
-For advanced usage, please refer to [ConfigSpace’s documentation](https://automl.github.io/ConfigSpace/master/index.html).
+For advanced usage, please refer to {ref}`Problem Definition with Complex Search Space <advanced_usage/complex_space:Problem Definition with Complex Search Space>`.
+
+The **space** in **OpenBox** is implemented based on **ConfigSpace** package.
+For more usage, also refer to [ConfigSpace’s documentation](https://automl.github.io/ConfigSpace/master/index.html).
 
 ## Objective Definition
 
@@ -48,7 +50,7 @@ def branin(config):
     return {'objectives': [y]}
 ```
 
-The objective function takes as input a configuration sampled from **space**
+The objective function takes as input a configuration sampled from `space`
 and outputs the objective value.
 
 ## Optimization
@@ -66,29 +68,38 @@ opt = Optimizer(
     max_runs=50,
     surrogate_type='gp',
     task_id='quick_start',
+    # Have a try on the new HTML visualization feature!
+    # visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+    # auto_open_html=True,        # open the visualization page in your browser automatically
 )
 history = opt.run()
 ```
 
-Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function **branin** and the 
-search space **space** to it. The other parameters are:
+Here we create a `Optimizer` instance, and pass the objective function `branin` and the 
+search space `space` to it. The other parameters are:
 
-+ **num_objectives=1** and **num_constraints=0** indicates our branin function returns a single value with no 
++ `num_objectives=1` and `num_constraints=0` indicates our branin function returns a single value with no 
 constraint. 
 
-+ **max_runs=50** means the optimization will take 50 rounds (optimizing the objective function 50 times). 
++ `max_runs=50` means the optimization will take 50 rounds (optimizing the objective function 50 times). 
 
-+ **surrogate_type='gp'**. For mathematical problems, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
-model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
++ `surrogate_type='gp'`. For mathematical problems, we suggest using Gaussian Process (`'gp'`) as Bayesian surrogate
+model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (`'prf'`).
 
-+ **task_id** is set to identify the optimization process.
++ `task_id` is set to identify the optimization process.
 
-Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimization process.
++ `visualization`: `'none'`, `'basic'` or `'advanced'`.
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>`.
+
++ `auto_open_html`: whether to open the visualization page in your browser automatically. 
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>`.
+
+Then, `opt.run()` is called to start the optimization process.
 
 ## Visualization
 
-After the optimization, **opt.run()** returns the optimization history.
-Call <font color=#FF0000>**print(history)**</font> to see the result:
+After the optimization, `opt.run()` returns the optimization history.
+Call `print(history)` to see the result:
 
 ```python
 print(history)
@@ -107,7 +118,7 @@ print(history)
 +-------------------------+-------------------+
 ```
 
-Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the optimization process:
+Call `history.plot_convergence()` to visualize the optimization process:
 
 ```python
 import matplotlib.pyplot as plt
@@ -117,16 +128,7 @@ plt.show()
 
 <img src="../../imgs/plot_convergence_branin.png" width="60%" class="align-center">
 
-If you are using the Jupyter Notebook environment, call <font color=#FF0000>**history.visualize_hiplot()**</font> for 
-visualization of each trial:
-
-```python
-history.visualize_hiplot()
-```
-
-<img src="../../imgs/visualize_hiplot_branin.png" width="90%" class="align-center">
-
-Call <font color=#FF0000>**print(history.get_importance())**</font> to print the parameter importance:
+Call `print(history.get_importance())` to print the parameter importance:
 (Note that you need to install the `pyrfr` package to use this function.
 {ref}`Pyrfr Installation Guide <installation/install_pyrfr:pyrfr installation guide>`
 
@@ -142,3 +144,15 @@ print(history.get_importance())
 | x2         | 0.327570   |
 +------------+------------+
 ```
+
+<font color=#FF0000>(New Feature!)</font>
+Call `history.visualize_html()` to visualize the optimization process in an HTML page.
+For `show_importance` and `verify_surrogate`, run `pip install "openbox[extra]"` first.
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>` for more details.
+
+```python
+history.visualize_html(open_html=True, show_importance=True,
+                       verify_surrogate=True, optimizer=opt)
+```
+
+<img src="../../imgs/visualization/html_example_quick_start.jpg" width="80%" class="align-center">

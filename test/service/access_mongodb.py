@@ -27,9 +27,8 @@ mydb = myclient[username]
 
 
 def branin(x):
-    xs = x.get_dictionary()
-    x1 = xs['x1']
-    x2 = xs['x2']
+    x1 = x['x1']
+    x2 = x['x2']
     a = 1.
     b = 5.1 / (4. * np.pi ** 2)
     c = 5. / np.pi

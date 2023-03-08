@@ -12,8 +12,7 @@ import numpy as np
 from openbox import space as sp
 
 def mishra(config: sp.Configuration):
-    config_dict = config.get_dictionary()
-    X = np.array([config_dict['x%d' % i] for i in range(2)])
+    X = np.array([config['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]
     t1 = np.sin(y) * np.exp((1 - np.cos(x))**2)
     t2 = np.cos(x) * np.exp((1 - np.sin(y))**2)
@@ -36,13 +35,13 @@ space.add_variables([
 ])
 ```
 
-After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
+After evaluation, the objective function returns a `dict` **(Recommended)**.
 The result dictionary should contain:
 
-+ **'objectives'**: A **list/tuple** of **objective values (to be minimized)**. 
++ `'objectives'`: A **list/tuple** of **objective values (to be minimized)**. 
 In this example, we have only one objective so the tuple contains a single value.
 
-+ **'constraints**': A **list/tuple** of **constraint values**.
++ `'constraints'`: A **list/tuple** of **constraint values**.
 Non-positive constraint values (**"<=0"**) imply feasibility.
 
 ## Optimization
@@ -61,27 +60,36 @@ opt = Optimizer(
     acq_optimizer_type='random_scipy',
     max_runs=50,
     task_id='soc',
+    # Have a try on the new HTML visualization feature!
+    # visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+    # auto_open_html=True,        # open the visualization page in your browser automatically
 )
 history = opt.run()
 ```
 
-Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function 
+Here we create a `Optimizer` instance, and pass the objective function 
 and the search space to it. 
 The other parameters are:
 
-+ **num_objectives=1** and **num_constraints=1** indicate that our function returns a single value with one constraint. 
++ `num_objectives=1` and `num_constraints=1` indicate that our function returns a single value with one constraint. 
 
-+ **max_runs=50** means the optimization will take 50 rounds (optimizing the objective function 50 times). 
++ `max_runs=50` means the optimization will take 50 rounds (optimizing the objective function 50 times). 
 
-+ **task_id** is set to identify the optimization process.
++ `task_id` is set to identify the optimization process.
 
-Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimization process.
++ `visualization`: `'none'`, `'basic'` or `'advanced'`.
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>`.
+
++ `auto_open_html`: whether to open the visualization page in your browser automatically. 
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>`.
+
+Then, `opt.run()` is called to start the optimization process.
 
 ## Visualization
 
-After the optimization, opt.run() returns the optimization history. Or you can call 
-<font color=#FF0000>**opt.get_history()**</font> to get the history.
-Then, call print(history) to see the result:
+After the optimization, `opt.run()` returns the optimization history. Or you can call 
+`opt.get_history()` to get the history.
+Then, call `print(history)` to see the result:
 
 ```python
 history = opt.get_history()
@@ -101,7 +109,7 @@ print(history)
 +-------------------------+---------------------+
 ```
 
-Call <font color=#FF0000>**history.plot_convergence()**</font> to visualize the optimization process:
+Call `history.plot_convergence()` to visualize the optimization process:
 
 ```python
 import matplotlib.pyplot as plt
@@ -110,3 +118,15 @@ plt.show()
 ```
 
 <img src="../../imgs/plot_convergence_mishra.png" width="60%" class="align-center">
+
+<font color=#FF0000>(New Feature!)</font>
+Call `history.visualize_html()` to visualize the optimization process in an HTML page.
+For `show_importance` and `verify_surrogate`, run `pip install "openbox[extra]"` first.
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>` for more details.
+
+```python
+history.visualize_html(open_html=True, show_importance=True,
+                       verify_surrogate=True, optimizer=opt)
+```
+
+<img src="../../imgs/visualization/html_example_soc.jpg" width="80%" class="align-center">

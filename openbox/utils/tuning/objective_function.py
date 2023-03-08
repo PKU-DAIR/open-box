@@ -19,7 +19,7 @@ def get_lightgbm_objective_function(x_train, x_val, y_train, y_val, task_type='c
 
     def cls_objective_function(config: Configuration):
         # convert Configuration to dict
-        params = config.get_dictionary()
+        params = config.get_dictionary().copy()
 
         # fit model
         model = LGBMClassifier(**params)
@@ -47,7 +47,7 @@ def get_xgboost_objective_function(x_train, x_val, y_train, y_val, task_type='cl
 
     def cls_objective_function(config: Configuration):
         # convert Configuration to dict
-        params = config.get_dictionary()
+        params = config.get_dictionary().copy()
 
         # fit model
         model = XGBClassifier(**params, use_label_encoder=False)

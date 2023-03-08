@@ -32,7 +32,7 @@ def lgbm_function(x_train, x_val, y_train, y_val, task_type = 'cls'):
 
     def cls_objective_function(config: Configuration):
         # convert Configuration to dict
-        params = config.get_dictionary()
+        params = config.get_dictionary().copy()
 
         # fit model
         model = LGBMClassifier(**params, n_jobs = 6)

@@ -3,7 +3,6 @@ from openbox.utils.start_smbo import create_smbo
 
 
 def branin(x):
-    #x = x.get_dictionary()
     x1 = x['x1']
     x2 = x['x2']
     a = 1.

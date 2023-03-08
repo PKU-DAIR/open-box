@@ -29,7 +29,7 @@ def test_examples_ask_and_tell_interface():
         output_dir='logs/pytest/',
     )
 
-    MAX_RUNS = 50
+    MAX_RUNS = 20
     for i in range(MAX_RUNS):
         # ask
         config = advisor.get_suggestion()
@@ -50,5 +50,11 @@ def test_examples_ask_and_tell_interface():
 
     # install pyrfr to use get_importance()
     print(history.get_importance())
+
+    # Have a try on the new HTML visualization feature!
+    # You can also call visualize_html() after optimization.
+    # For 'show_importance' and 'verify_surrogate', run 'pip install "openbox[extra]"' first
+    history.visualize_html(open_html=False, show_importance=True, verify_surrogate=True, advisor=advisor,
+                           logging_dir='logs/pytest/')
 
     assert history.trial_states.count(SUCCESS) == MAX_RUNS

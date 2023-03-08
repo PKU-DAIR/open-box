@@ -281,12 +281,9 @@ We also provide **HTML Visualization**. Enable it by setting additional options
 `visualization`=`basic`/`advanced` and `auto_open_html=True`(optional) in `Optimizer`:
 
 ```python
-opt = Optimizer(
-    ...,
+opt = Optimizer(...,
     visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
     auto_open_html=True,       # open the visualization page in your browser automatically
-    task_id='example_task',
-    logging_dir='logs',
 )
 history = opt.run()
 ```

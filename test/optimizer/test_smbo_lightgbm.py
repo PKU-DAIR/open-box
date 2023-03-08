@@ -43,7 +43,7 @@ def get_cs():
 
 
 def eval_func(params, x, y):
-    params = params.get_dictionary()
+    params = params.get_dictionary().copy()
     model = LightGBM(**params)
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, stratify=y, random_state=1)
     model.fit(x_train, y_train)

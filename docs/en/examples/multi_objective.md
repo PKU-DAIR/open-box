@@ -32,14 +32,14 @@ def objective_function(config: sp.Configuration):
     return result
 ```
 
-After evaluation, the objective function returns a <font color=#FF0000>**dict (Recommended)**.</font>
+After evaluation, the objective function returns a `dict` **(Recommended)**.
 The result dictionary should contain:
 
-+ **'objectives'**: A **list/tuple** of **objective values (to be minimized)**. 
-In this example, we have two objectives so the tuple contains two values.
++ `'objectives'`: A **list/tuple** of **objective values (to be minimized)**. 
+In this example, we have only one objective so the tuple contains a single value.
 
-+ **'constraints**': A **list/tuple** of **constraint values**.
-If the problem is not constrained, return **None** or do not include this key in the dict.
++ `'constraints'`: A **list/tuple** of **constraint values**.
+If the problem is not constrained, return **None** or do not include this key in the dictionary.
 Non-positive constraint values (**"<=0"**) imply feasibility.
 
 ## Optimization
@@ -60,46 +60,55 @@ opt = Optimizer(
     ref_point=prob.ref_point,
     task_id='mo',
     random_state=1,
+    # Have a try on the new HTML visualization feature!
+    # visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
+    # auto_open_html=True,        # open the visualization page in your browser automatically
 )
 history = opt.run()
 ```
 
-Here we create a <font color=#FF0000>**Optimizer**</font> instance, and pass the objective function 
+Here we create a `Optimizer` instance, and pass the objective function 
 and the search space to it. 
 The other parameters are:
 
-+ **num_objectives** and **num_constraints** set how many objectives and constraints the objective function will return.
-In this example, **num_objectives=2**.
++ `num_objectives` and `num_constraints` set how many objectives and constraints the objective function will return.
+In this example, `num_objectives=2`.
 
-+ **max_runs=50** means the optimization will take 50 rounds (optimizing the objective function 50 times). 
++ `max_runs=50` means the optimization will take 50 rounds (optimizing the objective function 50 times). 
 
-+ **surrogate_type='gp'**. For mathematical problem, we suggest using Gaussian Process (**'gp'**) as Bayesian surrogate
-model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (**'prf'**).
++ `surrogate_type='gp'`. For mathematical problem, we suggest using Gaussian Process (`'gp'`) as Bayesian surrogate
+model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (`'prf'`).
 
-+ **acq_type='ehvi'**. Use **EHVI(Expected Hypervolume Improvement)** as Bayesian acquisition function. For problems with more than 3 objectives, please
-use **MESMO('mesmo')** or **USEMO('usemo')**.
++ `acq_type='ehvi'`. Use **EHVI(Expected Hypervolume Improvement)** as Bayesian acquisition function. For problems with more than 3 objectives, please
+use **MESMO**(`'mesmo'`) or **USEMO**(`'usemo'`).
 
-+ **acq_optimizer_type='random_scipy'**. For mathematical problems, we suggest using **'random_scipy'** as
++ `acq_optimizer_type='random_scipy'`. For mathematical problems, we suggest using `'random_scipy'` as
 acquisition function optimizer. For practical problems such as hyperparameter optimization (HPO), we suggest
-using **'local_random'**.
+using `'local_random'`.
 
-+ **initial_runs** sets how many configurations are suggested by **init_strategy** before the optimization loop.
++ `initial_runs` sets how many configurations are suggested by `init_strategy` before the optimization loop.
 
-+ **init_strategy='sobol'** sets the strategy to suggest the initial configurations.
++ `init_strategy='sobol'` sets the strategy to suggest the initial configurations.
 
-+ **ref_point** specifies the reference point, which is the upper bound on the objectives used for computing
++ `ref_point` specifies the reference point, which is the upper bound on the objectives used for computing
 hypervolume. If using EHVI method, a reference point must be provided. In practice, the reference point can be
 set 1) using domain knowledge to be slightly worse than the upper bound of objective values, where the upper bound is
 the maximum acceptable value of interest for each objective, or 2) using a dynamic reference point selection strategy.
 
-+ **task_id** is set to identify the optimization process.
++ `task_id` is set to identify the optimization process.
 
-Then, <font color=#FF0000>**opt.run()**</font> is called to start the optimization process.
++ `visualization`: `'none'`, `'basic'` or `'advanced'`.
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>`.
+
++ `auto_open_html`: whether to open the visualization page in your browser automatically. 
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>`.
+
+Then, `opt.run()` is called to start the optimization process.
 
 ## Visualization
 
 Since we optimize both objectives at the same time, we get a pareto front as the result.
-Call <font color=#FF0000>**opt.get_history().plot_pareto_front()**</font> to plot the pareto front.
+Call `opt.get_history().plot_pareto_front()` to plot the pareto front.
 Please note that `plot_pareto_front` only works when the number of objectives is 2 or 3.
 
 ```python
@@ -123,3 +132,15 @@ plt.show()
 ```
 
 <img src="../../imgs/plot_hypervolume_zdt2.png" width="60%" class="align-center">
+
+<font color=#FF0000>(New Feature!)</font>
+Call `history.visualize_html()` to visualize the optimization process in an HTML page.
+For `show_importance` and `verify_surrogate`, run `pip install "openbox[extra]"` first.
+See {ref}`HTML Visualization <visualization/visualization:HTML Visualization>` for more details.
+
+```python
+history.visualize_html(open_html=True, show_importance=True,
+                       verify_surrogate=True, optimizer=opt)
+```
+
+<img src="../../imgs/visualization/html_example_mo.jpg" width="80%" class="align-center">

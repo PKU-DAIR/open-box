@@ -6,8 +6,7 @@ from openbox.utils.constants import SUCCESS
 
 
 def mishra(config: sp.Configuration):
-    config_dict = config.get_dictionary()
-    X = np.array([config_dict['x%d' % i] for i in range(2)])
+    X = np.array([config['x%d' % i] for i in range(2)])
     x, y = X[0], X[1]
     t1 = np.sin(y) * np.exp((1 - np.cos(x)) ** 2)
     t2 = np.cos(x) * np.exp((1 - np.sin(y)) ** 2)
@@ -20,6 +19,8 @@ def mishra(config: sp.Configuration):
 
 
 def test_examples_optimize_problem_with_constraint():
+    max_runs = 20
+
     params = {
         'float': {
             'x0': (-10, 0, -5),
@@ -38,7 +39,7 @@ def test_examples_optimize_problem_with_constraint():
         num_objectives=1,
         surrogate_type='gp',
         acq_optimizer_type='random_scipy',
-        max_runs=50,
+        max_runs=max_runs,
         task_id='soc',
         logging_dir='logs/pytest/',
     )
@@ -51,4 +52,10 @@ def test_examples_optimize_problem_with_constraint():
     plt.savefig('logs/pytest/soc_convergence.png')
     plt.close()
 
-    assert history.trial_states.count(SUCCESS) == 50
+    # Have a try on the new HTML visualization feature!
+    # You can also call visualize_html() after optimization.
+    # For 'show_importance' and 'verify_surrogate', run 'pip install "openbox[extra]"' first
+    history.visualize_html(open_html=False, show_importance=True, verify_surrogate=True, optimizer=opt,
+                           logging_dir='logs/pytest/')
+
+    assert history.trial_states.count(SUCCESS) == max_runs

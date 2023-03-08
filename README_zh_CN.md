@@ -273,12 +273,9 @@ if __name__ == "__main__":
 `visualization`=`basic`/`advanced` 以及 `auto_open_html=True`(可选) 来启用该功能：
 
 ```python
-opt = Optimizer(
-    ...,
+opt = Optimizer(...,
     visualization='advanced',  # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
     auto_open_html=True,       # open the visualization page in your browser automatically
-    task_id='example_task',
-    logging_dir='logs',
 )
 history = opt.run()
 ```

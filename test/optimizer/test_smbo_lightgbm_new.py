@@ -13,7 +13,7 @@ x_train, x_val, y_train, y_val = train_test_split(X, y, test_size=0.2, stratify=
 
 def objective_function(config):
     # convert Configuration to dict
-    params = config.get_dictionary()
+    params = config.get_dictionary().copy()
 
     # fit model
     model = LGBMClassifier(**params)

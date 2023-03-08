@@ -9,7 +9,7 @@ from openbox.utils.config_space import ConfigurationSpace, UniformFloatHyperpara
 
 
 def branin_currin(config):
-    dic = config.get_dictionary()
+    dic = config.get_dictionary().copy()
     x1 = dic.get('x1')
     x2 = dic.get('x2')
     px1 = 15*x1 - 5

@@ -13,9 +13,8 @@ from openbox.utils.config_space.space_utils import get_config_space_from_dict
 
 
 def branin(x):
-    xs = x.get_dictionary()
-    x1 = xs['x1']
-    x2 = xs['x2']
+    x1 = x['x1']
+    x2 = x['x2']
     a = 1.
     b = 5.1 / (4. * np.pi ** 2)
     c = 5. / np.pi
@@ -114,7 +113,7 @@ def test_runhistory():
     #     config, trial_state, objectives, trial_info = optimizer.iterate()
     #     item = {'user_id': user_id,
     #             'task_id': task_id,
-    #             'config': config.get_dictionary(),
+    #             'config': config.get_dictionary().copy(),
     #             'result': objectives,
     #             'status': trial_state,
     #             'trial_info': trial_info,
