@@ -18,6 +18,7 @@ class BaseTestProblem(object):
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(self, config_space: ConfigurationSpace,
                  noise_std=0,
+                 dim=None,
                  num_objectives=1,
                  num_constraints=0,
                  optimal_value=None,
@@ -26,24 +27,36 @@ class BaseTestProblem(object):
         """
         Parameters
         ----------
-        config_space : Config space of the test problem.
+        config_space : ConfigurationSpace
+            Config space of the test problem.
 
-        noise_std : Standard deviation of the observation noise.
+        noise_std : float
+            Standard deviation of the observation noise.
 
-        num_objectives : Number of objectives of the test problem.
+        dim : int
+            Dimension of the test problem.
 
-        num_constraints : Number of constraints of the test problem.
+        num_objectives : int
+            Number of objectives of the test problem.
 
-        optimal_value : Optimal value of the test problem.
+        num_constraints : int
+            Number of constraints of the test problem.
 
-        optimal_point :
+        optimal_value : float, optional
+            Optimal value of the test problem.
 
-        random_state :
+        optimal_point : np.ndarray, optional
+            Optimal point of the test problem.
+
+        random_state : int, RandomState instance or None
+            Random seed or random state.
         """
         self.config_space = config_space
         self.noise_std = noise_std
         self.num_objectives = num_objectives
         self.num_constraints = num_constraints
+        self.dim = dim
+        assert self.dim is not None
         self.optimal_value = optimal_value
         self.optimal_point = optimal_point
         self.rng = check_random_state(random_state)
@@ -68,7 +81,7 @@ class BaseTestProblem(object):
 
     def evaluate(self, config: Union[Configuration, np.ndarray], convert=True):
         if convert:
-            X = np.array(list(config.get_dictionary().values()))
+            X = np.array([config['x%d' % i] for i in range(1, self.dim + 1)])
         else:
             X = config
         result = self._evaluate(X)
@@ -117,7 +130,7 @@ class Ackley(BaseTestProblem):
                   for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-        super().__init__(config_space, noise_std, optimal_value=0, random_state=random_state)
+        super().__init__(config_space, noise_std, dim=dim, optimal_value=0, random_state=random_state)
 
     def _evaluate(self, X):
         a = 20
@@ -142,7 +155,7 @@ class Beale(BaseTestProblem):
                   for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-        super().__init__(config_space, noise_std, optimal_value=0, random_state=random_state)
+        super().__init__(config_space, noise_std, dim=dim, optimal_value=0, random_state=random_state)
 
     def _evaluate(self, X):
         x1, x2 = X[..., 0], X[..., 1]
@@ -173,6 +186,7 @@ class Branin(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=2,
                          optimal_value=0.397887,
                          optimal_point=[(-np.pi, 12.275), (np.pi, 2.275), (9.42478, 2.475)],
                          random_state=random_state)
@@ -198,6 +212,7 @@ class Bukin(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=2,
                          optimal_value=0,
                          optimal_point=[(-10.0, 1.0)],
                          random_state=random_state)
@@ -222,14 +237,14 @@ class Rosenbrock(BaseTestProblem):
     """
 
     def __init__(self, dim=2, constrained=False, noise_std=0, random_state=None):
-        self.dim = dim
         self.constrained = constrained
-        params = {'x%d' % i: (-5.0, 10.0, 2.5) for i in range(1, 1+self.dim)}
+        params = {'x%d' % i: (-5.0, 10.0, 2.5) for i in range(1, 1+dim)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=dim,
                          optimal_value=0,
-                         optimal_point=[tuple(1.0 for _ in range(self.dim))],
+                         optimal_point=[tuple(1.0 for _ in range(dim))],
                          random_state=random_state)
 
     def _evaluate(self, X):
@@ -250,6 +265,7 @@ class Mishra(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=2,
                          optimal_value=-106.7645367,
                          optimal_point=[(-3.1302468, -1.5821422)],
                          random_state=random_state)
@@ -278,11 +294,10 @@ class Keane(BaseTestProblem):
 
     def __init__(self, dim=2, bounds=None,
                  noise_std=0, random_state=None):
-        self.dim = dim
-        params = {'x%d' % i: (0, 10, 5) for i in range(1, 1+self.dim)}
+        params = {'x%d' % i: (0, 10, 5) for i in range(1, 1+dim)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-        super().__init__(config_space, noise_std, optimal_value=0, random_state=random_state)
+        super().__init__(config_space, noise_std, dim=dim, optimal_value=0, random_state=random_state)
 
     def _evaluate(self, X):
         result = dict()
@@ -301,6 +316,7 @@ class Simionescu(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=2,
                          optimal_value=-0.072,
                          optimal_point=[(0.84852813, -0.84852813), (-0.84852813, 0.84852813)],
                          random_state=random_state)
@@ -324,6 +340,7 @@ class Rao(BaseTestProblem):
         config_space.add_hyperparameter(UniformFloatHyperparameter('x1', lb, ub, 1))
         config_space.add_hyperparameter(UniformIntegerHyperparameter('x2', lb, ub, 1))
         super().__init__(config_space, noise_std,
+                         dim=2,
                          optimal_value=-31.9998,
                          optimal_point=[(5.333, 4)],
                          random_state=random_state)
@@ -348,14 +365,14 @@ class DTLZ(BaseTestProblem):
             raise ValueError(
                 "dim must be > num_objectives, but got %s and %s" % (dim, num_objectives)
             )
-        self.dim = dim
-        self.k = self.dim - num_objectives + 1
-        self.bounds = [(0.0, 1.0) for _ in range(self.dim)]
+        self.k = dim - num_objectives + 1
+        self.bounds = [(0.0, 1.0) for _ in range(dim)]
         self.ref_point = [self._ref_val for _ in range(num_objectives)]
         params = {'x%d' % i: (0, 1, i/dim) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
-        super().__init__(config_space, noise_std, num_objectives, num_constraints, random_state=random_state)
+        super().__init__(config_space, noise_std, num_objectives=num_objectives,
+                         num_constraints=num_constraints, dim=dim, random_state=random_state)
 
 
 class DTLZ1(DTLZ):
@@ -381,7 +398,8 @@ class DTLZ1(DTLZ):
     def __init__(self, dim, num_objectives=2, constrained=False,
                  noise_std=0, random_state=None):
         self.constrained = constrained
-        super().__init__(dim, num_objectives, num_constraints=0, noise_std=noise_std, random_state=random_state)
+        super().__init__(dim=dim, num_objectives=num_objectives, num_constraints=0,
+                         noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:
@@ -428,7 +446,8 @@ class DTLZ2(DTLZ):
                  noise_std=0, random_state=None):
         self.constrained = constrained
         num_constraints = 1 if constrained else 0
-        super().__init__(dim, num_objectives, num_constraints, noise_std=noise_std, random_state=random_state)
+        super().__init__(dim=dim, num_objectives=num_objectives, num_constraints=num_constraints,
+                         noise_std=noise_std, random_state=random_state)
 
     @property
     def _max_hv(self) -> float:
@@ -507,6 +526,7 @@ class BraninCurrin(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=2,
                          num_objectives=2,
                          num_constraints=num_constraints,
                          random_state=random_state)
@@ -549,6 +569,7 @@ class VehicleSafety(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=5,
                          num_objectives=3,
                          random_state=random_state)
 
@@ -602,13 +623,12 @@ class ZDT(BaseTestProblem):
     """
 
     def __init__(self, dim: int, num_constraints=0, noise_std=0, random_state=None):
-        self.dim = dim
         self.ref_point = [11.0, 11.0]
         params = {'x%d' % i: (0, 1) for i in range(1, dim+1)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objectives=2, num_constraints=num_constraints,
+                         dim=dim, num_objectives=2, num_constraints=num_constraints,
                          random_state=random_state)
 
     @staticmethod
@@ -748,7 +768,7 @@ class BNH(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objectives=2, num_constraints=2,
+                         dim=2, num_objectives=2, num_constraints=2,
                          random_state=random_state)
 
     def _evaluate(self, X):
@@ -779,6 +799,7 @@ class SRN(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=2,
                          num_objectives=2,
                          num_constraints=2,
                          random_state=random_state)
@@ -811,7 +832,7 @@ class CONSTR(BaseTestProblem):
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
-                         num_objectives=2, num_constraints=2,
+                         dim=2, num_objectives=2, num_constraints=2,
                          random_state=random_state)
 
     def _evaluate(self, X):
@@ -837,11 +858,11 @@ class Schwefel(BaseTestProblem):
     """
 
     def __init__(self, dim=2, noise_std=0, random_state=None):
-        self.dim = dim
-        params = {'x%d' % i: (-500.0, 500.0, 100.0) for i in range(1, 1 + self.dim)}
+        params = {'x%d' % i: (-500.0, 500.0, 100.0) for i in range(1, 1 + dim)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=dim,
                          optimal_value=-12596.5,
                          random_state=random_state)
 
@@ -861,11 +882,11 @@ class Rastrigin(BaseTestProblem):
     """
 
     def __init__(self, dim=2, noise_std=0, random_state=None):
-        self.dim = dim
-        params = {'x%d' % i: (-5.12, 5.12, 1) for i in range(1, 1 + self.dim)}
+        params = {'x%d' % i: (-5.12, 5.12, 1) for i in range(1, 1 + dim)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=dim,
                          optimal_value=0,
                          random_state=random_state)
 
@@ -881,11 +902,11 @@ class Gaussian(BaseTestProblem):
     """
 
     def __init__(self, dim=2, noise_std=0, random_state=None):
-        self.dim = dim
-        params = {'x%d' % i: (-0.1, 0.2, 0.1) for i in range(1, 1 + self.dim)}
+        params = {'x%d' % i: (-0.1, 0.2, 0.1) for i in range(1, 1 + dim)}
         config_space = ConfigurationSpace()
         config_space.add_hyperparameters([UniformFloatHyperparameter(k, *v) for k, v in params.items()])
         super().__init__(config_space, noise_std,
+                         dim=dim,
                          optimal_value=0,
                          random_state=random_state)
 
@@ -901,6 +922,9 @@ class SafetyConstrained(BaseTestProblem):
         self.h = h
         self.original = original
         super().__init__(original.config_space, original.noise_std,
+                         dim=original.dim,
+                         num_objectives=original.num_objectives,
+                         num_constraints=original.num_constraints + 1,
                          optimal_value=0,
                          random_state=original.rng)
 
