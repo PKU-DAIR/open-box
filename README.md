@@ -353,6 +353,11 @@ Targeting at openness and advancing AutoML ecosystems, we had also released few 
 
 ## **Related Publications**
 
+**OpenBox: A Python Toolkit for Generalized Black-box Optimization.**
+
+Huaijun Jiang, Yu Shen, Yang Li, Wentao Zhang, Ce Zhang, Bin Cui.
+https://arxiv.org/abs/2304.13339
+
 **OpenBox: A Generalized Black-box Optimization Service.**
 
 Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu,
