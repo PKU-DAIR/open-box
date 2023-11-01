@@ -72,19 +72,20 @@ OpenBox has a wide range of functionality scope, which includes:
 
 In the following, we provide a taxonomy of existing BBO systems:
 
-============== ========== ==== ========== ======= ===========
-System/Package Multi-obj. FIOC Constraint History Distributed
-============== ========== ==== ========== ======= ===========
-Hyperopt       ×          √    ×          ×       √
-Spearmint      ×          ×    √          ×       ×
-SMAC3          ×          √    ×          ×       ×
-BoTorch        √          ×    √          ×       ×
-GPflowOPT      √          ×    √          ×       ×
-Vizier         ×          √    ×          △       √
-HyperMapper    √          √    √          ×       ×
-HpBandSter     ×          √    ×          ×       √
-**OpenBox**    √          √    √          √       √
-============== ========== ==== ========== ======= ===========
+============== ==== ========== ========== ======= ===========
+System/Package FIOC Multi-obj. Constraint History Distributed
+============== ==== ========== ========== ======= ===========
+Hyperopt       √    ×          ×          ×       √
+Spearmint      ×    ×          √          ×       ×
+SMAC3          √    ×          ×          ×       ×
+BoTorch        ×    √          √          ×       ×
+Optuna         √    √          √          ×       √
+GPflowOPT      ×    √          √          ×       ×
+Vizier         √    ×          ×          △       √
+HyperMapper    √    √          √          ×       ×
+HpBandSter     √    ×          ×          ×       √
+**OpenBox**    √    √          √          √       √
+============== ==== ========== ========== ======= ===========
 
 -  **FIOC**: Support different input variable types, including
    Float, Integer, Ordinal and Categorical.
