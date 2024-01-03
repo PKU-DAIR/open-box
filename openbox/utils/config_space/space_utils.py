@@ -13,16 +13,16 @@ from ConfigSpace import (
 
 def parse_bool(input_):
     if isinstance(input_, bool):
-        return input
+        return input_
     elif isinstance(input_, str):
-        if input_.lower == 'true':
+        if input_.lower() == 'true':
             return True
         elif input_.lower() == 'false':
             return False
         else:
             raise ValueError("Expect string to be 'True' or 'False' but %s received!" % input_)
     else:
-        ValueError("Expect a bool or str but %s received!" % type(input_))
+        raise ValueError("Expect a bool or str but %s received!" % type(input_))
 
 
 def config_space2string(config_space: ConfigurationSpace):
