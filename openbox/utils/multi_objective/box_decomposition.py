@@ -316,7 +316,7 @@ class NondominatedPartitioning(object):
             raise ValueError(
                 "The reference point must be smaller than all pareto_Y values."
             )
-        ideal_point = self._pareto_Y.min(axis=0, keepdims=True).values
+        ideal_point = self._pareto_Y.min(axis=0, keepdims=True)
         ref_point = np.expand_dims(ref_point, 0)
         aug_pareto_Y = np.concatenate([ideal_point, self._pareto_Y, ref_point], axis=0)
         cell_bounds_values = self._get_hypercell_bounds(aug_pareto_Y=aug_pareto_Y)
