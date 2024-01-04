@@ -84,18 +84,19 @@ class SyncBatchAdvisor(Advisor):
             if self.initial_configurations is not None:  # self.init_num equals to len(self.initial_configurations)
                 next_configs = self.initial_configurations[num_config_evaluated: num_config_evaluated + batch_size]
                 if len(next_configs) < batch_size:
-                    next_configs.extend(
-                        self.sample_random_configs(batch_size - len(next_configs), history))
+                    next_configs.extend(self.sample_random_configs(
+                        self.config_space, batch_size - len(next_configs), excluded_configs=history.configurations))
                 return next_configs
             else:
-                return self.sample_random_configs(batch_size, history)
+                return self.sample_random_configs(
+                    self.config_space, batch_size, excluded_configs=history.configurations)
 
         if self.optimization_strategy == 'random':
-            return self.sample_random_configs(batch_size, history)
+            return self.sample_random_configs(self.config_space, batch_size, excluded_configs=history.configurations)
 
         if num_config_successful < max(self.init_num, 1):
             logger.warning('No enough successful initial trials! Sample random configurations.')
-            return self.sample_random_configs(batch_size, history)
+            return self.sample_random_configs(self.config_space, batch_size, excluded_configs=history.configurations)
 
         X = history.get_config_array(transform='scale')
         Y = history.get_objectives(transform='infeasible')
@@ -130,8 +131,8 @@ class SyncBatchAdvisor(Advisor):
                 if self.rng.random() < self.rand_prob:
                     # sample random configuration proportionally
                     logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
-                    cur_config = self.sample_random_configs(1, history,
-                                                            excluded_configs=batch_configs_list)[0]
+                    cur_config = self.sample_random_configs(
+                        self.config_space, 1, excluded_configs=history.configurations + batch_configs_list)[0]
                 else:
                     self.acquisition_function.update(model=self.surrogate_model, eta=incumbent_value,
                                                      num_data=len(history),
@@ -150,8 +151,8 @@ class SyncBatchAdvisor(Advisor):
                 if self.rng.random() < self.rand_prob:
                     # sample random configuration proportionally
                     logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
-                    cur_config = self.sample_random_configs(1, history,
-                                                            excluded_configs=batch_configs_list)[0]
+                    cur_config = self.sample_random_configs(
+                        self.config_space, 1, excluded_configs=history.configurations + batch_configs_list)[0]
                 else:
                     if not surrogate_trained:
                         # set return_list=True to ensure surrogate trained
@@ -170,9 +171,9 @@ class SyncBatchAdvisor(Advisor):
                             break
                     if cur_config is None:
                         logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
-                                            'Sample random config.' % (len(candidates),))
-                        cur_config = self.sample_random_configs(1, history,
-                                                                excluded_configs=batch_configs_list)[0]
+                                       'Sample random config.' % (len(candidates),))
+                        cur_config = self.sample_random_configs(
+                            self.config_space, 1, excluded_configs=history.configurations + batch_configs_list)[0]
                 batch_configs_list.append(cur_config)
         elif self.batch_strategy == 'default':
             # select first N candidates
@@ -182,13 +183,13 @@ class SyncBatchAdvisor(Advisor):
                 if idx >= len(candidates):
                     logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
                                    'Sample random config.' % (len(candidates),))
-                    cur_config = self.sample_random_configs(1, history,
-                                                            excluded_configs=batch_configs_list)[0]
+                    cur_config = self.sample_random_configs(
+                        self.config_space, 1, excluded_configs=history.configurations + batch_configs_list)[0]
                 elif self.rng.random() < self.rand_prob:
                     # sample random configuration proportionally
                     logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
-                    cur_config = self.sample_random_configs(1, history,
-                                                            excluded_configs=batch_configs_list)[0]
+                    cur_config = self.sample_random_configs(
+                        self.config_space, 1, excluded_configs=history.configurations + batch_configs_list)[0]
                 else:
                     cur_config = None
                     while idx < len(candidates):

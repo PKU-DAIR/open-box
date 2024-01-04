@@ -1,21 +1,18 @@
 # License: MIT
 
-import os
-import abc
 import numpy as np
-from datetime import datetime
 
 from openbox import logger
-from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
-from openbox.utils.history import Observation, History
-from openbox.utils.constants import MAXINT, SUCCESS
+from openbox.utils.util_funcs import deprecate_kwarg
+from openbox.utils.history import History
 from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
-from openbox.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
+from openbox.utils.multi_objective import NondominatedPartitioning
 from openbox.core.base import build_acq_func, build_surrogate
 from openbox.acq_optimizer import build_acq_optimizer
+from openbox.core.base_advisor import BaseAdvisor
 
 
-class Advisor(object, metaclass=abc.ABCMeta):
+class Advisor(BaseAdvisor):
     """
     Basic Advisor Class, which adopts a policy to sample a configuration.
     """
@@ -42,18 +39,16 @@ class Advisor(object, metaclass=abc.ABCMeta):
             logger_kwargs: dict = None,
             **kwargs,
     ):
-
-        self.timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
-        self.num_objectives = num_objectives
-        self.num_constraints = num_constraints
-        self.init_strategy = init_strategy
-        self.output_dir = output_dir
-        self.task_id = task_id
-        self.rng = check_random_state(random_state)
-
-        _logger_kwargs = {'name': task_id, 'logdir': output_dir}
-        _logger_kwargs.update(logger_kwargs or {})
-        logger.init(**_logger_kwargs)
+        super().__init__(
+            config_space=config_space,
+            num_objectives=num_objectives,
+            num_constraints=num_constraints,
+            ref_point=ref_point,
+            output_dir=output_dir,
+            task_id=task_id,
+            random_state=random_state,
+            logger_kwargs=logger_kwargs,
+        )
 
         # Basic components in Advisor.
         self.rand_prob = rand_prob
@@ -65,19 +60,10 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.constraint_surrogate_type = None
         self.acq_type = acq_type
         self.acq_optimizer_type = acq_optimizer_type
-        self.init_num = initial_trials
-        self.config_space = config_space
-        self.config_space_seed = self.rng.randint(MAXINT)
-        self.config_space.seed(self.config_space_seed)
-        self.ref_point = ref_point
-
-        # init history
-        self.history = History(
-            task_id=task_id, num_objectives=num_objectives, num_constraints=num_constraints, config_space=config_space,
-            ref_point=ref_point, meta_info=None,  # todo: add meta info
-        )
 
         # initial design
+        self.init_num = initial_trials
+        self.init_strategy = init_strategy
         if initial_configurations is not None and len(initial_configurations) > 0:
             self.initial_configurations = initial_configurations
             self.init_num = len(initial_configurations)
@@ -289,11 +275,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
         default_config = self.config_space.get_default_configuration()
         num_random_config = self.init_num - 1
         if init_strategy == 'random':
-            initial_configs = self.sample_random_configs(self.init_num)
+            initial_configs = self.sample_random_configs(self.config_space, self.init_num)
         elif init_strategy == 'default':
-            initial_configs = [default_config] + self.sample_random_configs(num_random_config)
+            initial_configs = [default_config] + self.sample_random_configs(self.config_space, num_random_config)
         elif init_strategy == 'random_explore_first':
-            candidate_configs = self.sample_random_configs(100)
+            candidate_configs = self.sample_random_configs(self.config_space, 100)
             initial_configs = self.max_min_distance(default_config, candidate_configs, num_random_config)
         elif init_strategy == 'sobol':
             sobol = SobolSampler(self.config_space, num_random_config, random_state=self.rng)
@@ -316,10 +302,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
             valid_configs.append(config)
         if len(valid_configs) != len(initial_configs):
             logger.warning('Only %d/%d valid configurations are generated for initial design strategy: %s. '
-                                'Add more random configurations.'
-                                % (len(valid_configs), len(initial_configs), init_strategy))
+                           'Add more random configurations.'
+                           % (len(valid_configs), len(initial_configs), init_strategy))
             num_random_config = self.init_num - len(valid_configs)
-            valid_configs += self.sample_random_configs(num_random_config, excluded_configs=valid_configs)
+            valid_configs += self.sample_random_configs(self.config_space, num_random_config,
+                                                        excluded_configs=valid_configs)
         return valid_configs
 
     def max_min_distance(self, default_config, src_configs, num):
@@ -364,12 +351,12 @@ class Advisor(object, metaclass=abc.ABCMeta):
             res = self.initial_configurations[num_config_evaluated]
             return [res] if return_list else res
         if self.optimization_strategy == 'random':
-            res = self.sample_random_configs(1, history)[0]
+            res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
             return [res] if return_list else res
 
         if (not return_list) and self.rng.random() < self.rand_prob:
             logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
-            res = self.sample_random_configs(1, history)[0]
+            res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
             return [res] if return_list else res
 
         X = history.get_config_array(transform='scale')
@@ -379,7 +366,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         if self.optimization_strategy == 'bo':
             if num_config_successful < max(self.init_num, 1):
                 logger.warning('No enough successful initial trials! Sample random configuration.')
-                res = self.sample_random_configs(1, history)[0]
+                res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
                 return [res] if return_list else res
 
             # train surrogate model
@@ -440,74 +427,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
                 if config not in history.configurations:
                     return config
             logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
-                                'Sample random config.' % (len(challengers), ))
-            return self.sample_random_configs(1, history)[0]
+                           'Sample random config.' % (len(challengers), ))
+            return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
         else:
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
-
-    def update_observation(self, observation: Observation):
-        """
-        Update the current observations.
-        Parameters
-        ----------
-        observation
-
-        Returns
-        -------
-
-        """
-        return self.history.update_observation(observation)
-
-    def sample_random_configs(self, num_configs=1, history=None, excluded_configs=None):
-        """
-        Sample a batch of random configurations.
-        Parameters
-        ----------
-        num_configs
-
-        history
-
-        Returns
-        -------
-
-        """
-        if history is None:
-            history = self.history
-        if excluded_configs is None:
-            excluded_configs = set()
-
-        configs = list()
-        sample_cnt = 0
-        max_sample_cnt = 1000
-        while len(configs) < num_configs:
-            config = self.config_space.sample_configuration()
-            sample_cnt += 1
-            if config not in (history.configurations + configs) and config not in excluded_configs:
-                configs.append(config)
-                sample_cnt = 0
-                continue
-            if sample_cnt >= max_sample_cnt:
-                logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
-                configs.append(config)
-                sample_cnt = 0
-        return configs
-
-    def get_history(self):
-        return self.history
-
-    def save_json(self, filename: str = None):
-        """
-        Save history to a json file.
-        """
-        if filename is None:
-            filename = os.path.join(self.output_dir, f'history/{self.task_id}/history_{self.timestamp}.json')
-        self.history.save_json(filename)
-
-    def load_json(self, filename: str):
-        """
-        Load history from a json file.
-        """
-        self.history = History.load_json(filename, self.config_space)
-
-    def get_suggestions(self):
-        raise NotImplementedError

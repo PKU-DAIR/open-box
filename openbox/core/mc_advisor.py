@@ -174,7 +174,7 @@ class MCAdvisor(Advisor):
             return self.initial_configurations[num_config_evaluated]
 
         if self.optimization_strategy == 'random':
-            return self.sample_random_configs(1)[0]
+            return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
 
         X = history.get_config_array(transform='scale')
         Y = history.get_objectives(transform='infeasible')
@@ -183,7 +183,7 @@ class MCAdvisor(Advisor):
         if self.optimization_strategy == 'bo':
             if num_config_successful < max(self.init_num, 1):
                 logger.warning('No enough successful initial trials! Sample random configuration.')
-                return self.sample_random_configs(1)[0]
+                return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
 
             # train surrogate model
             if self.num_objectives == 1:
