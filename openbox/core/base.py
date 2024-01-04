@@ -46,6 +46,15 @@ def build_surrogate(func_str='gp', config_space=None, rng=None, transfer_learnin
     func_str = func_str.lower()
     types, bounds = get_types(config_space)
     seed = rng.randint(MAXINT)
+    
+    if func_str.startswith('parego_'):
+        func_str = func_str[7:]
+        base_surrogate = build_surrogate(
+            func_str=func_str, config_space=config_space, rng=rng, 
+            transfer_learning_history=transfer_learning_history)
+        from openbox.surrogate.mo.parego import ParEGOSurrogate
+        return ParEGOSurrogate(base_surrogate=base_surrogate, seed=seed)
+
     if func_str == 'prf':
         try:
             from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
