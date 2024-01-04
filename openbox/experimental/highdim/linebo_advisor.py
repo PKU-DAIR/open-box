@@ -4,7 +4,8 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperparameter, CategoricalHyperparameter, \
     OrdinalHyperparameter
 
-from openbox.core.base import build_acq_func, build_surrogate, build_acq_maximizer
+from openbox.core.base import build_acq_func, build_surrogate
+from openbox.acq_maximizer import build_acq_maximizer
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.history import Observation, History
 from openbox.utils.util_funcs import check_random_state, get_types, deprecate_kwarg

@@ -3,7 +3,8 @@
 import numpy as np
 
 from openbox import logger
-from openbox.core.base import build_acq_func, build_acq_maximizer, build_surrogate
+from openbox.core.base import build_acq_func, build_surrogate
+from openbox.acq_maximizer import build_acq_maximizer
 from openbox.core.generic_advisor import Advisor
 from openbox.utils.history import Observation, MultiStartHistory
 from openbox.utils.multi_objective import NondominatedPartitioning

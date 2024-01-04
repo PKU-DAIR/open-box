@@ -11,7 +11,8 @@ from openbox.utils.history import Observation, History
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
-from openbox.core.base import build_acq_func, build_acq_maximizer, build_surrogate
+from openbox.core.base import build_acq_func, build_surrogate
+from openbox.acq_maximizer import build_acq_maximizer
 
 
 class Advisor(object, metaclass=abc.ABCMeta):
