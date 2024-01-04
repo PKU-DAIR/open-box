@@ -3,7 +3,8 @@
 import numpy as np
 
 from openbox import logger
-from openbox.core.base import build_acq_func, build_optimizer, build_surrogate
+from openbox.core.base import build_acq_func, build_surrogate
+from openbox.acq_optimizer import build_acq_optimizer
 from openbox.core.generic_advisor import Advisor
 from openbox.utils.history import Observation, MultiStartHistory
 from openbox.utils.multi_objective import NondominatedPartitioning
@@ -148,10 +149,9 @@ class MCAdvisor(Advisor):
                                                    constraint_models=self.constraint_models,
                                                    mc_times=self.mc_times, ref_point=self.ref_point)
 
-        self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
-                                         acq_func=self.acquisition_function,
-                                         config_space=self.config_space,
-                                         rng=self.rng)
+        self.acq_optimizer = build_acq_optimizer(func_str=self.acq_optimizer_type,
+                                                 config_space=self.config_space,
+                                                 rng=self.rng)
 
         if self.use_trust_region:
             types, bounds = get_types(self.config_space)
@@ -215,14 +215,15 @@ class MCAdvisor(Advisor):
                                                      cell_upper_bounds=cell_bounds[1])
 
             # optimize acquisition function
-            challengers = self.optimizer.maximize(runhistory=history,
-                                                  num_points=5000,
-                                                  turbo_state=self.turbo_state)
+            challengers = self.acq_optimizer.maximize(acquisition_function=self.acquisition_function,
+                                                      history=history,
+                                                      num_points=5000,
+                                                      turbo_state=self.turbo_state)
             is_repeated_config = True
             repeated_time = 0
             cur_config = None
             while is_repeated_config:
-                cur_config = challengers.challengers[repeated_time]
+                cur_config = challengers[repeated_time]
                 if cur_config in history.configurations:
                     repeated_time += 1
                 else:

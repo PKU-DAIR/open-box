@@ -128,11 +128,12 @@ class AsyncBatchAdvisor(Advisor):
                                              num_data=len(history),
                                              batch_configs=self.running_configs)
 
-            challengers = self.optimizer.maximize(
-                runhistory=history,
+            challengers = self.acq_optimizer.maximize(
+                acquisition_function=self.acquisition_function,
+                history=history,
                 num_points=5000
             )
-            return challengers.challengers[0]
+            return challengers[0]
 
         elif self.batch_strategy == 'default':
             # select first N candidates

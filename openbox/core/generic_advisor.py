@@ -11,7 +11,8 @@ from openbox.utils.history import Observation, History
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
-from openbox.core.base import build_acq_func, build_optimizer, build_surrogate
+from openbox.core.base import build_acq_func, build_surrogate
+from openbox.acq_optimizer import build_acq_optimizer
 
 
 class Advisor(object, metaclass=abc.ABCMeta):
@@ -87,7 +88,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.surrogate_model = None
         self.constraint_models = None
         self.acquisition_function = None
-        self.optimizer = None
+        self.acq_optimizer = None
         self.auto_alter_model = False
         self.algo_auto_selection()
         self.check_setup()
@@ -264,10 +265,8 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                        ref_point=self.ref_point)
         if self.acq_type == 'usemo':
             self.acq_optimizer_type = 'usemo_optimizer'
-        self.optimizer = build_optimizer(func_str=self.acq_optimizer_type,
-                                         acq_func=self.acquisition_function,
-                                         config_space=self.config_space,
-                                         rng=self.rng)
+        self.acq_optimizer = build_acq_optimizer(
+            func_str=self.acq_optimizer_type, config_space=self.config_space, rng=self.rng)
 
     def create_initial_design(self, init_strategy='default'):
         """
@@ -422,17 +421,20 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                      X=X, Y=Y)
 
             # optimize acquisition function
-            challengers = self.optimizer.maximize(runhistory=history,
-                                                  num_points=5000)
+            challengers = self.acq_optimizer.maximize(
+                acquisition_function=self.acquisition_function,
+                history=history,
+                num_points=5000,
+            )
             if return_list:
                 # Caution: return_list doesn't contain random configs sampled according to rand_prob
-                return challengers.challengers
+                return challengers
 
-            for config in challengers.challengers:
+            for config in challengers:
                 if config not in history.configurations:
                     return config
             logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
-                                'Sample random config.' % (len(challengers.challengers), ))
+                                'Sample random config.' % (len(challengers), ))
             return self.sample_random_configs(1, history)[0]
         else:
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)

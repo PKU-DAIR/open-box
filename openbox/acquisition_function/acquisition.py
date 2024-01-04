@@ -525,7 +525,7 @@ class LCB(AbstractAcquisitionFunction):
 
         :math:`LCB(X) = \mu(\mathbf{X}) - \sqrt(\beta_t)\sigma(\mathbf{X})`
 
-        Returns -LCB(X) as the acquisition_function acq_maximizer maximizes the acquisition value.
+        Returns -LCB(X) as the acquisition_function acq_optimizer maximizes the acquisition value.
 
         Parameters
         ----------
