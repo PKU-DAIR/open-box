@@ -1,6 +1,7 @@
 # License: MIT
 import numpy as np
 import matplotlib.pyplot as plt
+from openbox import logger
 from openbox.utils.multi_objective import get_pareto_front
 
 
@@ -195,6 +196,13 @@ def _plot_pareto_front_3d(
         # sort pareto front  # todo: check if this is necessary
         pareto_front = pareto_front[np.lexsort(pareto_front.T)]
         # plot pareto front (3d surface)
-        ax.plot_trisurf(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2],
-                        color=color, alpha=alpha, **kwargs)
+        if pareto_front.shape[0] < 3:
+            logger.warning(f'Pareto front has only {pareto_front.shape[0]} points.'
+                           f'3 points are required to plot a surface.')
+        else:
+            try:
+                ax.plot_trisurf(pareto_front[:, 0], pareto_front[:, 1], pareto_front[:, 2],
+                                color=color, alpha=alpha, **kwargs)
+            except (ValueError, RuntimeError):
+                logger.exception('Exception in plot_trisurf!')
     return ax
