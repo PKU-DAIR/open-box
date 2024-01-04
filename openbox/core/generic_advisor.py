@@ -163,13 +163,14 @@ class Advisor(object, metaclass=abc.ABCMeta):
 
         num_config_evaluated = len(history)
 
-        if num_config_evaluated == 300:
+        if num_config_evaluated >= 300:
             if self.surrogate_type == 'gp':
                 self.surrogate_type = 'prf'
-                logger.info('n_observations=300, change surrogate model from GP to PRF!')
+                logger.info(f'n_observations={num_config_evaluated}, change surrogate model from GP to PRF!')
                 if self.acq_optimizer_type == 'random_scipy':
                     self.acq_optimizer_type = 'local_random'
-                    logger.info('n_observations=300, change acq optimizer from random_scipy to local_random!')
+                    logger.info(f'n_observations={num_config_evaluated}, '
+                                f'change acq optimizer from random_scipy to local_random!')
                 self.setup_bo_basics()
 
     def check_setup(self):
