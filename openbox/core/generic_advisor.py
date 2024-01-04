@@ -12,7 +12,7 @@ from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import get_chebyshev_scalarization, NondominatedPartitioning
 from openbox.core.base import build_acq_func, build_surrogate
-from openbox.acq_maximizer import build_acq_maximizer
+from openbox.acq_optimizer import build_acq_optimizer
 
 
 class Advisor(object, metaclass=abc.ABCMeta):
@@ -88,7 +88,7 @@ class Advisor(object, metaclass=abc.ABCMeta):
         self.surrogate_model = None
         self.constraint_models = None
         self.acquisition_function = None
-        self.maximizer = None
+        self.acq_optimizer = None
         self.auto_alter_model = False
         self.algo_auto_selection()
         self.check_setup()
@@ -264,10 +264,9 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                        constraint_models=self.constraint_models,
                                                        ref_point=self.ref_point)
         if self.acq_type == 'usemo':
-            self.acq_optimizer_type = 'usemo_maximizer'
-        self.maximizer = build_acq_maximizer(func_str=self.acq_optimizer_type,
-                                             config_space=self.config_space,
-                                             rng=self.rng)
+            self.acq_optimizer_type = 'usemo_optimizer'
+        self.acq_optimizer = build_acq_optimizer(
+            func_str=self.acq_optimizer_type, config_space=self.config_space, rng=self.rng)
 
     def create_initial_design(self, init_strategy='default'):
         """
@@ -422,7 +421,11 @@ class Advisor(object, metaclass=abc.ABCMeta):
                                                      X=X, Y=Y)
 
             # optimize acquisition function
-            challengers = self.maximizer.maximize(acquisition_function=self.acquisition_function, runhistory=history, num_points=5000)
+            challengers = self.acq_optimizer.maximize(
+                acquisition_function=self.acquisition_function,
+                history=history,
+                num_points=5000,
+            )
             if return_list:
                 # Caution: return_list doesn't contain random configs sampled according to rand_prob
                 return challengers

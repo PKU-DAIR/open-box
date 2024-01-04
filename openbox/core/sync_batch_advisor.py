@@ -137,9 +137,9 @@ class SyncBatchAdvisor(Advisor):
                                                      num_data=len(history),
                                                      batch_configs=batch_configs_list)
 
-                    challengers = self.maximizer.maximize(
+                    challengers = self.acq_optimizer.maximize(
                         acquisition_function=self.acquisition_function,
-                        runhistory=history,
+                        history=history,
                         num_points=5000,
                     )
                     cur_config = challengers[0]
@@ -159,9 +159,9 @@ class SyncBatchAdvisor(Advisor):
                         surrogate_trained = True
                     else:
                         # re-optimize acquisition function
-                        challengers = self.maximizer.maximize(acquisition_function=self.acquisition_function,
-                                                              runhistory=history,
-                                                              num_points=5000)
+                        challengers = self.acq_optimizer.maximize(acquisition_function=self.acquisition_function,
+                                                                  history=history,
+                                                                  num_points=5000)
                         candidates = challengers
                     cur_config = None
                     for config in candidates:

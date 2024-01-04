@@ -128,9 +128,9 @@ class AsyncBatchAdvisor(Advisor):
                                              num_data=len(history),
                                              batch_configs=self.running_configs)
 
-            challengers = self.maximizer.maximize(
+            challengers = self.acq_optimizer.maximize(
                 acquisition_function=self.acquisition_function,
-                runhistory=history,
+                history=history,
                 num_points=5000
             )
             return challengers[0]

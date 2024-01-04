@@ -18,8 +18,8 @@ from openbox.utils.util_funcs import get_types
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.acquisition_function.acquisition import EI
 from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
-from openbox.acq_maximizer import InterleavedLocalAndRandomSearchMaximizer, RandomSearchMaximizer
-from openbox.acq_maximizer.random_configuration_chooser import ChooserProb
+from openbox.acq_optimizer import InterleavedLocalAndRandomSearchMaximizer, RandomSearchMaximizer
+from openbox.acq_optimizer.random_configuration_chooser import ChooserProb
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.history import History, Observation
 
@@ -196,7 +196,7 @@ class async_mqMFES(async_mqHyperband):
 
         challengers = self.acq_optimizer.maximize(
             acquisition_function=self.acquisition_function,
-            runhistory=self.history,
+            history=self.history,
             num_points=5000,
         )
         return challengers

@@ -1,5 +1,5 @@
 
-def build_acq_maximizer(func_str='local_random', config_space=None, rng=None):
+def build_acq_optimizer(func_str='local_random', config_space=None, rng=None):
     assert config_space is not None
     func_str = func_str.lower()
 
@@ -12,10 +12,10 @@ def build_acq_maximizer(func_str='local_random', config_space=None, rng=None):
     elif func_str == 'scipy_global':
         from .basic_maximizer import ScipyGlobalMaximizer
         optimizer = ScipyGlobalMaximizer
-    elif func_str == 'mesmo_maximizer':
+    elif func_str == 'mesmo_optimizer':
         from .basic_maximizer import MESMO_Maximizer
         optimizer = MESMO_Maximizer
-    elif func_str == 'usemo_maximizer':
+    elif func_str == 'usemo_optimizer':
         from .basic_maximizer import USeMO_Maximizer
         optimizer = USeMO_Maximizer
     elif func_str == 'cma_es':
@@ -28,6 +28,6 @@ def build_acq_maximizer(func_str='local_random', config_space=None, rng=None):
         from .basic_maximizer import StagedBatchScipyMaximizer
         optimizer = StagedBatchScipyMaximizer
     else:
-        raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
+        raise ValueError('Invalid string %s for acq_optimizer!' % func_str)
 
     return optimizer(config_space=config_space, rng=rng)

@@ -5,7 +5,7 @@ from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperpara
     OrdinalHyperparameter
 
 from openbox.core.base import build_acq_func, build_surrogate
-from openbox.acq_maximizer import build_acq_maximizer
+from openbox.acq_optimizer import build_acq_optimizer
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.history import Observation, History
 from openbox.utils.util_funcs import check_random_state, get_types, deprecate_kwarg
@@ -14,7 +14,7 @@ from openbox.utils.util_funcs import check_random_state, get_types, deprecate_kw
 class LinearMappedModel(AbstractModel):
     """
     A Linear Mapped Model is a 1-d model that uses a 1-d subspace results of an n-d model.
-    Used by acq_maximizer in LineBO
+    Used by acq_optimizer in LineBO
     """
 
     def __init__(self,
@@ -217,7 +217,7 @@ class LineBOAdvisor:
                                                [LinearMappedModel(i, x0, x1, self.line_space) for i in
                                                 self.constraint_surrogates],
                                                config_space=self.line_space)
-            self.acq_optimizer = build_acq_maximizer(func_str=self.acq_optimizer_type,
+            self.acq_optimizer = build_acq_optimizer(func_str=self.acq_optimizer_type,
                                                      config_space=self.line_space, rng=self.rng)
             self.sub_history = History(
                 task_id=self.task_id+'-sub', num_objectives=self.num_objectives, num_constraints=self.num_constraints,
@@ -272,7 +272,7 @@ class LineBOAdvisor:
             self.subspace_acq.update(eta=sub_incumbent_value, num_data=sub_num_config_evaluated)
 
             challengers = self.acq_optimizer.maximize(acquisition_function=self.acquisition_function,
-                                                      runhistory=self.sub_history,
+                                                      history=self.sub_history,
                                                       num_points=self.subbo_samples)
             ret = None
 
