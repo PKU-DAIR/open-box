@@ -8,8 +8,8 @@ colorama
 matplotlib
 pandas
 numpy>=1.7.1
-scipy>=0.18.1
-scikit-learn>=0.21.3
+scipy>=0.18.1,<=1.10.1
+scikit-learn>=0.21.3,<=1.0.2
 scikit-optimize>=0.9
 ConfigSpace>=0.4.20,<=0.6
 emcee
