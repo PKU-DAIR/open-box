@@ -658,4 +658,4 @@ class USeMO(AbstractAcquisitionFunction):
         self.candidates = np.array(cheap_pareto_set_unique)
 
     def _compute(self, X: np.ndarray, **kwargs):
-        raise NotImplementedError  # use USeMO_Optimizer
+        raise NotImplementedError  # use USeMO_Maximizer

@@ -9,11 +9,10 @@ import scipy.stats as sps
 import statsmodels.api as sm
 
 from openbox import logger
-from openbox.utils.util_funcs import check_random_state
-from openbox.utils.history import Observation, History
+from openbox.core.base_advisor import BaseAdvisor
 
 
-class TPE_Advisor:
+class TPE_Advisor(BaseAdvisor):
     # TODO：Add warm start
     def __init__(
             self,
@@ -29,24 +28,20 @@ class TPE_Advisor:
             random_state=None,
             logger_kwargs: dict = None,
     ):
-        self.task_id = task_id
-        self.output_dir = output_dir
-        _logger_kwargs = {'name': task_id, 'logdir': output_dir}
-        _logger_kwargs.update(logger_kwargs or {})
-        logger.init(**_logger_kwargs)
-
-        self.rng = check_random_state(random_state)
-        self.config_space = config_space
-        self.config_space.seed(self.rng.randint(100000))
+        super().__init__(
+            config_space=config_space,
+            num_objectives=1,
+            num_constraints=0,
+            ref_point=None,
+            output_dir=output_dir,
+            task_id=task_id,
+            random_state=random_state,
+            logger_kwargs=logger_kwargs,
+        )
 
         self.top_n_percent = top_n_percent
         self.bw_factor = bandwidth_factor
         self.min_bandwidth = min_bandwidth
-
-        self.history = History(
-            task_id=task_id, num_objectives=1, num_constraints=0, config_space=config_space,
-            ref_point=None, meta_info=None,  # todo: add meta info
-        )
 
         self.min_points_in_model = min_points_in_model
         if min_points_in_model is None:
@@ -79,9 +74,6 @@ class TPE_Advisor:
         self.good_config_rankings = dict()
         self.kde_models = dict()
 
-    def update_observation(self, observation: Observation):
-        self.history.update_observation(observation)
-
     def get_suggestion(self, history=None):
         if history is None:
             history = self.history
@@ -96,7 +88,7 @@ class TPE_Advisor:
 
         # If no model is available, sample random config
         if len(self.kde_models.keys()) == 0 or self.rng.rand() < self.random_fraction:
-            return self.sample_random_configs(1, history)[0]
+            return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
 
         best = np.inf
         best_vector = None
@@ -156,7 +148,7 @@ class TPE_Advisor:
             if best_vector is None:
                 logger.debug(
                     "Sampling based optimization with %i samples failed -> using random configuration" % self.num_samples)
-                config = self.sample_random_configs(1, history)[0]
+                config = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
             else:
                 logger.debug(
                     'best_vector: {}, {}, {}, {}'.format(best_vector, best, l(best_vector), g(best_vector)))
@@ -181,7 +173,7 @@ class TPE_Advisor:
             logger.warning(
                 "Sampling based optimization with %i samples failed\n %s \nUsing random configuration" % (
                     self.num_samples, traceback.format_exc()))
-            config = self.sample_random_configs(1, history)[0]
+            config = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
 
         return config
 
@@ -262,38 +254,3 @@ class TPE_Advisor:
         logger.debug(
             'done building a new model based on %i/%i split\nBest loss for this budget:%f\n\n\n\n\n' % (
                 n_good, n_bad, np.min(train_losses)))
-
-    def sample_random_configs(self, num_configs=1, history=None):
-        """
-        Sample a batch of random configurations.
-        Parameters
-        ----------
-        num_configs
-
-        history
-
-        Returns
-        -------
-
-        """
-        if history is None:
-            history = self.history
-
-        configs = list()
-        sample_cnt = 0
-        max_sample_cnt = 1000
-        while len(configs) < num_configs:
-            config = self.config_space.sample_configuration()
-            sample_cnt += 1
-            if config not in (history.configurations + configs):
-                configs.append(config)
-                sample_cnt = 0
-                continue
-            if sample_cnt >= max_sample_cnt:
-                logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
-                configs.append(config)
-                sample_cnt = 0
-        return configs
-
-    def get_history(self):
-        return self.history

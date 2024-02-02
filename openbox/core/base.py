@@ -41,47 +41,20 @@ def build_acq_func(func_str='ei', model=None, constraint_models=None, **kwargs):
         return acq_func(model=model, constraint_models=constraint_models, **kwargs)
 
 
-def build_optimizer(func_str='local_random', acq_func=None, config_space=None, rng=None):
-    assert config_space is not None
-    func_str = func_str.lower()
-
-    if func_str == 'local_random':
-        from openbox.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch
-        optimizer = InterleavedLocalAndRandomSearch
-    elif func_str == 'random_scipy':
-        from openbox.acq_maximizer.ei_optimization import RandomScipyOptimizer
-        optimizer = RandomScipyOptimizer
-    elif func_str == 'scipy_global':
-        from openbox.acq_maximizer.ei_optimization import ScipyGlobalOptimizer
-        optimizer = ScipyGlobalOptimizer
-    elif func_str == 'mesmo_optimizer':
-        from openbox.acq_maximizer.ei_optimization import MESMO_Optimizer
-        optimizer = MESMO_Optimizer
-    elif func_str == 'usemo_optimizer':
-        from openbox.acq_maximizer.ei_optimization import USeMO_Optimizer
-        optimizer = USeMO_Optimizer
-    elif func_str == 'cma_es':
-        from openbox.acq_maximizer.ei_optimization import CMAESOptimizer
-        optimizer = CMAESOptimizer
-    elif func_str == 'batchmc':
-        from openbox.acq_maximizer.ei_optimization import batchMCOptimizer
-        optimizer = batchMCOptimizer
-    elif func_str == 'staged_batch_scipy':
-        from openbox.acq_maximizer.ei_optimization import StagedBatchScipyOptimizer
-        optimizer = StagedBatchScipyOptimizer
-    else:
-        raise ValueError('Invalid string %s for acq_maximizer!' % func_str)
-
-    return optimizer(acquisition_function=acq_func,
-                     config_space=config_space,
-                     rng=rng)
-
-
 def build_surrogate(func_str='gp', config_space=None, rng=None, transfer_learning_history=None):
     assert config_space is not None
     func_str = func_str.lower()
     types, bounds = get_types(config_space)
     seed = rng.randint(MAXINT)
+    
+    if func_str.startswith('parego_'):
+        func_str = func_str[7:]
+        base_surrogate = build_surrogate(
+            func_str=func_str, config_space=config_space, rng=rng, 
+            transfer_learning_history=transfer_learning_history)
+        from openbox.surrogate.mo.parego import ParEGOSurrogate
+        return ParEGOSurrogate(base_surrogate=base_surrogate, seed=seed)
+
     if func_str == 'prf':
         try:
             from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances

@@ -4,7 +4,8 @@ import numpy as np
 from ConfigSpace import ConfigurationSpace, Configuration, UniformFloatHyperparameter, CategoricalHyperparameter, \
     OrdinalHyperparameter
 
-from openbox.core.base import build_acq_func, build_surrogate, build_optimizer
+from openbox.core.base import build_acq_func, build_surrogate
+from openbox.acq_optimizer import build_acq_optimizer
 from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.history import Observation, History
 from openbox.utils.util_funcs import check_random_state, get_types, deprecate_kwarg
@@ -13,7 +14,7 @@ from openbox.utils.util_funcs import check_random_state, get_types, deprecate_kw
 class LinearMappedModel(AbstractModel):
     """
     A Linear Mapped Model is a 1-d model that uses a 1-d subspace results of an n-d model.
-    Used by acq_maximizer in LineBO
+    Used by acq_optimizer in LineBO
     """
 
     def __init__(self,
@@ -216,8 +217,8 @@ class LineBOAdvisor:
                                                [LinearMappedModel(i, x0, x1, self.line_space) for i in
                                                 self.constraint_surrogates],
                                                config_space=self.line_space)
-            self.acq_optimizer = build_optimizer(func_str=self.acq_optimizer_type, acq_func=self.subspace_acq,
-                                                 config_space=self.line_space, rng=self.rng)
+            self.acq_optimizer = build_acq_optimizer(func_str=self.acq_optimizer_type,
+                                                     config_space=self.line_space, rng=self.rng)
             self.sub_history = History(
                 task_id=self.task_id+'-sub', num_objectives=self.num_objectives, num_constraints=self.num_constraints,
                 config_space=self.line_space, ref_point=None, meta_info=None,  # todo: add meta info
@@ -270,11 +271,12 @@ class LineBOAdvisor:
 
             self.subspace_acq.update(eta=sub_incumbent_value, num_data=sub_num_config_evaluated)
 
-            challengers = self.acq_optimizer.maximize(runhistory=self.sub_history,
+            challengers = self.acq_optimizer.maximize(acquisition_function=self.acquisition_function,
+                                                      history=self.sub_history,
                                                       num_points=self.subbo_samples)
             ret = None
 
-            for config in challengers.challengers:
+            for config in challengers:
                 c = self.to_original_space(config)
                 cx = c.get_array()
                 if any(np.linalg.norm(cx - i.get_array()) < 1e-6 for i in self.history.configurations):

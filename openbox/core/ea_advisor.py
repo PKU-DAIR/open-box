@@ -1,17 +1,17 @@
 # License: MIT
 
-import abc
 import random
 import numpy as np
 
 from openbox import logger
-from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
-from openbox.utils.history import Observation, History
+from openbox.utils.util_funcs import deprecate_kwarg
+from openbox.utils.history import Observation
 from openbox.utils.constants import MAXINT, SUCCESS
 from openbox.utils.config_space import get_one_exchange_neighbourhood
+from openbox.core.base_advisor import BaseAdvisor
 
 
-class EA_Advisor(object, metaclass=abc.ABCMeta):
+class EA_Advisor(BaseAdvisor):
     """
     Evolutionary Algorithm Advisor
     """
@@ -33,20 +33,17 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
             random_state=None,
             logger_kwargs: dict = None,
     ):
-
-        self.num_objectives = num_objectives
-        self.num_constraints = num_constraints
-        assert self.num_objectives == 1 and self.num_constraints == 0
-        self.output_dir = output_dir
-        self.task_id = task_id
-        self.rng = check_random_state(random_state)
-        self.config_space = config_space
-        self.config_space_seed = self.rng.randint(MAXINT)
-        self.config_space.seed(self.config_space_seed)
-
-        _logger_kwargs = {'name': task_id, 'logdir': output_dir}
-        _logger_kwargs.update(logger_kwargs or {})
-        logger.init(**_logger_kwargs)
+        assert num_objectives == 1 and num_constraints == 0
+        super().__init__(
+            config_space=config_space,
+            num_objectives=num_objectives,
+            num_constraints=num_constraints,
+            ref_point=None,
+            output_dir=output_dir,
+            task_id=task_id,
+            random_state=random_state,
+            logger_kwargs=logger_kwargs,
+        )
 
         # Init parallel settings
         self.batch_size = batch_size
@@ -67,15 +64,10 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
         self.strategy = strategy
         assert self.strategy in ['worst', 'oldest']
 
-        # init history
-        self.history = History(
-            task_id=task_id, num_objectives=num_objectives, num_constraints=num_constraints, config_space=config_space,
-            ref_point=None, meta_info=None,  # todo: add meta info
-        )
-
     def get_suggestion(self, history=None):
         """
         Generate a configuration (suggestion) for this query.
+
         Returns
         -------
         A configuration.
@@ -85,7 +77,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
 
         if len(self.population) < self.population_size:
             # Initialize population
-            next_config = self.sample_random_config(excluded_configs=self.all_configs)
+            next_config = self.sample_random_configs(self.config_space, 1, excluded_configs=self.all_configs)[0]
         else:
             # Select a parent by subset tournament and epsilon greedy
             if self.rng.random() < self.epsilon:
@@ -103,7 +95,7 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
                     next_config = neighbor
                     break
             if next_config is None:  # If all the neighors are evaluated, sample randomly!
-                next_config = self.sample_random_config(excluded_configs=self.all_configs)
+                next_config = self.sample_random_configs(self.config_space, 1, excluded_configs=self.all_configs)[0]
 
         self.all_configs.add(next_config)
         self.running_configs.append(next_config)
@@ -122,13 +114,11 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
     def update_observation(self, observation: Observation):
         """
         Update the current observations.
+
         Parameters
         ----------
-        observation
-
-        Returns
-        -------
-
+        observation: Observation
+            Observation of the objective function.
         """
 
         config = observation.config
@@ -155,22 +145,3 @@ class EA_Advisor(object, metaclass=abc.ABCMeta):
                 raise ValueError('Unknown strategy: %s' % self.strategy)
 
         return self.history.update_observation(observation)
-
-    def sample_random_config(self, excluded_configs=None):
-        if excluded_configs is None:
-            excluded_configs = set()
-
-        sample_cnt = 0
-        max_sample_cnt = 1000
-        while True:
-            config = self.config_space.sample_configuration()
-            sample_cnt += 1
-            if config not in excluded_configs:
-                break
-            if sample_cnt >= max_sample_cnt:
-                logger.warning('Cannot sample non duplicate configuration after %d iterations.' % max_sample_cnt)
-                break
-        return config
-
-    def get_history(self):
-        return self.history

@@ -17,8 +17,8 @@ from openbox.utils.util_funcs import get_types
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.acquisition_function.acquisition import EI
 from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
-from openbox.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
-from openbox.acq_maximizer.random_configuration_chooser import ChooserProb
+from openbox.acq_optimizer import InterleavedLocalAndRandomSearchMaximizer, RandomSearchMaximizer
+from openbox.acq_optimizer.random_configuration_chooser import ChooserProb
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.history import Observation, History
 
@@ -105,8 +105,7 @@ class mqMFES(mqBaseFacade):
         self.n_sls_iterations = 5
         self.sls_n_steps_plateau_walk = 10
         self.rng = np.random.RandomState(seed=self.seed)
-        self.acq_optimizer = InterleavedLocalAndRandomSearch(
-            acquisition_function=self.acquisition_function,
+        self.acq_optimizer = InterleavedLocalAndRandomSearchMaximizer(
             config_space=self.config_space,
             rng=self.rng,
             max_steps=self.sls_max_steps,
@@ -221,10 +220,11 @@ class mqMFES(mqBaseFacade):
                                          num_data=len(self.history))
 
         challengers = self.acq_optimizer.maximize(
-            runhistory=self.history,
+            acquisition_function=self.acquisition_function,
+            history=self.history,
             num_points=5000,
         )
-        return challengers.challengers[:num_configs]
+        return challengers[:num_configs]
 
     def choose_next(self, num_config):
         if len(self.target_y[self.iterate_r[-1]]) == 0:

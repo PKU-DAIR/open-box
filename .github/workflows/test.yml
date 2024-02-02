@@ -16,7 +16,7 @@ on:
 # todo: use the full test dir
 env:
   test-requires: "[test,extra]"
-  test-dir: test/examples
+  test-dir: test
   pytest-args: >-
     -rap
     --durations=20
@@ -49,3 +49,8 @@ jobs:
     - name: Run tests
       run: |
         pytest ${{ env.pytest-args }} ${{ env.test-dir }}
+    - name: Upload coverage reports to Codecov with GitHub Action
+      if: ${{ runner.os == 'Linux' && matrix.python-version == 3.8 }}
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: 98e68e47-e2f3-445a-8ee8-66ea6efe0d1b

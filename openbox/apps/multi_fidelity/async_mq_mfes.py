@@ -18,8 +18,8 @@ from openbox.utils.util_funcs import get_types
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.acquisition_function.acquisition import EI
 from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
-from openbox.acq_maximizer.ei_optimization import InterleavedLocalAndRandomSearch, RandomSearch
-from openbox.acq_maximizer.random_configuration_chooser import ChooserProb
+from openbox.acq_optimizer import InterleavedLocalAndRandomSearchMaximizer, RandomSearchMaximizer
+from openbox.acq_optimizer.random_configuration_chooser import ChooserProb
 from openbox.utils.config_space.util import convert_configurations_to_array
 from openbox.utils.history import History, Observation
 
@@ -97,8 +97,7 @@ class async_mqMFES(async_mqHyperband):
         self.n_sls_iterations = 5
         self.sls_n_steps_plateau_walk = 10
         self.rng = np.random.RandomState(seed=self.seed)
-        self.acq_optimizer = InterleavedLocalAndRandomSearch(
-            acquisition_function=self.acquisition_function,
+        self.acq_optimizer = InterleavedLocalAndRandomSearchMaximizer(
             config_space=self.config_space,
             rng=self.rng,
             max_steps=self.sls_max_steps,
@@ -196,10 +195,11 @@ class async_mqMFES(async_mqHyperband):
                                          num_data=len(self.incumbent_configs))
 
         challengers = self.acq_optimizer.maximize(
-            runhistory=self.history,
+            acquisition_function=self.acquisition_function,
+            history=self.history,
             num_points=5000,
         )
-        return challengers.challengers
+        return challengers
 
     @staticmethod
     def calculate_preserving_order_num(y_pred, y_true):

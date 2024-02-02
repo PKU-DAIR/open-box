@@ -1,5 +1,11 @@
 import abc
-import collections
+try:
+    # for Python >= 3.10
+    from collections.abc import Iterable
+except ImportError:
+    # for Python < 3.10
+    from collections import Iterable
+
 import random
 from typing import Union, Dict, List, Optional
 
@@ -228,7 +234,7 @@ def constraint_check(constraint, positive_numbers=False) -> bool:
         return constraint
     elif isinstance(constraint, float) or isinstance(constraint, int):
         return constraint >= 0 if positive_numbers else constraint <= 0
-    elif isinstance(constraint, collections.Iterable):
+    elif isinstance(constraint, Iterable):
         return not [x for x in constraint if not constraint_check(x, positive_numbers)]
     else:
         return bool(constraint)

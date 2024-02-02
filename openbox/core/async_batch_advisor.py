@@ -89,7 +89,7 @@ class AsyncBatchAdvisor(Advisor):
                 num_config_successful < self.bo_start_n or \
                 self.optimization_strategy == 'random':
             if num_config_all >= len(self.initial_configurations):
-                _config = self.sample_random_configs(1, history)[0]
+                _config = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
             else:
                 _config = self.initial_configurations[num_config_all]
             return _config
@@ -97,8 +97,8 @@ class AsyncBatchAdvisor(Advisor):
         # sample random configuration proportionally
         if self.rng.random() < self.rand_prob:
             logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
-            return self.sample_random_configs(1, history,
-                                              excluded_configs=self.running_configs)[0]
+            return self.sample_random_configs(
+                self.config_space, 1, excluded_configs=history.configurations + self.running_configs)[0]
 
         X = history.get_config_array(transform='scale')
         Y = history.get_objectives(transform='infeasible')
@@ -128,11 +128,12 @@ class AsyncBatchAdvisor(Advisor):
                                              num_data=len(history),
                                              batch_configs=self.running_configs)
 
-            challengers = self.optimizer.maximize(
-                runhistory=history,
+            challengers = self.acq_optimizer.maximize(
+                acquisition_function=self.acquisition_function,
+                history=history,
                 num_points=5000
             )
-            return challengers.challengers[0]
+            return challengers[0]
 
         elif self.batch_strategy == 'default':
             # select first N candidates
@@ -143,9 +144,9 @@ class AsyncBatchAdvisor(Advisor):
                     return config
 
             logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
-                                'Sample random config.' % (len(candidates),))
-            return self.sample_random_configs(1, history,
-                                              excluded_configs=self.running_configs)[0]
+                           'Sample random config.' % (len(candidates),))
+            return self.sample_random_configs(
+                self.config_space, 1, excluded_configs=history.configurations + self.running_configs)[0]
         else:
             raise ValueError('Invalid sampling strategy - %s.' % self.batch_strategy)
 
