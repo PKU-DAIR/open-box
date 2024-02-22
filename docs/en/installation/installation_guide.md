@@ -3,7 +3,7 @@
 ## 1 System Requirements
 
 Installation Requirements:
-+ Python >= 3.7 (3.7 is recommended!)
++ Python >= 3.8 (3.8 is recommended!)
 
 Supported Systems:
 + Linux (Ubuntu, ...)
@@ -15,7 +15,7 @@ Supported Systems:
 We **STRONGLY** suggest you to create a Python environment via 
 [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
-conda create -n openbox python=3.7
+conda create -n openbox python=3.8
 conda activate openbox
 ```
 

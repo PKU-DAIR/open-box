@@ -179,7 +179,7 @@ The design of OpenBox follows the following principles:
 ### System Requirements
 
 Installation Requirements:
-+ Python >= 3.7 (Python 3.7 is recommended!)
++ Python >= 3.8 (Python 3.8 is recommended!)
 
 Supported Systems:
 + Linux (Ubuntu, ...)
@@ -189,7 +189,7 @@ Supported Systems:
 We **strongly** suggest you to create a Python environment via 
 [Anaconda](https://www.anaconda.com/products/individual#Downloads):
 ```bash
-conda create -n openbox python=3.7
+conda create -n openbox python=3.8
 conda activate openbox
 ```
 
@@ -336,7 +336,7 @@ We appreciate all contributions and thank all the contributors!
 
 
 ## **Feedback**
-* [File an issue](https://github.com/PKU-DAIR/open-box/issues) on GitHub
+* [Fill an issue](https://github.com/PKU-DAIR/open-box/issues) on GitHub
 * Email us via [*Yang Li*](https://thomas-young-2013.github.io/), 
   *shenyu@pku.edu.cn* or *jianghuaijun@pku.edu.cn*
 * [Q&A] Join the QQ group: 227229622

@@ -6,14 +6,15 @@ on:
   push:
     branches:
       - master
+      - dev
 
   pull_request:
     branches:
       - master
+      - dev
 
   workflow_dispatch:
 
-# todo: use the full test dir
 env:
   test-requires: "[test,extra]"
   test-dir: test
@@ -24,7 +25,6 @@ env:
 
 # todo: Lint with flake8
 # todo: tests conda
-# todo: coverage
 jobs:
 
   tests-pip:
@@ -33,8 +33,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "windows-latest"] # todo support macos test
-        python-version: ["3.8", "3.9", "3.10"]
+        os: [ "ubuntu-latest", "windows-latest" ] # todo support macos test
+        python-version: [ "3.8", "3.9", "3.10" ]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}

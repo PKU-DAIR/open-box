@@ -12,15 +12,13 @@ on:
 permissions:
   contents: read
 
-# todo: use the full test dir
 env:
   test-requires: "[test,extra]"
-  test-dir: test/examples
+  test-dir: test
   pytest-args: >-
     -rap
-  build-python-version: "3.7"
+  build-python-version: "3.8"
 
-# todo: coverage
 jobs:
 
   tests-pip:
@@ -29,8 +27,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        os: [ "ubuntu-latest", "windows-latest" ] # todo support macos test
+        python-version: [ "3.8", "3.9", "3.10" ]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}

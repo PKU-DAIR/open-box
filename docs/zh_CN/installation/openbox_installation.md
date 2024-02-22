@@ -4,7 +4,7 @@
 
 ## 系统环境需求
 
-+ Python >= 3.7
++ Python >= 3.8
 + SWIG == 3.0.12
 
 在安装OpenBox之前，请确保已经正确安装了SWIG（后面将介绍安装方法）。
@@ -13,10 +13,10 @@
 
 我们推荐使用[Anaconda](https://www.anaconda.com/products/individual#Downloads)
 为OpenBox系统创建单独的Python环境，在安装conda以后，
-可以通过以下命令创建名为openbox的Python 3.7环境（也可以使用其他名称）：
+可以通过以下命令创建名为openbox的Python 3.8环境（也可以使用其他名称）：
 
 ```bash
-conda create -n openbox python=3.7
+conda create -n openbox python=3.8
 ```
 
 然后输入以下命令进入该环境：
