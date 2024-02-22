@@ -83,9 +83,11 @@ pip install "openbox[extra]"
 
 ### Windows
 
-+ 'Error: \[WinError 5\] 拒绝访问'。请使用管理员权限运行命令行，或在命令后添加`--user`。
++ 对于在为某些包（例如 ConfigSpace 或 pyrfr）构建 wheel 时遇到问题的 Windows 用户，
+  错误信息类似于 'ERROR: Failed building wheel for XXX' 或 'Microsoft Visual C++ 14.0 is required'，
+  请参考 [安装 Microsoft Visual C++ 依赖项](./install_microsoft_vc.md)。
 
-+ 'ERROR: Failed building wheel for ConfigSpace'。请参考[提示](./install_configspace_on_win_fix_vc.md)。
++ 'Error: \[WinError 5\] 拒绝访问'。请使用管理员权限运行命令行，或在命令后添加`--user`。
 
 + 对于 Windows 用户，如果您在安装 lazy_import 时遇到了困难，请参考 
   [提示](./install-lazy_import-on-windows.md)。(Deprecated in 0.7.10)

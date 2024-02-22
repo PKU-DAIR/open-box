@@ -86,10 +86,12 @@ If you encounter problems not listed below, please
 
 ### Windows
 
-+ 'Error: \[WinError 5\] Access denied'. Please open the command prompt with administrative privileges or 
-append `--user` to the command line.
++ For Windows users who have trouble building wheel for some packages, e.g. ConfigSpace or pyrfr, 
+  the error message is like 'ERROR: Failed building wheel for XXX' or 'Microsoft Visual C++ 14.0 is required', 
+  please refer to [Install Microsoft Visual C++ Dependencies](./install_microsoft_vc.md).
 
-+ 'ERROR: Failed building wheel for ConfigSpace'. Please refer to [tips](./install_configspace_on_win_fix_vc.md).
++ 'Error: \[WinError 5\] Access denied'. Please open the command prompt with administrative privileges or 
+  append `--user` to the command line.
 
 + For Windows users who have trouble installing lazy_import, please refer to 
   [tips](./install-lazy_import-on-windows.md). (Deprecated in 0.7.10)
