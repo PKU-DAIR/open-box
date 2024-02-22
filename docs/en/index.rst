@@ -79,6 +79,7 @@ Hyperopt       √    ×          ×          ×       √
 Spearmint      ×    ×          √          ×       ×
 SMAC3          √    ×          ×          ×       ×
 BoTorch        ×    √          √          ×       ×
+Ax             √    √          √          ×       √
 Optuna         √    √          √          ×       √
 GPflowOPT      ×    √          √          ×       ×
 Vizier         √    ×          ×          △       √
