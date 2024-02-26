@@ -71,12 +71,12 @@ OpenBox 有很多强大的功能和特性，包括：
 ============== ====== ========== ========== ======= ===========
 Hyperopt       √      ×          ×          ×       √
 Spearmint      ×      ×          √          ×       ×
-SMAC3          √      ×          ×          ×       ×
+SMAC3          √      √          ×          ×       ×
 BoTorch        ×      √          √          ×       ×
 Ax             √      √          √          ×       √
 Optuna         √      √          √          ×       √
 GPflowOPT      ×      √          √          ×       ×
-Vizier         √      ×          ×          △       √
+Vizier         √      ×          △          △       √
 HyperMapper    √      √          √          ×       ×
 HpBandSter     √      ×          ×          ×       √
 **OpenBox**    √      √          √          √       √
@@ -88,9 +88,11 @@ HpBandSter     √      ×          ×          ×       √
 
 -  **约束条件**: 支持不等式约束条件。
 
--  **历史**: 支持将以前任务的先验知识融入到当前搜索中。（ △ 表示系统在通用场景下不支持）
+-  **历史**: 支持将以前任务的先验知识融入到当前搜索中（即迁移学习）。
 
 -  **分布式**: 支持在分布式环境中并行评估。
+
+-  △ 表示系统在通用场景下不支持或需要安装额外的依赖。
 
 ------------------------------------------------
 
@@ -107,5 +109,7 @@ HpBandSter     √      ×          ×          ×       √
     可视化 (New!) <visualization/visualization>
     高级用法 <advanced_usage/advanced_usage>
     OpenBox服务 <openbox_as_service/openbox_as_service>
+    Developer's Guide <developers_guide/developers_guide>
+    Maintainer's Guide <maintainers_guide/maintainers_guide>
     研究成果 <research_and_publications/research_and_publications>
     更新历史 <change_logs/change_logs>

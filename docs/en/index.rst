@@ -77,12 +77,12 @@ System/Package FIOC Multi-obj. Constraint History Distributed
 ============== ==== ========== ========== ======= ===========
 Hyperopt       √    ×          ×          ×       √
 Spearmint      ×    ×          √          ×       ×
-SMAC3          √    ×          ×          ×       ×
+SMAC3          √    √          ×          ×       ×
 BoTorch        ×    √          √          ×       ×
 Ax             √    √          √          ×       √
 Optuna         √    √          √          ×       √
 GPflowOPT      ×    √          √          ×       ×
-Vizier         √    ×          ×          △       √
+Vizier         √    ×          △          △       √
 HyperMapper    √    √          √          ×       ×
 HpBandSter     √    ×          ×          ×       √
 **OpenBox**    √    √          √          √       √
@@ -96,11 +96,13 @@ HpBandSter     √    ×          ×          ×       √
 -  **Constraint**: Support inequality constraints.
 
 -  **History**: Support injecting prior knowledge from previous
-   tasks into the current search. (△ means the system cannot support
-   it for general cases)
+   tasks into the current search (i.e. transfer learning).
 
 -  **Distributed**: Support parallel evaluations in a distributed
    environment.
+
+-  △ means the system cannot support it for general cases or
+   requires additional dependencies.
 
 ------------------------------------------------
 
@@ -116,5 +118,7 @@ HpBandSter     √    ×          ×          ×       √
     Visualization (New!) <visualization/visualization>
     Advanced Usage <advanced_usage/advanced_usage>
     OpenBox as Service <openbox_as_service/openbox_as_service>
+    Developer's Guide <developers_guide/developers_guide>
+    Maintainer's Guide <maintainers_guide/maintainers_guide>
     Research and Publications <research_and_publications/research_and_publications>
     Change Logs <change_logs/change_logs>
