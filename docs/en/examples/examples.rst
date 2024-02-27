@@ -9,3 +9,4 @@ Examples
     Single-Objective Black-box Optimization with Constraints <single_objective_with_constraint>
     Multi-Objective Black-box Optimization <multi_objective>
     Multi-Objective Black-box Optimization with Constraints <multi_objective_with_constraint>
+    Ask-and-tell Interface <ask_and_tell>

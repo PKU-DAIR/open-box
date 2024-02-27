@@ -14,7 +14,71 @@ from openbox.core.base_advisor import BaseAdvisor
 
 class Advisor(BaseAdvisor):
     """
-    Basic Advisor Class, which adopts a policy to sample a configuration.
+    Generic Bayesian optimization advisor.
+
+    Parameters
+    ----------
+    config_space : openbox.space.Space or ConfigSpace.ConfigurationSpace
+        Configuration space.
+    num_objectives : int, default=1
+        Number of objectives in objective function.
+    num_constraints : int, default=0
+        Number of constraints in objective function.
+    initial_trials : int, default=3
+        Number of initial iterations of optimization.
+    init_strategy : str, default='random_explore_first'
+        Strategy to generate configurations for initial iterations.
+        - 'random_explore_first' (default): Random sampled configs with maximized internal minimum distance
+        - 'random': Random sampling
+        - 'default': Default configuration + random sampling
+        - 'sobol': Sobol sequence sampling
+        - 'latin_hypercube': Latin hypercube sampling
+    initial_configurations : List[Configuration], optional
+        If provided, the initial configurations will be evaluated in initial iterations of optimization.
+    transfer_learning_history : List[History], optional
+        Historical data for transfer learning.
+    rand_prob : float, default=0.1
+        Probability to sample random configurations.
+    surrogate_type : str, default='auto'
+        Type of surrogate model in Bayesian optimization.
+        - 'gp' (default): Gaussian Process. Better performance for mathematical problems.
+        - 'prf': Probability Random Forest. Better performance for hyper-parameter optimization (HPO).
+        - 'lightgbm': LightGBM.
+    acq_type : str, default='auto'
+        Type of acquisition function in Bayesian optimization.
+        For single objective problem:
+        - 'ei' (default): Expected Improvement
+        - 'eips': Expected Improvement per Second
+        - 'logei': Logarithm Expected Improvement
+        - 'pi': Probability of Improvement
+        - 'lcb': Lower Confidence Bound
+        For single objective problem with constraints:
+        - 'eic' (default): Expected Constrained Improvement
+        For multi-objective problem:
+        - 'ehvi (default)': Expected Hypervolume Improvement
+        - 'mesmo': Multi-Objective Max-value Entropy Search
+        - 'usemo': Multi-Objective Uncertainty-Aware Search
+        - 'parego': ParEGO
+        For multi-objective problem with constraints:
+        - 'ehvic' (default): Expected Hypervolume Improvement with Constraints
+        - 'mesmoc': Multi-Objective Max-value Entropy Search with Constraints
+    acq_optimizer_type : str, default='auto'
+        Type of optimizer to maximize acquisition function.
+        - 'local_random' (default): Interleaved Local and Random Search
+        - 'random_scipy': L-BFGS-B (Scipy) optimizer with random starting points
+        - 'scipy_global': Differential Evolution
+        - 'cma_es': Covariance Matrix Adaptation Evolution Strategy (CMA-ES)
+    ref_point : List[float], optional
+        Reference point for calculating hypervolume in multi-objective problem.
+        Must be provided if using EHVI based acquisition function.
+    output_dir : str, default='logs'
+        Directory to save log files. If None, no log files will be saved.
+    task_id : str, default='OpenBox'
+        Task identifier.
+    random_state : int
+        Random seed for RNG.
+    logger_kwargs : dict, optional
+        Additional keyword arguments for logger.
     """
 
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')

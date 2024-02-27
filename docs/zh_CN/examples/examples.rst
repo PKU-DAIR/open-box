@@ -9,3 +9,4 @@
     单目标带约束条件的黑盒优化 <single_objective_with_constraint>
     多目标黑盒优化 <multi_objective>
     多目标带约束条件的黑盒优化 <multi_objective_with_constraint>
+    Ask-and-tell Interface <ask_and_tell>
