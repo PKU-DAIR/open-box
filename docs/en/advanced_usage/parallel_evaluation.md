@@ -119,9 +119,11 @@ We use the branin objective function defined previously.
 
 ```python
 from openbox import DistributedOptimizer
+from openbox.utils.platform import get_platform
 
 # Distributed Evaluation
 n_workers = 4
+ip = "127.0.0.1" if get_platform() == 'Windows' else ''
 opt = DistributedOptimizer(
     branin,
     space,
@@ -133,6 +135,7 @@ opt = DistributedOptimizer(
     max_runs=50,
     surrogate_type='gp',
     task_id='distributed_opt',
+    ip=ip,
     port=13579,
     authkey=b'abc',
 )

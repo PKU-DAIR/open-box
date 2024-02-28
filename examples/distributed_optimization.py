@@ -15,6 +15,7 @@ python distributed_optimization.py --role worker --master_ip 127.0.0.1 --port 13
 import argparse
 import numpy as np
 from openbox import space as sp, DistributedOptimizer, DistributedWorker
+from openbox.utils.platform import get_platform
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--role', type=str, choices=['master', 'worker'])
@@ -47,6 +48,7 @@ def branin(config):
 
 if __name__ == "__main__":
     if role == 'master':
+        ip = master_ip if get_platform() == 'Windows' else ''
         opt = DistributedOptimizer(
             branin,
             space,
@@ -59,7 +61,7 @@ if __name__ == "__main__":
             # surrogate_type='gp',
             surrogate_type='auto',
             task_id='distributed_opt',
-            ip="",
+            ip=master_ip,
             port=port,
             authkey=b'abc',
         )

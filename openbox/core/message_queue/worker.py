@@ -12,6 +12,7 @@ class Worker(object):
     def __init__(self, objective_function, ip="127.0.0.1", port=13579, authkey=b'abc'):
         self.objective_function = objective_function
         self.worker_messager = WorkerMessager(ip, port, authkey)
+        print('Worker initialized.')
 
     def run(self):
         while True:
