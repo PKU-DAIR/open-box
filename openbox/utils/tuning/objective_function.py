@@ -22,7 +22,7 @@ def get_lightgbm_objective_function(x_train, x_val, y_train, y_val, task_type='c
         params = config.get_dictionary().copy()
 
         # fit model
-        model = LGBMClassifier(**params)
+        model = LGBMClassifier(**params, verbose=-1)
         model.fit(x_train, y_train)
 
         # predict and calculate loss
