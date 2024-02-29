@@ -247,6 +247,8 @@ class Advisor(BaseAdvisor):
         else:
             if self.num_constraints == 0:
                 assert self.acq_type in ['ehvi', 'mesmo', 'usemo', 'parego']
+                if self.acq_type == 'ehvi' and self.num_objectives > 4:
+                    logger.warning('Computational cost of EHVI with more than 4 objectives might be extremely high!')
                 if self.acq_type == 'mesmo' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
                     logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
@@ -258,6 +260,8 @@ class Advisor(BaseAdvisor):
                         self.constraint_surrogate_type = 'gp_rbf'
                     else:
                         self.constraint_surrogate_type = 'gp'
+                if self.acq_type == 'ehvic' and self.num_objectives > 4:
+                    logger.warning('Computational cost of EHVIC with more than 4 objectives might be extremely high!')
                 if self.acq_type == 'mesmoc' and self.surrogate_type != 'gp_rbf':
                     self.surrogate_type = 'gp_rbf'
                     logger.warning('Surrogate model has changed to Gaussian Process with RBF kernel '
