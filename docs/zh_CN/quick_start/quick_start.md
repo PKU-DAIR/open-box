@@ -65,7 +65,7 @@ opt = Optimizer(
     branin,
     space,
     max_runs=50,
-    surrogate_type='gp',
+    surrogate_type='gp',          # try using 'auto'!
     task_id='quick_start',
     # Have a try on the new HTML visualization feature!
     # visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
@@ -83,6 +83,7 @@ history = opt.run()
 
 + `surrogate_type='gp'`： 对于数学问题，我们推荐用高斯过程 (`'gp'`) 作为贝叶斯优化的代理模型。
 对于实际的问题，例如超参数优化 (HPO)，我们推荐用随机森林 (`'prf'`)。
+设置为 `'auto'` 来启用{ref}`自动化算法选择 <advanced_usage/auto_algorithm_selection:自动化算法选择>`。
 
 + `task_id` 被用来区别不同优化过程。
 

@@ -52,9 +52,9 @@ opt = Optimizer(
     num_objectives=prob.num_objectives,
     num_constraints=0,
     max_runs=50,
-    surrogate_type='gp',
-    acq_type='ehvi',
-    acq_optimizer_type='random_scipy',
+    surrogate_type='gp',                # try using 'auto'!
+    acq_type='ehvi',                    # try using 'auto'!
+    acq_optimizer_type='random_scipy',  # try using 'auto'!
     initial_runs=2*(dim+1),
     init_strategy='sobol',
     ref_point=prob.ref_point,
@@ -77,14 +77,20 @@ In this example, `num_objectives=2`.
 + `max_runs=50` means the optimization will take 50 rounds (optimizing the objective function 50 times). 
 
 + `surrogate_type='gp'`. For mathematical problem, we suggest using Gaussian Process (`'gp'`) as Bayesian surrogate
-model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (`'prf'`).
+model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (`'prf'`). 
+Set to `'auto'` to enable 
+{ref}`automatic algorithm selection <advanced_usage/auto_algorithm_selection:Automatic Algorithm Selection>`.
 
 + `acq_type='ehvi'`. Use **EHVI(Expected Hypervolume Improvement)** as Bayesian acquisition function. For problems with more than 3 objectives, please
 use **MESMO**(`'mesmo'`) or **USEMO**(`'usemo'`).
+Set to `'auto'` to enable 
+{ref}`automatic algorithm selection <advanced_usage/auto_algorithm_selection:Automatic Algorithm Selection>`.
 
 + `acq_optimizer_type='random_scipy'`. For mathematical problems, we suggest using `'random_scipy'` as
 acquisition function optimizer. For practical problems such as hyperparameter optimization (HPO), we suggest
 using `'local_random'`.
+Set to `'auto'` to enable 
+{ref}`automatic algorithm selection <advanced_usage/auto_algorithm_selection:Automatic Algorithm Selection>`.
 
 + `initial_runs` sets how many configurations are suggested by `init_strategy` before the optimization loop.
 

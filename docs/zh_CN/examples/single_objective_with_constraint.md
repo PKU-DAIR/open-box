@@ -57,8 +57,8 @@ opt = Optimizer(
     space,
     num_constraints=1,
     num_objectives=1,
-    surrogate_type='gp',
-    acq_optimizer_type='random_scipy',
+    surrogate_type='gp',                # try using 'auto'!
+    acq_optimizer_type='random_scipy',  # try using 'auto'!
     max_runs=50,
     task_id='soc',
     # Have a try on the new HTML visualization feature!

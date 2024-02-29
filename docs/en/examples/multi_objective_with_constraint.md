@@ -57,9 +57,9 @@ opt = Optimizer(
     num_objectives=prob.num_objectives,
     num_constraints=prob.num_constraints,
     max_runs=100,
-    surrogate_type='gp',
-    acq_type='ehvic',
-    acq_optimizer_type='random_scipy',
+    surrogate_type='gp',                # try using 'auto'!
+    acq_type='ehvic',                   # try using 'auto'!
+    acq_optimizer_type='random_scipy',  # try using 'auto'!
     initial_runs=initial_runs,
     init_strategy='sobol',
     ref_point=prob.ref_point,
@@ -83,13 +83,19 @@ In this example, `num_objectives=2` and `num_constraints=2`.
 
 + `surrogate_type='gp'`. For mathematical problem, we suggest using Gaussian Process (`'gp'`) as Bayesian surrogate
 model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (`'prf'`).
+Set to `'auto'` to enable 
+{ref}`automatic algorithm selection <advanced_usage/auto_algorithm_selection:Automatic Algorithm Selection>`.
 
 + `acq_type='ehvic'`. Use **EHVIC(Expected Hypervolume Improvement with Constraint)**
 as Bayesian acquisition function.
+Set to `'auto'` to enable 
+{ref}`automatic algorithm selection <advanced_usage/auto_algorithm_selection:Automatic Algorithm Selection>`.
 
 + `acq_optimizer_type='random_scipy'`. For mathematical problems, we suggest using `'random_scipy'` as
 acquisition function optimizer. For practical problems such as hyperparameter optimization (HPO), we suggest
 using `'local_random'`.
+Set to `'auto'` to enable 
+{ref}`automatic algorithm selection <advanced_usage/auto_algorithm_selection:Automatic Algorithm Selection>`.
 
 + `initial_runs` sets how many configurations are suggested by `init_strategy` before the optimization loop.
 

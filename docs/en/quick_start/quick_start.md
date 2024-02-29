@@ -66,7 +66,7 @@ opt = Optimizer(
     branin,
     space,
     max_runs=50,
-    surrogate_type='gp',
+    surrogate_type='gp',          # try using 'auto'!
     task_id='quick_start',
     # Have a try on the new HTML visualization feature!
     # visualization='advanced',   # or 'basic'. For 'advanced', run 'pip install "openbox[extra]"' first
@@ -85,6 +85,8 @@ constraint.
 
 + `surrogate_type='gp'`. For mathematical problems, we suggest using Gaussian Process (`'gp'`) as Bayesian surrogate
 model. For practical problems such as hyperparameter optimization (HPO), we suggest using Random Forest (`'prf'`).
+Set to `'auto'` to enable 
+{ref}`automatic algorithm selection <advanced_usage/auto_algorithm_selection:Automatic Algorithm Selection>`.
 
 + `task_id` is set to identify the optimization process.
 

@@ -59,9 +59,9 @@ opt = Optimizer(
     num_objectives=prob.num_objectives,
     num_constraints=prob.num_constraints,
     max_runs=100,
-    surrogate_type='gp',
-    acq_type='ehvic',
-    acq_optimizer_type='random_scipy',
+    surrogate_type='gp',                # try using 'auto'!
+    acq_type='ehvic',                   # try using 'auto'!
+    acq_optimizer_type='random_scipy',  # try using 'auto'!
     initial_runs=initial_runs,
     init_strategy='sobol',
     ref_point=prob.ref_point,
@@ -83,11 +83,14 @@ history = opt.run()
 
 + `surrogate_type='gp'` 对于数学问题，我们推荐用高斯过程 (`'gp'`) 做贝叶斯优化的替代模型。
 对于实际问题，比如超参数优化（HPO）问题，我们推荐使用随机森林(`'prf'`)。
+设置为 `'auto'` 来启用{ref}`自动化算法选择 <advanced_usage/auto_algorithm_selection:自动化算法选择>`。
 
 + `acq_type='ehvic'` 用 **EHVIC(Expected Hypervolume Improvement with Constraint)** 作为贝叶斯优化的acquisition function。
+设置为 `'auto'` 来启用{ref}`自动化算法选择 <advanced_usage/auto_algorithm_selection:自动化算法选择>`。
 
 + `acq_optimizer_type='random_scipy'` 对于数学问题，我们推荐用 `'random_scipy'` 作为贝叶斯优化的acquisition function。
   对于实际问题，比如超参数优化（HPO）问题，我们推荐使用 `'local_random'` 。
+设置为 `'auto'` 来启用{ref}`自动化算法选择 <advanced_usage/auto_algorithm_selection:自动化算法选择>`。
 
 + `initial_runs` 设置在优化循环之前，`init_strategy`推荐使用的配置数量。
   
