@@ -10,6 +10,7 @@ from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.utils.limit import run_obj_func
 from openbox.utils.util_funcs import parse_result, deprecate_kwarg
 from openbox.utils.history import Observation, History
+from openbox.utils.early_stop import EarlyStopException
 from openbox.visualization import build_visualizer
 
 
@@ -85,6 +86,19 @@ class SMBO(BOBase):
         Must be provided if using EHVI based acquisition function.
     transfer_learning_history : List[History], optional
         Historical data for transfer learning.
+    early_stop: bool, default=False
+        Whether to enable early stop.
+    early_stop_kwargs : dict, optional
+        Options for early stop algorithm:
+        - min_iter : int
+            Minimum number of iterations before early stop is considered.
+        - min_improvement_percentage : float
+            The minimum improvement percentage. If the Expected Improvement (EI) is less than
+            `min_improvement_percentage * (default_obj_value - best_obj_value)`, early stop is triggered.
+            If `improvement_threshold` is 0, this criterion is disabled.
+        - max_no_improvement_rounds : int
+            The maximum tolerable rounds with no improvement before early stop.
+            If `max_no_improvement_rounds` is 0, this criterion is disabled.
     logging_dir : str, default='logs'
         Directory to save log files. If None, no log files will be saved.
     task_id : str, default='OpenBox'
@@ -127,6 +141,8 @@ class SMBO(BOBase):
             initial_configurations=None,
             ref_point=None,
             transfer_learning_history: List[History] = None,
+            early_stop=False,
+            early_stop_kwargs=None,
             logging_dir='logs',
             task_id='OpenBox',
             visualization='none',
@@ -165,6 +181,8 @@ class SMBO(BOBase):
                                           acq_optimizer_type=acq_optimizer_type,
                                           ref_point=ref_point,
                                           transfer_learning_history=transfer_learning_history,
+                                          early_stop=early_stop,
+                                          early_stop_kwargs=early_stop_kwargs,
                                           task_id=task_id,
                                           output_dir=logging_dir,
                                           random_state=random_state,
@@ -235,12 +253,16 @@ class SMBO(BOBase):
         self.visualizer.setup()
 
     def run(self) -> History:
-        for _ in tqdm(range(self.iteration_id, self.max_runs)):
+        for idx in tqdm(range(self.iteration_id, self.max_runs)):
             if self.time_left <= 0:
                 logger.info(f'max runtime ({self.max_runtime}s) exceeded, stop optimization.')
                 break
             start_time = time.time()
-            self.iterate(time_left=self.time_left)
+            try:
+                self.iterate(time_left=self.time_left)
+            except EarlyStopException:
+                logger.info(f'Early stop triggered at iter {idx}!')
+                break
             runtime = time.time() - start_time
             self.time_left -= runtime
         return self.get_history()

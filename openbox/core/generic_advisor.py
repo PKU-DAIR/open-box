@@ -7,6 +7,7 @@ from openbox.utils.util_funcs import deprecate_kwarg
 from openbox.utils.history import History
 from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import NondominatedPartitioning
+from openbox.utils.early_stop import EarlyStopAlgorithm, EarlyStopException
 from openbox.core.base import build_acq_func, build_surrogate
 from openbox.acq_optimizer import build_acq_optimizer
 from openbox.core.base_advisor import BaseAdvisor
@@ -71,6 +72,19 @@ class Advisor(BaseAdvisor):
     ref_point : List[float], optional
         Reference point for calculating hypervolume in multi-objective problem.
         Must be provided if using EHVI based acquisition function.
+    early_stop: bool, default=False
+        Whether to enable early stop.
+    early_stop_kwargs : dict, optional
+        Options for early stop algorithm:
+        - min_iter : int
+            Minimum number of iterations before early stop is considered.
+        - min_improvement_percentage : float
+            The minimum improvement percentage. If the Expected Improvement (EI) is less than
+            `min_improvement_percentage * (default_obj_value - best_obj_value)`, early stop is triggered.
+            If `improvement_threshold` is 0, this criterion is disabled.
+        - max_no_improvement_rounds : int
+            The maximum tolerable rounds with no improvement before early stop.
+            If `max_no_improvement_rounds` is 0, this criterion is disabled.
     output_dir : str, default='logs'
         Directory to save log files. If None, no log files will be saved.
     task_id : str, default='OpenBox'
@@ -97,6 +111,8 @@ class Advisor(BaseAdvisor):
             acq_type='auto',
             acq_optimizer_type='auto',
             ref_point=None,
+            early_stop=False,
+            early_stop_kwargs=None,
             output_dir='logs',
             task_id='OpenBox',
             random_state=None,
@@ -134,6 +150,13 @@ class Advisor(BaseAdvisor):
         else:
             self.initial_configurations = self.create_initial_design(self.init_strategy)
             self.init_num = len(self.initial_configurations)
+
+        # early stop
+        self.early_stop = early_stop
+        early_stop_kwargs = early_stop_kwargs or dict()
+        self.early_stop_algorithm = EarlyStopAlgorithm(**early_stop_kwargs) if self.early_stop else None
+        if self.early_stop:
+            logger.info(f'Early stop is enabled.')
 
         self.surrogate_model = None
         self.constraint_models = None
@@ -284,6 +307,10 @@ class Advisor(BaseAdvisor):
             assert len(surrogate_str) == 3 and surrogate_str[0] == 'tlbo'
             assert surrogate_str[1] in ['rgpe', 'sgpr', 'topov3']  # todo: 'mfgpe'
 
+        # early stop
+        if self.early_stop:
+            self.early_stop_algorithm.check_setup(advisor=self)
+
     def setup_bo_basics(self):
         """
         Prepare the basic BO components.
@@ -410,6 +437,10 @@ class Advisor(BaseAdvisor):
         if history is None:
             history = self.history
 
+        if self.early_stop and self.early_stop_algorithm.decide_early_stop_before_suggest(history):
+            self.early_stop_algorithm.set_already_early_stopped(history)
+            raise EarlyStopException("Early stop triggered!")
+
         self.alter_model(history)
 
         num_config_evaluated = len(history)
@@ -490,6 +521,14 @@ class Advisor(BaseAdvisor):
             if return_list:
                 # Caution: return_list doesn't contain random configs sampled according to rand_prob
                 return challengers
+
+            # early stop
+            if self.early_stop:
+                max_acq_value = max(self.acquisition_function(challengers))
+                if self.early_stop_algorithm.decide_early_stop_after_suggest(
+                        history=history, max_acq_value=max_acq_value):
+                    self.early_stop_algorithm.set_already_early_stopped(history)
+                    raise EarlyStopException("Early stop triggered!")
 
             for config in challengers:
                 if config not in history.configurations:
