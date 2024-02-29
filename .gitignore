@@ -27,9 +27,13 @@ runs/
 # Jupyter checkpoint files.
 test/.ipynb_checkpoints/
 
+# Code coverage files
+.coverage
+coverage.xml
+test/datas
+
 # Other
 .tox
-.coverage
 .pypirc
 .ipynb_checkpoints/
 *~
