@@ -1,18 +1,8 @@
 # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Test
+name: Test and Upload Coverage
 
 on:
-  push:
-    branches:
-      - master
-      - dev
-
-  pull_request:
-    branches:
-      - master
-      - dev
-
   workflow_dispatch:
 
 env:
@@ -23,18 +13,16 @@ env:
     --durations=20
     --verbose
 
-# todo: Lint with flake8
-# todo: tests conda
 jobs:
 
   tests-pip:
-    name: Tests (pip, Python ${{ matrix.python-version }}, ${{ matrix.os }})
+    name: Tests (pip, Python ${{ matrix.python-version }}, ${{ matrix.os }}) and Upload Coverage
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", "windows-latest" ] # todo support macos test
-        python-version: [ "3.8", "3.9", "3.10" ]
+        os: [ "ubuntu-latest" ]
+        python-version: [ "3.8" ]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -49,6 +37,6 @@ jobs:
     - name: Run tests
       run: |
         pytest ${{ env.pytest-args }} ${{ env.test-dir }}
-#    - name: Upload coverage reports to Codecov with GitHub Action
+    - name: Upload coverage reports to Codecov with GitHub Action
 #      if: ${{ runner.os == 'Linux' && matrix.python-version == 3.8 }}
-#      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v3
