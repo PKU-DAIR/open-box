@@ -524,7 +524,7 @@ class Advisor(BaseAdvisor):
 
             # early stop
             if self.early_stop:
-                max_acq_value = max(self.acquisition_function(challengers))
+                max_acq_value = np.max(self.acquisition_function(challengers)).item()
                 if self.early_stop_algorithm.decide_early_stop_after_suggest(
                         history=history, max_acq_value=max_acq_value):
                     self.early_stop_algorithm.set_already_early_stopped(history)

@@ -95,7 +95,7 @@ The output of early stopping is as follows:
 ```
 [Early Stop] EI less than the threshold! min_improvement_percentage=0.05, 
 default_obj=0.03334620334620342, best_obj=0.022310167310167328, 
-threshold=0.0005518018018018045, max_EI=[0.00051861]
+threshold=0.0005518018018018045, max_EI=0.0005186128080311961
 
 Early stop triggered at iter 41!
 ```
