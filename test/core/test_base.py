@@ -6,7 +6,6 @@ from openbox.acquisition_function.acquisition import AbstractAcquisitionFunction
 from openbox.surrogate.base.rf_with_instances import RandomForestWithInstances
 from openbox.surrogate.base.rf_with_instances_sklearn import skRandomForestWithInstances
 from openbox.surrogate.lightgbm import LightGBM
-from openbox.surrogate.skrf import RandomForestSurrogate
 from openbox.surrogate.base.base_gp import BaseGP
 from openbox.surrogate.tlbo.mfgpe import MFGPE
 from openbox.surrogate.tlbo.rgpe import RGPE
@@ -64,9 +63,6 @@ def test_build_surrogate(configspace_tiny, transfer_learning_history_single):
 
     surrogate = build_surrogate('lightgbm', config_space, rng)
     assert isinstance(surrogate, LightGBM)
-
-    surrogate = build_surrogate('random_forest', config_space, rng)
-    assert isinstance(surrogate, RandomForestSurrogate)
 
     surrogate = build_surrogate('gp', config_space, rng)
     assert isinstance(surrogate, BaseGP)

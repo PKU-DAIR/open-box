@@ -74,10 +74,6 @@ def build_surrogate(func_str='gp', config_space=None, rng=None, transfer_learnin
         from openbox.surrogate.lightgbm import LightGBM
         return LightGBM(config_space, types=types, bounds=bounds, seed=seed)
 
-    if func_str == 'random_forest':
-        from openbox.surrogate.skrf import RandomForestSurrogate
-        return RandomForestSurrogate(config_space, types=types, bounds=bounds, seed=seed)
-
     elif func_str.startswith('gp'):
         from openbox.surrogate.base.build_gp import create_gp_model
         return create_gp_model(model_type=func_str,
