@@ -174,10 +174,10 @@ class pSMBO(BOBase):
             self.iteration_id += 1  # must increment id after updating
             logger.info('Update observation %d: %s.' % (self.iteration_id, str(observation)))
 
-    # TODO: Wrong logic. Need to wait before return?
     def async_run(self):
         with ParallelEvaluation(wrapper, n_worker=self.batch_size) as proc:
-            while self.iteration_id < self.max_runs:
+            # get suggestion and apply to worker
+            while True:
                 with self.advisor_lock:
                     _config = self.config_advisor.get_suggestion()
                 _param = [self.objective_function, _config, self.max_runtime_per_trial, self.FAILED_PERF]
@@ -186,6 +186,15 @@ class pSMBO(BOBase):
                 while len(self.config_advisor.running_configs) >= self.batch_size:
                     # Wait for workers.
                     time.sleep(0.1)
+
+                with self.advisor_lock:
+                    num_all_configs = self.iteration_id + len(self.config_advisor.running_configs)
+                if num_all_configs >= self.max_runs:
+                    break
+
+            # wait for all workers to complete
+            while len(self.config_advisor.running_configs) > 0:
+                time.sleep(0.1)
 
     # Asynchronously evaluate n configs
     def async_iterate(self, n=1) -> List[Observation]:
