@@ -66,12 +66,15 @@ We adopt the "BBO as a service" paradigm and implement OpenBox as a managed gene
 Users can access this service via RESTful API conveniently, regardless of other issues such as
 environment setups, software maintenance, and execution optimization. Moreover, OpenBox also provide
 Web UI for users to track and manage their running tasks. For deployment details, refer to 
-{ref}`Service Deployment Guide <openbox_as_service/service_deployment:openBox service deployment>`.
+{ref}`Service Deployment Guide <openbox_as_service/service_deployment:openbox service deployment>`.
 
 
 ## Performance Comparison
 We compare OpenBox with six competitive open-source BBO systems on tuning LightGBM using 25 datasets. 
 The performance rank (the lower, the better) is shown in the following figure. 
-For dataset information and more experimental results, please refer to our [published article](https://arxiv.org/abs/2106.00421).
+
+[//]: # (For dataset information and more experimental results, please refer to our [published article]&#40;https://arxiv.org/abs/2106.00421&#41;.)
+
+For more experimental results, please refer to [this document](./comparison.md).
 
 <img src="../../imgs/ranking_lgb_7.svg" width="80%" class="align-center">
