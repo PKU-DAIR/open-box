@@ -1,3 +1,20 @@
+# v0.8.2 - Mar 5, 2024
+
+### Major Changes
++ Update pytest (#81).
++ Update early stopping algorithm.
++ Enhance documentation.
++ Drop support for Python 3.7 (end of life on 2023-06-27).
+
+### Bug Fixes
++ Fix bug in distributed optimizer on Windows (#61).
++ Fix bug in async parallel optimizer.
++ Fix several bugs.
+
+### API Changes
++ Update API for AcquisitionFunctionMaximizer (#75).
+
+
 # v0.8.1 - Mar 8, 2023
 
 ### Bug Fixes
