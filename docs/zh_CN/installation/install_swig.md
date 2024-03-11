@@ -1,5 +1,11 @@
 # SWIG 安装教程
 
+**注意: 这不是SWIG的官方文档或教程。**
+我们提供此文档，以帮助用户安装 SWIG 3.0 
+作为 [**OpenBox** (通用黑盒优化工具)](https://github.com/PKU-DAIR/open-box) 的依赖项。
+
+----------
+
 本教程将指导您安装 SWIG 3.0。
 
 ## Linux

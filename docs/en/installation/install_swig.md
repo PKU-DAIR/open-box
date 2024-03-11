@@ -1,5 +1,11 @@
 # SWIG Installation Guide
 
+**Caution: This is not an official document/tutorial of SWIG.**
+We provide this document to help users install SWIG 3.0 as a dependency 
+of [**OpenBox** (a generalized blackbox optimization toolkit)](https://github.com/PKU-DAIR/open-box).
+
+----------
+
 This tutorial helps you install SWIG 3.0.
 
 ## Linux
