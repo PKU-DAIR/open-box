@@ -10,22 +10,15 @@ from openbox.surrogate.base.base_model import AbstractModel
 from openbox.utils.history import Observation, History
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 
+from openbox.core.base_advisor import BaseAdvisor
 
-def nd_range(*args):
-    """
-    There should be some system function that have implemented this. However, I didn't find it.
 
-    Example:
-    list(nd_range(2,3)) -> [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)]
-    """
-    size = args[0] if isinstance(args[0], tuple) else args
-    if len(size) == 1:
-        for i in range(size[0]):
-            yield (i,)
+def nd_range(shape, prefix=()):
+    if len(shape) == 0:
+        yield prefix
     else:
-        for i in range(size[0]):
-            for j in nd_range(size[1:]):
-                yield (i,) + j
+        for i in range(shape[0]):
+            yield from nd_range(shape[1:], prefix + (i,))
 
 
 class DefaultBeta:
@@ -62,73 +55,15 @@ class SetManager:
         self.dim = len(size)
         self.size = size
 
-        self.s_set = np.zeros(size, dtype=np.bool)  # Safe set
-        self.g_set = np.zeros(size, dtype=np.bool)  # Expander set
-        self.m_set = np.zeros(size, dtype=np.bool)  # Minimizer set
+        self.s_set = np.full(size, False)  # Safe set
+        self.g_set = np.full(size, False)  # Expander set
+        self.m_set = np.full(size, False)  # Minimizer set
 
-        self.vis_set = np.zeros(size, dtype=np.bool)  # Set of evaluated points. Added this to avoid repeated configs.
+        self.vis_set = np.full(size, False)  # Set of evaluated points. Added this to avoid repeated configs.
 
-        self.upper_conf = np.ones(size, dtype=np.float64) * 1e100
-        self.lower_conf = np.ones(size, dtype=np.float64) * -1e100
+        self.upper_conf = np.full(size, 1e100)
+        self.lower_conf = np.full(size, -1e100)
 
-        self.tmp = np.zeros(size, dtype=int)
-
-    def _presum(self):
-        """
-        Replace self.tmp with the presum array for self.tmp
-        This makes axis-aligned range query & modification on 1-d & 2-d arrays O(1).
-        """
-        if self.dim == 1:
-            for i in range(1, self.size[0]):
-                self.tmp[i] += self.tmp[i - 1]
-        else:
-            for i in range(1, self.size[0]):
-                self.tmp[i, :] += self.tmp[i - 1, :]
-            for i in range(1, self.size[1]):
-                self.tmp[:, i] += self.tmp[:, i - 1]
-
-    def _query_range(self, l: Tuple[int], r: Tuple[int]):
-        """
-        Given index ranges l,r (where l,r could be 1-d or 2-d indexes),
-         calculate the sum of all elements in an array with index l <= i <= r (element-wise).
-        Before calling this function, the array should be copied to self.tmp and self._presum() should be called.
-        """
-        if self.dim == 1:
-            return self.tmp[r] - (0 if l[0] == 0 else self.tmp[l[0] - 1])
-        else:
-            x1, y1 = l
-            x2, y2 = r
-            ans = self.tmp[x2, y2]
-            if x1 > 0:
-                ans -= self.tmp[x1 - 1, y2]
-                if y1 > 0:
-                    ans += self.tmp[x1 - 1, y1 - 1]
-            if y1 > 0:
-                ans -= self.tmp[x2, y1 - 1]
-            return ans
-
-    def _add_range(self, l: Tuple[int], r: Tuple[int]):
-        """
-        Given index ranges l,r (where l,r could be 1-d or 2-d indexes),
-         add 1 to all elements in an array with index l <= i <= r (element-wise).
-        Before calling this function, self.tmp must be cleared.
-        After a sequence of calling this function, self._presum() should be called
-         and self.tmp could be copied back to the original array.
-        """
-        if self.dim == 1:
-            self.tmp[l] += 1
-            if r[0] < self.size[0] - 1:
-                self.tmp[r[0] + 1] -= 1
-        else:
-            x1, y1 = l
-            x2, y2 = r
-            self.tmp[x1, y1] += 1
-            if x2 < self.size[0] - 1:
-                self.tmp[x2 + 1, y1] -= 1
-                if y2 < self.size[1] - 1:
-                    self.tmp[x2 + 1, y2 + 1] += 1
-            if y2 < self.size[1] - 1:
-                self.tmp[x1, y2 + 1] -= 1
 
     def nearest(self, x0: np.ndarray):
         """
@@ -151,40 +86,44 @@ class SetManager:
         """
         Update safe set according to the safeopt process.
         """
-        self.tmp.fill(0)
         for i in nd_range(self.size):
             if self.s_set[i]:
                 maxd = (h - self.upper_conf[i]) / l
-                # print(maxd)
                 if maxd > 0:
                     t = self.dim ** 0.5
-                    mn = tuple(max(math.ceil(i[j] - maxd * (self.size[j] - 1) / t), 0) for j in range(self.dim))
-                    mx = tuple(min(math.floor(i[j] + maxd * (self.size[j] - 1) / t), self.size[j] - 1) for j in
-                               range(self.dim))
-                    self._add_range(mn, mx)
+                    new_s_ranges_slices = tuple(
+                        slice(
+                            max(math.ceil( i[j] - maxd * (self.size[j] - 1) / t), 0               ),
+                            min(math.floor(i[j] + maxd * (self.size[j] - 1) / t), self.size[j] - 1) 
+                        )
+                        for j in range(self.dim)
+                    )
 
-        self._presum()
-        self.s_set |= (self.tmp > 0)
+                    self.s_set[new_s_ranges_slices] = True
 
     def update_g_set(self, h: float, l: float):
         """
         Update expander set according to the safeopt process.
         """
         self.g_set.fill(False)
-        self.tmp.fill(1)
-        self.tmp -= self.s_set
-        self._presum()
+        
+        tmp = np.full(self.s_set.shape, True)
+        tmp ^= self.s_set
 
         for i in nd_range(self.size):
             if self.s_set[i]:
                 maxd = (h - self.lower_conf[i]) / l
                 if maxd > 0:
                     t = self.dim ** 0.5
-                    mn = tuple(max(math.ceil(i[j] - maxd * (self.size[j] - 1) / t), 0) for j in range(self.dim))
-                    mx = tuple(min(math.floor(i[j] + maxd * (self.size[j] - 1) / t), self.size[j] - 1) for j in
-                               range(self.dim))
+                    check_ranges_slices = tuple(
+                        slice(
+                            max(math.ceil( i[j] - maxd * (self.size[j] - 1) / t), 0               ),
+                            min(math.floor(i[j] + maxd * (self.size[j] - 1) / t), self.size[j] - 1) 
+                        )
+                        for j in range(self.dim)
+                    )
 
-                    if self._query_range(mn, mx) > 0:
+                    if np.any(tmp[check_ranges_slices]):
                         self.g_set[i] = True
 
     def update_m_set(self, minu: float):
@@ -219,25 +158,42 @@ class SetManager:
         return Configuration(self.config_space, vector=self.get_array(coord))
 
 
-class SafeOptAdvisor:
+class SafeOptAdvisor(BaseAdvisor):
 
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
-    def __init__(self, config_space: ConfigurationSpace,
-                 num_objectives=1,
-                 num_constraints=1,
-                 task_id='OpenBox',
-                 random_state=None,
+    def __init__(
+        self, 
+        config_space: ConfigurationSpace,
+        num_objectives=1,
+        num_constraints=1,
+        ref_point=None,
+        output_dir='logs',
+        
+        task_id='OpenBox',
+        random_state=None,
 
-                 surrogate: Union[str, AbstractModel] = 'gp',
+        logger_kwargs: dict = None,
 
-                 sample_size: Union[int, Tuple] = 40000,
-                 seed_set: Union[None, List[Configuration], np.ndarray] = None,
+        surrogate: Union[str, AbstractModel] = 'gp',
 
-                 lipschitz: float = 20.0,  # The Lipschitz constant of the function.
-                 threshold: float = 1.0,  # The h-value where the constraint is y - h.
-                 beta: Union[float, Callable[[float], float]] = 2.0  # The beta used in original code.
+        sample_size: Union[int, Tuple] = 40000,
+        seed_set: Union[None, List[Configuration], np.ndarray] = None,
 
-                 ):
+        lipschitz: float = 20.0,  # The Lipschitz constant of the function.
+        threshold: float = 1.0,  # The h-value where the constraint is y - h.
+        beta: Union[float, Callable[[float], float]] = 2.0  # The beta used in original code.
+
+    ):
+        super().__init__(
+            config_space=config_space,
+            num_objectives=num_objectives,
+            num_constraints=num_constraints,
+            ref_point=ref_point,
+            output_dir=output_dir,
+            task_id=task_id,
+            random_state=random_state,
+            logger_kwargs=logger_kwargs,
+        )
         self.num_objectives = num_objectives
         # May support multi-obj in the future.
         assert self.num_objectives == 1
@@ -257,19 +213,29 @@ class SafeOptAdvisor:
             self.objective_surrogate = surrogate
 
         if isinstance(sample_size, int):
-            sample_size = (int(sample_size ** (1 / self.dim)),) * self.dim
+            sample_size = np.array([int(sample_size ** (1 / self.dim) + 1e-5)] * self.dim)
 
-        self.sets = SetManager(self.config_space, sample_size)
+        sets = SetManager(self.config_space, sample_size)
 
         if seed_set is None:
             raise ValueError("Seed set must not be None!")
         elif isinstance(seed_set, list):
-            self.seed_set = seed_set
+            if all(isinstance(item, Configuration) for item in seed_set):
+                self.seed_set = seed_set
+            elif all(isinstance(item, dict) for item in seed_set):
+                self.seed_set = [Configuration(config_space, item) for item in seed_set]
+            elif all(isinstance(item, (list, np.ndarray)) for item in seed_set):
+                self.seed_set = [Configuration(config_space, vector=item) for item in seed_set]
+        elif isinstance(seed_set, np.ndarray):
+            if seed_set.ndim == 2 and seed_set.shape[1] == self.dim:
+                self.seed_set = [Configuration(config_space, vector=seed_set[i]) for i in range(seed_set.shape[0])]
+            else:
+                raise ValueError("Invalid shape of seed set!")
         else:
-            self.seed_set = [Configuration(config_space, vector=seed_set[i]) for i in range(seed_set.shape[0])]
+            raise ValueError("Invalid type of seed set!")
 
         for x in self.seed_set:
-            self.sets.s_set[self.sets.nearest(x.get_array())] = True
+            sets.s_set[sets.nearest(x.get_array())] = True
 
         self.threshold = threshold
         self.lipschitz = lipschitz
@@ -282,36 +248,31 @@ class SafeOptAdvisor:
         # init history
         self.history = History(
             task_id=task_id, num_objectives=num_objectives, num_constraints=0,
-            config_space=config_space, ref_point=None, meta_info=None,  # todo: add meta info
+            config_space=config_space, ref_point=None, meta_info={'set_manager': sets},  # todo: add meta info
         )
 
-        arrays = self.sets.get_arrays()[0]
+        arrays = sets.get_arrays()[0]
 
         # This list stores the configs that the advisor expects to be evaluated.
         # Useful because we want to evaluate the seed set.
         # get_suggestion() fills this if it's empty.
         # update_observation() removes configs that is evaluated.
-        self.to_eval = [Configuration(config_space, vector=arrays[i]) for i in
-                                             range(arrays.shape[0])]
+        self.to_eval = [Configuration(config_space, vector=arrays[i])
+                        for i in range(arrays.shape[0])]
 
         self.current_turn = 0
 
-    def debug(self, arr):
-        if self.dim == 1:
-            s = "".join("_" if not i else "|" for i in arr)
-            print(s)
-        else:
-            print("-" * (self.sets.size[1] + 2))
-            for i in range(self.sets.size[0]):
-                print("|" + "".join("#" if j else " " for j in arr[i]) + "|")
-            print("-" * (self.sets.size[1] + 2))
+    def get_suggestion(self, history: History = None):
+        if history is None:
+            history = self.history
 
-    def get_suggestion(self):
+        sets = history.meta_info['set_manager']
+
         if len(self.to_eval) == 0:  # If self.to_eval has some configs, it's the seed set. Evaluate them first.
 
             # Train GP model
-            X = self.history.get_config_array(transform='scale')
-            Y = self.history.get_objectives(transform='infeasible')
+            X = history.get_config_array(transform='scale')
+            Y = history.get_objectives(transform='infeasible')
             self.objective_surrogate.train(X, Y[:, 0] if Y.ndim == 2 else Y)
 
             # Calculate beta^(-1/2)
@@ -319,42 +280,43 @@ class SafeOptAdvisor:
             beta_sqrt = self.beta(self.current_turn) ** 0.5
 
             # Re-predict all points on safe_set, and update their confidence bounds.
-            arrays, ids = self.sets.get_arrays()
+            arrays, ids = sets.get_arrays()
             mean, var = self.objective_surrogate.predict(arrays)
             for i in range(ids.shape[0]):
-                self.sets.update_bounds(ids[i], mean[i].item(), var[i].item(), beta_sqrt)
+                sets.update_bounds(ids[i], mean[i].item(), var[i].item(), beta_sqrt)
 
             # According to the safeopt process, update the safe, expander, minimizer set.
-            self.sets.update_s_set(self.threshold, self.lipschitz)
-            self.sets.update_g_set(self.threshold, self.lipschitz)
-            minu = np.min(self.sets.upper_conf[self.sets.s_set])
-            self.sets.update_m_set(minu)
+            sets.update_s_set(self.threshold, self.lipschitz)
+            sets.update_g_set(self.threshold, self.lipschitz)
+            minu = np.min(sets.upper_conf[sets.s_set])
+            sets.update_m_set(minu)
+
 
             # Find the point in the union of expander & minimizer set
             # with maximum uncertainty and have not been evaluated.
             retx = None
             maxv = -1e100
 
-            for i in nd_range(self.sets.size):
-                condition = (self.sets.g_set[i] or self.sets.m_set[i]) and not self.sets.vis_set[i]
+            for i in nd_range(sets.size):
+                condition = (sets.g_set[i] or sets.m_set[i]) and not sets.vis_set[i]
                 if condition:
-                    w = self.sets.upper_conf[i] - self.sets.lower_conf[i]
+                    w = sets.upper_conf[i] - sets.lower_conf[i]
                     if w > maxv:
                         maxv = w
                         retx = i
 
             if retx is not None:  # If such point is found, return that.
-                self.to_eval = [self.sets.get_config(retx)]
+                self.to_eval = [sets.get_config(retx)]
             else:
                 # Otherwise, select a random point by some heuristics.
                 # This should be very rare. It's just to avoid error.
 
                 # Select a random point in the safe set.
-                possibles = self.sets.s_set & ~self.sets.vis_set
+                possibles = sets.s_set & ~sets.vis_set
 
                 # If doesn't exist, select a random point near the safe set.
                 if not np.any(possibles):
-                    temp = self.sets.vis_set
+                    temp = sets.vis_set
                     temp[1:] |= temp[:-1]
                     temp[:-1] |= temp[1:]
 
@@ -362,27 +324,26 @@ class SafeOptAdvisor:
                         temp[:, 1:] |= temp[:, :-1]
                         temp[:, :-1] |= temp[:, 1:]
 
-                    possibles = temp & ~self.sets.vis_set
+                    possibles = temp & ~sets.vis_set
 
                 # If doesn't exist, just select a random point that have not been evaluated.
                 if not np.any(possibles):
-                    possibles = ~self.sets.vis_set
+                    possibles = ~sets.vis_set
 
-                coords = np.array(list(nd_range(self.sets.size)))[possibles.flatten()]
+                coords = np.array(list(nd_range(sets.size)))[possibles.flatten()]
 
-                self.to_eval = [self.sets.get_config(coords[self.rng.randint(0, coords.shape[0])])]
+                self.to_eval = [sets.get_config(coords[self.rng.randint(0, coords.shape[0])])]
 
         return self.to_eval[0]
 
     def update_observation(self, observation: Observation):
+        sets = self.history.meta_info['set_manager']
 
         if observation.config in self.to_eval:
             self.to_eval.remove(observation.config)
-            self.sets.vis_set[self.sets.nearest(observation.config.get_array())] = True
+            sets.vis_set[sets.nearest(observation.config.get_array())] = True
 
         observation.constraints = None
 
         return self.history.update_observation(observation)
 
-    def get_history(self):
-        return self.history
