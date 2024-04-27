@@ -1,3 +1,12 @@
+# v0.8.3 - Apr 27, 2024
+
+### Major Changes
++ rewrite safeopt. (#90)
+
+### Bug Fixes
++ Fix bug in RandomAdvisor.
+
+
 # v0.8.2 - Mar 5, 2024
 
 ### Major Changes
