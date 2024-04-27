@@ -59,17 +59,37 @@ As shown in Figure 1, OpenBox outperforms the other baselines on the constrained
 in terms of convergence speed and stability.
 
 
-### LightGBM tuning task
+### LightGBM Tuning Task
 
 <img src="../../imgs/ranking_lgb_7.svg" width="80%" class="align-center">
 
 <p class="align-center">Figure 2: LightGBM tuning task.</p>
+
+<p class="align-center">Table 2: The search space of LightGBM.</p>
+
+| Hyper-parameter   | Type        | Range        |
+|-------------------|-------------|--------------|
+| n_estimators      | integer     | [100, 1000]  |
+| num_leaves        | integer     | [31, 2047]   |
+| learning_rate     | float (log) | [0.001, 0.3] |
+| min_child_samples | integer     | [5, 30]      |
+| subsample         | float       | [0.7, 1.0]   |
+| colsample_bytree  | float       | [0.7, 1.0]   |
 
 **Setup:**
 + **Problem:** tuning LightGBM on 25 OpenML datasets.
 + **Budget:** 50 iterations each.
 + **Metrics:** Performance rank of the best achieved accuracy among all baselines on each dataset.
 + **Algorithm in OpenBox:** Gaussian Process with Expected Improvement (auto-selected).
++ **Algorithm in other systems:** Selected based on their documentation or default choice. Please note that 
+  the other components in each system, such as the initial design and acquisition function optimizer, 
+  can also affect the results.
+  + BoTorch: Gaussian process (gpytorch) with EI.
+  + GPflowOpt: Gaussian process (GPflow) with EI.
+  + Spearmint: Gaussian process with EI.
+  + HyperMapper: random forest with EI.
+  + SMAC: random forest with log EI.
+  + Hyperopt: TPE algorithm.
 + **24 datasets with OpenML id:**
 abalone (183), ailerons (734), analcatdata_supreme (728), bank32nh (833), cpu_act (761), delta_ailerons (803), delta_elevators (819), kc1 (1067), kin8nm (807), mammography (310), mc1 (1056), optdigits (28), pendigits (32), phoneme (1489), pollen (871), puma32H (752), puma8NH (816), quake (772), satimage (182), segment (36), sick (38), space_ga (737), spambase (44), wind (847).
 
@@ -80,7 +100,7 @@ We observe that OpenBox outperforms the other competitive systems, achieves a
 median rank of 1.25 and ranks the first in 12 out of 24 datasets.
 
 
-### Scalability Experiment
+### Scalability Experiment on Input Dimensions
 
 |                                                                                       |                                                                                       |  
 |:-------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------:|  
@@ -123,3 +143,59 @@ We conduct an experiment to tune the hyper-parameters of LightGBM in parallel on
 Figure 4 shows the average validation error with different parallel modes and the number of workers.
 The asynchronous mode of OpenBox with 8 workers achieves the best results and outperforms Random Search with
 8 workers by a wide margin. It brings a speedup of 8× over the sequential mode, which is close to the ideal speedup.
+
+
+### Scalability Experiments on Hyper-parameter Types
+
+|                                                                                                               |                                                                                                                        |  
+|:-------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------:|  
+| <img src="../../imgs/exp_new/fioc_benchmark_svc_cpu_act_100_fioc_diffs.png" width="90%" class="align-center"> | <img src="../../imgs/exp_new/fioc_benchmark_nasbench201_cifar100_100_fioc_diffs.png" width="90%" class="align-center"> |  
+|                                              (a) SVM on cpu_act                                               |                                               (b) NAS-Bench-201 CIFAR100                                               |
+
+<p class="align-center">Figure 5: Scalability of hyper-parameter types.</p>
+
+<p class="align-center">Table 3: The search space of SVM classifier.</p>
+
+| Hyper-parameter | Type        | Range                  |
+|-----------------|-------------|------------------------|
+| penalty         | categorical | {l1, l2}               |
+| loss            | categorical | {hinge, squared_hinge} |
+| dual            | categorical | {True, False }         |
+| tol             | float (log) | [1e-5, 1e-1]           |
+| C               | float (log) | [2e-5, 2e15]           |
+
+<p class="align-center">Table 4: The search space of NAS-Bench-201.</p>
+
+| Hyper-parameter | Type        | Range                                                          |
+|-----------------|-------------|----------------------------------------------------------------|
+| op1             | categorical | {none, skip_connect, nor_conv_1x1, nor_conv_3x3, avg_pool_3x3} |
+| op2             | categorical | {none, skip_connect, nor_conv_1x1, nor_conv_3x3, avg_pool_3x3} |
+| op3             | categorical | {none, skip_connect, nor_conv_1x1, nor_conv_3x3, avg_pool_3x3} |
+| op4             | categorical | {none, skip_connect, nor_conv_1x1, nor_conv_3x3, avg_pool_3x3} |
+| op5             | categorical | {none, skip_connect, nor_conv_1x1, nor_conv_3x3, avg_pool_3x3} |
+
+
+**Setup:**
++ **Problems:** 
+  (1) Tuning SVM classifier on the cpu act dataset (OpenML id 761). 2 floating and 3 categorical hyper-parameters. 
+  (2) Neural architecture search benchmark NAS-Bench-201 on CIFAR100 dataset. 5 categorical hyper-parameters.
++ **Budget:**  50 or 100 iterations.
++ **Metrics:** Error rate.
++ **Algorithm in OpenBox:** Probabilistic Random Forest (PRF) with Expected Improvement (auto-selected).
+  The probabilistic random forest is auto-selected as the surrogate model instead of Gaussian process (GP), 
+  because there are more categorical hyper-parameters than continuous hyper-parameters in the search space.
++ **Algorithm in other systems:** Selected based on their documentation or default choice. Please note that 
+  the other components in each system, such as the initial design and acquisition function optimizer,
+  can also affect the results.
+  + SMAC: random forest with log EI.
+  + Ax: Gaussian process (gpytorch) with EI.
+  + Optuna: TPE algorithm.
+  + HyperMapper: random forest with EI.
+
+**Note:** We compare Ax instead of BoTorch in this experiment, since Ax extends BoTorch to support categorical hyper-parameters.
+
+To demonstrate the scalability of OpenBox when dealing with different hyper-parameter types, we conduct experiments on two tasks.
+In the first task, each method tunes an SVM classifier with a mixed-type space of 2 floating and 3 categorical hyper-parameters. 
+In the second task, each method searches the best neural architecture defined by 5 categorical hyper-parameters on CIFAR100 of NAS-Bench-201.
+As shown in Figure 5, OpenBox outperforms the other baselines, which support categorical hyper-parameters, on both tasks in terms of convergence speed and stability.
+
