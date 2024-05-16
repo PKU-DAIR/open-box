@@ -356,40 +356,73 @@ Targeting at openness and advancing AutoML ecosystems, we had also released few 
 
 **OpenBox: A Python Toolkit for Generalized Black-box Optimization.**
 
-Huaijun Jiang, Yu Shen, Yang Li, Wentao Zhang, Ce Zhang, Bin Cui.
-https://arxiv.org/abs/2304.13339
+Huaijun Jiang, Yu Shen, Yang Li, Beicheng Xu, Sixian Du, Wentao Zhang, Ce Zhang, Bin Cui; JMLR 2024, CCF-A.
+[[paper]](https://www.jmlr.org/papers/v25/23-0537.html)
+[[arxiv]](https://arxiv.org/abs/2304.13339)
 
 **OpenBox: A Generalized Black-box Optimization Service.**
 
 Yang Li, Yu Shen, Wentao Zhang, Yuanwei Chen, Huaijun Jiang, Mingchao Liu, Jiawei Jiang, Jinyang Gao, Wentao Wu,
 Zhi Yang, Ce Zhang, Bin Cui; KDD 2021, CCF-A.
-https://arxiv.org/abs/2106.00421
+[[paper]](https://dl.acm.org/doi/abs/10.1145/3447548.3467061)
+[[arxiv]](https://arxiv.org/abs/2106.00421)
 
 **MFES-HB: Efficient Hyperband with Multi-Fidelity Quality Measurements.**
 
 Yang Li, Yu Shen, Jiawei Jiang, Jinyang Gao, Ce Zhang, Bin Cui; AAAI 2021, CCF-A.
-https://arxiv.org/abs/2012.03011
+[[paper]](https://ojs.aaai.org/index.php/AAAI/article/view/17031)
+[[arxiv]](https://arxiv.org/abs/2012.03011)
 
 **Transfer Learning based Search Space Design for Hyperparameter Tuning.**
 
 Yang Li, Yu Shen, Huaijun Jiang, Tianyi Bai, Wentao Zhang, Ce Zhang, Bin Cui; KDD 2022, CCF-A.
-https://arxiv.org/abs/2206.02511
+[[paper]](https://dl.acm.org/doi/abs/10.1145/3534678.3539369)
+[[arxiv]](https://arxiv.org/abs/2206.02511)
 
 **TransBO: Hyperparameter Optimization via Two-Phase Transfer Learning.**
 
 Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Zhi Yang, Ce Zhang, Bin Cui; KDD 2022, CCF-A.
-https://arxiv.org/abs/2206.02663
+[[paper]](https://dl.acm.org/doi/abs/10.1145/3534678.3539255)
+[[arxiv]](https://arxiv.org/abs/2206.02663)
 
 **PaSca: a Graph Neural Architecture Search System under the Scalable Paradigm.**
 
 Wentao Zhang, Yu Shen, Zheyu Lin, Yang Li, Xiaosen Li, Wen Ouyang, Yangyu Tao, Zhi Yang, and Bin Cui; 
 WWW 2022, CCF-A, 🏆 Best Student Paper Award.
-https://arxiv.org/abs/2203.00638
+[[paper]](https://dl.acm.org/doi/abs/10.1145/3485447.3511986)
+[[arxiv]](https://arxiv.org/abs/2203.00638)
 
 **Hyper-Tune: Towards Efficient Hyper-parameter Tuning at Scale.**
 
 Yang Li, Yu Shen, Huaijun Jiang, Wentao Zhang, Jixiang Li, Ji Liu, Ce Zhang, Bin Cui; VLDB 2022, CCF-A.
-https://arxiv.org/abs/2201.06834
+[[paper]](https://dl.acm.org/doi/abs/10.14778/3514061.3514071)
+[[arxiv]](https://arxiv.org/abs/2201.06834)
+
+
+## **Citing**
+
+If you use OpenBox, please consider citing the following articles:
+
+```
+@inproceedings{li2021openbox,
+  title={Openbox: A generalized black-box optimization service},
+  author={Li, Yang and Shen, Yu and Zhang, Wentao and Chen, Yuanwei and Jiang, Huaijun and Liu, Mingchao and Jiang, Jiawei and Gao, Jinyang and Wu, Wentao and Yang, Zhi and others},
+  booktitle={Proceedings of the 27th ACM SIGKDD conference on knowledge discovery \& data mining},
+  pages={3209--3219},
+  year={2021}
+}
+
+@article{JMLR:v25:23-0537,
+  author  = {Huaijun Jiang and Yu Shen and Yang Li and Beicheng Xu and Sixian Du and Wentao Zhang and Ce Zhang and Bin Cui},
+  title   = {OpenBox: A Python Toolkit for Generalized Black-box Optimization},
+  journal = {Journal of Machine Learning Research},
+  year    = {2024},
+  volume  = {25},
+  number  = {120},
+  pages   = {1--11},
+  url     = {http://jmlr.org/papers/v25/23-0537.html}
+}
+```
 
 <!-- end of related projects and publications (for docs) -->
 
