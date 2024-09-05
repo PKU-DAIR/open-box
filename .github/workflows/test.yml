@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-latest", "windows-latest" ] # todo support macos test
+        os: [ "macos-latest", "ubuntu-latest", "windows-latest" ]
         python-version: [ "3.8", "3.9", "3.10", "3.11" ]
     steps:
     - uses: actions/checkout@v3
@@ -41,11 +41,42 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install Homebrew for MacOs
+      if: matrix.os == 'macos-latest'
+      run: |
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        brew install autoconf
+        brew install automake
+        brew install libomp
+    - name: Get resource of SWIG for MacOs
+      if: matrix.os == 'macos-latest'
+      run: |
+        pip install --upgrade pip setuptools wheel
+        curl -L -o swig-3.0.12.tar.gz https://github.com/swig/swig/archive/refs/tags/v3.0.12.tar.gz
+        tar -xzf swig-3.0.12.tar.gz
+        curl -L -o pcre-8.44.tar.bz2 https://sourceforge.net/projects/pcre/files/pcre/8.44/pcre-8.44.tar.bz2/download
+        mv pcre-8.44.tar.bz2 pcre-8.44.tar
+        mv pcre-8.44.tar swig-3.0.12/
+    - name: Install SWIG for MacOs
+      if: matrix.os == 'macos-latest'
+      run: |
+        cd ./swig-3.0.12/
+        ./Tools/pcre-build.sh
+        ./autogen.sh
+        ./configure
+        make
+        sudo make install
+        cd ..
+        rm -r ./swig-3.0.12
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install --upgrade wheel setuptools
         pip install ".${{ env.test-requires }}"
+    - name: Uninstall package openbox for MacOs
+      if: matrix.os == 'macos-latest'
+      run: |
+        pip uninstall -y openbox
     - name: Run tests
       run: |
         pytest ${{ env.pytest-args }} ${{ env.test-dir }}
