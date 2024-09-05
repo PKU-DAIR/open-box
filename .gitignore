@@ -28,7 +28,7 @@ runs/
 test/.ipynb_checkpoints/
 
 # Code coverage files
-.coverage
+.coverage*
 coverage.xml
 test/datas
 
