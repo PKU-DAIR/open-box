@@ -1,10 +1,8 @@
 import pytest
 import numpy as np
-from unittest.mock import MagicMock, patch
 from openbox.core.mc_advisor import MCAdvisor
-from openbox.utils.config_space import ConfigurationSpace
+from openbox.utils.early_stop import EarlyStopException
 from openbox.utils.history import History, Observation
-from openbox.utils.util_funcs import check_random_state
 from openbox.utils.constants import MAXINT, SUCCESS
 
 
@@ -44,3 +42,17 @@ def test_mc_advisor(configspace_tiny, multi_start_history_single_obs):
     advisor.save_json("test/datas/test_mc.json")
 
     advisor.load_json("test/datas/test_mc.json")
+
+
+
+def test_mc_advisor_early_stop(configspace_tiny):
+    config_space = configspace_tiny
+    advisor = MCAdvisor(config_space, early_stop=True, early_stop_kwargs={'min_iter': 3, 'max_no_improvement_rounds': 1})
+
+    for i in range(3):
+        suggestion = advisor.get_suggestion()
+        observation = Observation(suggestion, [1], trial_state=SUCCESS, elapsed_time=2.0, extra_info={})
+        advisor.update_observation(observation)
+
+    with pytest.raises(EarlyStopException):
+        advisor.get_suggestion()

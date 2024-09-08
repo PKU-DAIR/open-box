@@ -23,8 +23,10 @@ class TPE_Advisor(BaseAdvisor):
             random_fraction=1 / 3,
             bandwidth_factor=3,
             min_bandwidth=1e-3,
-            task_id='OpenBox',
+            early_stop=False,
+            early_stop_kwargs=None,
             output_dir='logs',
+            task_id='OpenBox',
             random_state=None,
             logger_kwargs: dict = None,
     ):
@@ -33,6 +35,8 @@ class TPE_Advisor(BaseAdvisor):
             num_objectives=1,
             num_constraints=0,
             ref_point=None,
+            early_stop=early_stop,
+            early_stop_kwargs=early_stop_kwargs,
             output_dir=output_dir,
             task_id=task_id,
             random_state=random_state,
@@ -74,9 +78,15 @@ class TPE_Advisor(BaseAdvisor):
         self.good_config_rankings = dict()
         self.kde_models = dict()
 
+        # early stop
+        if self.early_stop:
+            self.early_stop_algorithm.check_setup(advisor=self)
+
     def get_suggestion(self, history=None):
         if history is None:
             history = self.history
+
+        self.early_stop_perf(history)
 
         # use default as first config
         num_config_evaluated = len(history)
@@ -144,6 +154,7 @@ class TPE_Advisor(BaseAdvisor):
                 if val < best:
                     best = val
                     best_vector = vector
+
 
             if best_vector is None:
                 logger.debug(

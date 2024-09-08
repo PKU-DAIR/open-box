@@ -30,6 +30,8 @@ class MCAdvisor(Advisor):
             acq_optimizer_type='auto',
             use_trust_region=False,
             ref_point=None,
+            early_stop=False,
+            early_stop_kwargs=None,
             output_dir='logs',
             task_id='OpenBox',
             random_state=None,
@@ -52,6 +54,8 @@ class MCAdvisor(Advisor):
                          acq_type=acq_type,
                          acq_optimizer_type=acq_optimizer_type,
                          ref_point=ref_point,
+                         early_stop=early_stop,
+                         early_stop_kwargs=early_stop_kwargs,
                          output_dir=output_dir,
                          task_id=task_id,
                          random_state=random_state,
@@ -127,6 +131,10 @@ class MCAdvisor(Advisor):
             if 'ehvi' in self.acq_type and self.ref_point is None:
                 raise ValueError('Must provide reference point to use EHVI method!')
 
+        # early stop
+        if self.early_stop:
+            self.early_stop_algorithm.check_setup(advisor=self)
+
     def setup_bo_basics(self):
         if self.num_objectives == 1:
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
@@ -161,6 +169,8 @@ class MCAdvisor(Advisor):
     def get_suggestion(self, history=None):
         if history is None:
             history = self.history
+
+        self.early_stop_perf(history)
 
         # Check if turbo needs to be restarted
         if self.use_trust_region and self.turbo_state.restart_triggered:
@@ -219,16 +229,24 @@ class MCAdvisor(Advisor):
                                                       history=history,
                                                       num_points=5000,
                                                       turbo_state=self.turbo_state)
-            is_repeated_config = True
-            repeated_time = 0
-            cur_config = None
-            while is_repeated_config:
-                cur_config = challengers[repeated_time]
-                if cur_config in history.configurations:
-                    repeated_time += 1
-                else:
-                    is_repeated_config = False
-            return cur_config
+
+            # is_repeated_config = True
+            # repeated_time = 0
+            # cur_config = None
+            # while is_repeated_config:
+            #     cur_config = challengers[repeated_time]
+            #     if cur_config in history.configurations:
+            #         repeated_time += 1
+            #     else:
+            #         is_repeated_config = False
+            # return cur_config
+            for config in challengers:
+                if config not in history.configurations:
+                    return config
+            logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+                           'Sample random config.' % (len(challengers), ))
+            return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
+
         else:
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
 

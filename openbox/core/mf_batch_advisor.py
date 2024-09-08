@@ -24,6 +24,8 @@ class MFBatchAdvisor(Advisor):
             acq_type='ei',
             acq_optimizer_type='local_random',
             ref_point=None,
+            early_stop=False,
+            early_stop_kwargs=None,
             output_dir='logs',
             task_id='OpenBox',
             random_state=None,
@@ -44,6 +46,8 @@ class MFBatchAdvisor(Advisor):
                          acq_type=acq_type,
                          acq_optimizer_type=acq_optimizer_type,
                          ref_point=ref_point,
+                         early_stop=early_stop,
+                         early_stop_kwargs=early_stop_kwargs,
                          output_dir=output_dir,
                          task_id=task_id,
                          random_state=random_state,
@@ -57,6 +61,8 @@ class MFBatchAdvisor(Advisor):
         assert batch_size >= 1
         if history is None:
             history = self.history
+
+        self.early_stop_perf(history)
 
         num_config_evaluated = len(history)
         num_config_successful = history.get_success_count()
@@ -87,6 +93,9 @@ class MFBatchAdvisor(Advisor):
         self.surrogate_model.update_mf_trials(self.history_list)
         self.surrogate_model.build_source_surrogates()
         candidates = super().get_suggestion(history, return_list=True)  # replace
+
+        self.early_stop_ei(history, challengers=candidates)
+
         idx = 0
         while len(batch_configs_list) < batch_size:
             if idx >= len(candidates):

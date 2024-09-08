@@ -29,6 +29,8 @@ class AsyncBatchAdvisor(Advisor):
             acq_type='auto',
             acq_optimizer_type='auto',
             ref_point=None,
+            early_stop=False,
+            early_stop_kwargs=None,
             output_dir='logs',
             task_id='OpenBox',
             random_state=None,
@@ -52,6 +54,8 @@ class AsyncBatchAdvisor(Advisor):
                          acq_type=acq_type,
                          acq_optimizer_type=acq_optimizer_type,
                          ref_point=ref_point,
+                         early_stop=early_stop,
+                         early_stop_kwargs=early_stop_kwargs,
                          output_dir=output_dir,
                          task_id=task_id,
                          random_state=random_state,
@@ -81,6 +85,9 @@ class AsyncBatchAdvisor(Advisor):
     def _get_suggestion(self, history=None):
         if history is None:
             history = self.history
+
+        # early stop
+        self.early_stop_perf(history)
 
         num_config_all = len(history) + len(self.running_configs)
         num_config_successful = history.get_success_count()
@@ -133,11 +140,13 @@ class AsyncBatchAdvisor(Advisor):
                 history=history,
                 num_points=5000
             )
+            self.early_stop_ei(history, challengers=challengers)
             return challengers[0]
 
         elif self.batch_strategy == 'default':
             # select first N candidates
             candidates = super().get_suggestion(history, return_list=True)
+            self.early_stop_ei(history, challengers=candidates)
 
             for config in candidates:
                 if config not in self.running_configs and config not in history.configurations:
