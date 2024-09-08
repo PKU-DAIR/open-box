@@ -48,7 +48,7 @@ def test_mf_batch_advisor(configspace_tiny, history_single_obs):
 
 def test_mf_advisor_early_stop(configspace_tiny):
     config_space = configspace_tiny
-    advisor = MFBatchAdvisor(config_space, early_stop=True, early_stop_kwargs={'min_iter': 3, 'min_improvement_percentage': 100})
+    advisor = MFBatchAdvisor(config_space, early_stop=True, early_stop_kwargs={'min_iter': 3, 'min_improvement_percentage': 1e8})
 
     for i in range(3):
         suggestion = advisor.get_suggestions(1)[0]
