@@ -1,7 +1,6 @@
 import pytest
-from unittest.mock import MagicMock, patch
 from openbox.core.mf_batch_advisor import MFBatchAdvisor
-from openbox.utils.config_space import ConfigurationSpace
+from openbox.utils.early_stop import EarlyStopException
 from openbox.utils.history import Observation
 from openbox.utils.constants import MAXINT, SUCCESS
 
@@ -44,3 +43,18 @@ def test_mf_batch_advisor(configspace_tiny, history_single_obs):
 
     assert len(advisor.history_list) == 4
     assert len(advisor.resource_identifiers) == 4
+
+
+
+def test_mf_advisor_early_stop(configspace_tiny):
+    config_space = configspace_tiny
+    advisor = MFBatchAdvisor(config_space, early_stop=True, early_stop_kwargs={'min_iter': 3, 'min_improvement_percentage': 100})
+
+    for i in range(3):
+        suggestion = advisor.get_suggestions(1)[0]
+        observation = Observation(suggestion, [10-i], trial_state=SUCCESS, elapsed_time=2.0, extra_info={})
+        advisor.update_observation(observation, 0.8)
+        advisor.update_observation(observation, 1)
+
+    with pytest.raises(EarlyStopException):
+        advisor.get_suggestions(1)[0]

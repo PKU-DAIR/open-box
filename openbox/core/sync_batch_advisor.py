@@ -29,6 +29,8 @@ class SyncBatchAdvisor(Advisor):
             acq_type='auto',
             acq_optimizer_type='auto',
             ref_point=None,
+            early_stop=False,
+            early_stop_kwargs=None,
             output_dir='logs',
             task_id='OpenBox',
             random_state=None,
@@ -50,6 +52,8 @@ class SyncBatchAdvisor(Advisor):
                          acq_type=acq_type,
                          acq_optimizer_type=acq_optimizer_type,
                          ref_point=ref_point,
+                         early_stop=early_stop,
+                         early_stop_kwargs=early_stop_kwargs,
                          output_dir=output_dir,
                          task_id=task_id,
                          random_state=random_state,
@@ -76,6 +80,9 @@ class SyncBatchAdvisor(Advisor):
         assert batch_size >= 1
         if history is None:
             history = self.history
+
+        # early stop
+        self.early_stop_perf(history)
 
         num_config_evaluated = len(history)
         num_config_successful = history.get_success_count()
@@ -143,6 +150,7 @@ class SyncBatchAdvisor(Advisor):
                         history=history,
                         num_points=5000,
                     )
+                    self.early_stop_ei(history, challengers=challengers)
                     cur_config = challengers[0]
                 batch_configs_list.append(cur_config)
         elif self.batch_strategy == 'reoptimization':
@@ -163,6 +171,7 @@ class SyncBatchAdvisor(Advisor):
                         challengers = self.acq_optimizer.maximize(acquisition_function=self.acquisition_function,
                                                                   history=history,
                                                                   num_points=5000)
+                        self.early_stop_ei(history, challengers=challengers)
                         candidates = challengers
                     cur_config = None
                     for config in candidates:
@@ -178,6 +187,7 @@ class SyncBatchAdvisor(Advisor):
         elif self.batch_strategy == 'default':
             # select first N candidates
             candidates = super().get_suggestion(history, return_list=True)
+            self.early_stop_ei(history, challengers=candidates)
             idx = 0
             while len(batch_configs_list) < batch_size:
                 if idx >= len(candidates):

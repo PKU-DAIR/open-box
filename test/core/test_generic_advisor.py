@@ -5,6 +5,7 @@ from openbox.core.generic_advisor import Advisor
 from openbox.utils.util_funcs import check_random_state
 from openbox.utils.history import Observation
 from openbox.utils.constants import MAXINT, SUCCESS
+from openbox import logger
 
 
 def test_generic_advisor(configspace_tiny, history_single_obs):
