@@ -28,6 +28,8 @@ class EA_Advisor(BaseAdvisor):
             strategy='worst',  # 'worst', 'oldest'
             optimization_strategy='ea',
             batch_size=1,
+            early_stop=False,
+            early_stop_kwargs=None,
             output_dir='logs',
             task_id='OpenBox',
             random_state=None,
@@ -39,6 +41,8 @@ class EA_Advisor(BaseAdvisor):
             num_objectives=num_objectives,
             num_constraints=num_constraints,
             ref_point=None,
+            early_stop=early_stop,
+            early_stop_kwargs=early_stop_kwargs,
             output_dir=output_dir,
             task_id=task_id,
             random_state=random_state,
@@ -64,6 +68,10 @@ class EA_Advisor(BaseAdvisor):
         self.strategy = strategy
         assert self.strategy in ['worst', 'oldest']
 
+        # early stop
+        if self.early_stop:
+            self.early_stop_algorithm.check_setup(advisor=self)
+
     def get_suggestion(self, history=None):
         """
         Generate a configuration (suggestion) for this query.
@@ -74,6 +82,8 @@ class EA_Advisor(BaseAdvisor):
         """
         if history is None:
             history = self.history
+
+        self.early_stop_perf(history)
 
         if len(self.population) < self.population_size:
             # Initialize population

@@ -1,7 +1,6 @@
 import numpy as np
 from openbox import logger
 
-
 class EarlyStopException(Exception):
     """Exception raised for early stop in Advisor."""
     pass
@@ -31,7 +30,7 @@ class EarlyStopAlgorithm(object):
     def __init__(
             self,
             min_iter: int = 10,
-            min_improvement_percentage: float = 0.05,
+            min_improvement_percentage: float = 0,
             max_no_improvement_rounds: int = 10,
     ):
         self.min_iter = min_iter
@@ -53,6 +52,8 @@ class EarlyStopAlgorithm(object):
 
         assert self.min_improvement_percentage >= 0, "min_improvement_percentage should be non-negative."
         if self.min_improvement_percentage > 0:
+            from openbox.core.generic_advisor import Advisor
+            assert isinstance(advisor, Advisor), "min_improvement_percentage only support BO advisor"
             assert advisor.acq_type == 'ei', ("Using min_improvement_percentage requires the "
                                               "Expected Improvement acquisition function.")
 
