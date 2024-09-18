@@ -3,6 +3,7 @@ import abc
 import numpy as np
 from datetime import datetime
 from typing import List
+from typing import List, Tuple, Union, Optional
 from ConfigSpace import Configuration, ConfigurationSpace
 
 from openbox import logger
@@ -40,14 +41,14 @@ class BaseAdvisor(object, metaclass=abc.ABCMeta):
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
-            config_space,
-            num_objectives=1,
-            num_constraints=0,
-            ref_point=None,
-            output_dir='logs',
-            task_id='OpenBox',
-            random_state=None,
-            logger_kwargs: dict = None,
+            config_space: ConfigurationSpace,
+            num_objectives: int = 1,
+            num_constraints: int = 0,
+            ref_point: Optional[Union[List[float], np.ndarray]]= None,
+            output_dir: str = 'logs',
+            task_id: str = 'OpenBox',
+            random_state: Optional[Union[int, np.random.RandomState]]= None,
+            logger_kwargs: Optional[dict] = None,
     ):
 
         self.timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')

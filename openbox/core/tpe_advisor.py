@@ -207,6 +207,9 @@ class TPE_Advisor(BaseAdvisor):
         return return_array
 
     def fit_kde_models(self, history):
+        '''
+        Called by self.get_suggestion()
+        '''
         num_config_successful = history.get_success_count()
         if num_config_successful <= self.min_points_in_model - 1:
             logger.debug("Only %i run(s) available, need more than %s -> can't build model!" % (

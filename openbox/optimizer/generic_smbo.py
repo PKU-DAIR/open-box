@@ -128,7 +128,7 @@ class SMBO(BOBase):
             config_space,
             num_objectives=1,
             num_constraints=0,
-            sample_strategy: str = 'bo',
+            sample_strategy: str = 'bo',    # random or bo
             max_runs=100,
             max_runtime=None,
             max_runtime_per_trial=None,
@@ -167,7 +167,9 @@ class SMBO(BOBase):
         self.advisor_type = advisor_type
         advisor_kwargs = advisor_kwargs or {}
         _logger_kwargs = {'force_init': False}  # do not init logger in advisor
-        if advisor_type == 'default':
+
+        # Type of advisor to produce configuration suggestion
+        if advisor_type == 'default':   # Bayesian Optimization
             from openbox.core.generic_advisor import Advisor
             self.config_advisor = Advisor(config_space,
                                           num_objectives=num_objectives,
@@ -175,7 +177,7 @@ class SMBO(BOBase):
                                           initial_trials=initial_runs,
                                           init_strategy=init_strategy,
                                           initial_configurations=initial_configurations,
-                                          optimization_strategy=sample_strategy,
+                                          optimization_strategy=sample_strategy,    # random or bo
                                           surrogate_type=surrogate_type,
                                           acq_type=acq_type,
                                           acq_optimizer_type=acq_optimizer_type,

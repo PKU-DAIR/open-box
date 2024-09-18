@@ -11,7 +11,9 @@ from openbox.utils.early_stop import EarlyStopAlgorithm, EarlyStopException
 from openbox.core.base import build_acq_func, build_surrogate
 from openbox.acq_optimizer import build_acq_optimizer
 from openbox.core.base_advisor import BaseAdvisor
-
+from openbox.utils import space as sp
+from typing import Optional, List, Union
+from ConfigSpace import Configuration
 
 class Advisor(BaseAdvisor):
     """
@@ -98,25 +100,25 @@ class Advisor(BaseAdvisor):
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     def __init__(
             self,
-            config_space,
-            num_objectives=1,
-            num_constraints=0,
-            initial_trials=3,
-            initial_configurations=None,
-            init_strategy='random_explore_first',
-            transfer_learning_history=None,
-            rand_prob=0.1,
-            optimization_strategy='bo',
-            surrogate_type='auto',
-            acq_type='auto',
-            acq_optimizer_type='auto',
-            ref_point=None,
-            early_stop=False,
-            early_stop_kwargs=None,
-            output_dir='logs',
-            task_id='OpenBox',
-            random_state=None,
-            logger_kwargs: dict = None,
+            config_space: sp.Space,
+            num_objectives: int = 1,
+            num_constraints: int = 0,
+            initial_trials: int = 3,
+            initial_configurations: Optional[Configuration] = None,
+            init_strategy: str = 'random_explore_first',
+            transfer_learning_history: Optional[List[History]] = None,
+            rand_prob: float = 0.1,
+            optimization_strategy: str = 'bo',
+            surrogate_type: str = 'auto',
+            acq_type: str = 'auto',
+            acq_optimizer_type: str = 'auto',
+            ref_point: Optional[List[float]] = None,
+            early_stop: bool = False,
+            early_stop_kwargs: Optional[dict] = None,
+            output_dir: str = 'logs',
+            task_id: str = 'OpenBox',
+            random_state: Optional[Union[List[float], np.random.RandomState]]= None,
+            logger_kwargs: Optional[dict] = None,
             **kwargs,
     ):
         super().__init__(
@@ -427,7 +429,7 @@ class Advisor(BaseAdvisor):
 
         return initial_configs
 
-    def get_suggestion(self, history: History = None, return_list: bool = False):
+    def get_suggestion(self, history: History = None, return_list: bool = False) -> Configuration:
         """
         Generate a configuration (suggestion) for this query.
         Returns
@@ -446,13 +448,24 @@ class Advisor(BaseAdvisor):
         num_config_evaluated = len(history)
         num_config_successful = history.get_success_count()
 
+        # Initial Configurations:
+        #   If the number of evaluated configurations is less than the initial number,
+        #   return a predefined initial configuration.
         if num_config_evaluated < self.init_num:
             res = self.initial_configurations[num_config_evaluated]
             return [res] if return_list else res
+
+        # Random Optimization Strategy:
+        #   If the optimization strategy is set to random, sample and return a random configuration.
+        #   This strategy doesn't rely on the surrogate model.
         if self.optimization_strategy == 'random':
             res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
             return [res] if return_list else res
 
+        # Random Sampling with Probability:
+        #   With a certain probability, sample and return a random configuration
+        #   to ensure exploration and prevent the optimization process from getting stuck in local optima.
+        #   This step also doesn't require training the model since it's independent on the surrogate model.
         if (not return_list) and self.rng.random() < self.rand_prob:
             logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
             res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]

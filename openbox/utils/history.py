@@ -46,6 +46,8 @@ class Observation(object):
             self.constraints = transform_to_1d_list(self.constraints, hint='constraints')
 
     def __str__(self):
+        '''Returns a string representation of the Observation object.
+        '''
         items = [f'config={self.config}', f'objectives={self.objectives}']
         if self.constraints is not None:
             items.append(f'constraints={self.constraints}')
@@ -60,6 +62,10 @@ class Observation(object):
     __repr__ = __str__
 
     def to_dict(self):
+        '''
+        Tool called by self.__eq__, is used to compare whether
+        all attributes of two Observation instances is equal.
+        '''
         data = {
             'config': self.config.get_dictionary(),
             'objectives': self.objectives,
@@ -74,6 +80,24 @@ class Observation(object):
 
     @classmethod
     def from_dict(cls, data: dict, config_space: ConfigurationSpace):
+        """
+        Creates an Observation object from a dictionary.
+
+        Parameters
+        ----------
+        cls : Observation
+            Class `Observation` itself using to instantiate `data`.
+        data : dict
+            A dictionary containing the data for the Observation.
+        config_space : ConfigurationSpace
+            The configuration space used to create the Configuration object.
+
+        Returns
+        -------
+        Observation
+            An Observation object created from the dictionary.
+        """
+        # Transform data['config'] to Configuration if it's a dict.
         config = data['config']
         if isinstance(config, dict):
             assert config_space is not None, 'config_space must be provided if config is a dict'
@@ -607,8 +631,8 @@ class History(object):
         if self.num_objectives > 1:
             raise ValueError('get_incumbent_configs() is used for single-objective optimization! '
                              'Use get_pareto_set() instead.')
-        incumbents = self.get_incumbents()
-        incumbent_configs = [obs.config for obs in incumbents]
+        incumbents: List[Observation] = self.get_incumbents()
+        incumbent_configs: List[Configuration] = [obs.config for obs in incumbents]
         return incumbent_configs
 
     def get_mo_incumbent_values(self) -> np.ndarray:
