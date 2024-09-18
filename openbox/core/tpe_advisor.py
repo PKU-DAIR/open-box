@@ -82,7 +82,7 @@ class TPE_Advisor(BaseAdvisor):
         if self.early_stop:
             self.early_stop_algorithm.check_setup(advisor=self)
 
-    def get_suggestion(self, history=None):
+    def get_suggestion(self, history=None, first_default=True):
         if history is None:
             history = self.history
 
@@ -90,7 +90,7 @@ class TPE_Advisor(BaseAdvisor):
 
         # use default as first config
         num_config_evaluated = len(history)
-        if num_config_evaluated == 0:
+        if first_default and num_config_evaluated == 0:
             return self.config_space.get_default_configuration()
 
         # fit
