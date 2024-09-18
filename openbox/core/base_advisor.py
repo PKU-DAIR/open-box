@@ -3,11 +3,12 @@ import abc
 import numpy as np
 from datetime import datetime
 from typing import List
-from typing import List, Tuple, Union, Optional
+from typing import List, Union, Optional
 from ConfigSpace import Configuration, ConfigurationSpace
 
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
+from openbox.utils.early_stop import EarlyStopAlgorithm, EarlyStopException
 from openbox.utils.history import Observation, History
 from openbox.utils.constants import MAXINT
 
@@ -45,6 +46,8 @@ class BaseAdvisor(object, metaclass=abc.ABCMeta):
             num_objectives: int = 1,
             num_constraints: int = 0,
             ref_point: Optional[Union[List[float], np.ndarray]]= None,
+            early_stop: bool = False,
+            early_stop_kwargs: Optional[dict] = None,
             output_dir: str = 'logs',
             task_id: str = 'OpenBox',
             random_state: Optional[Union[int, np.random.RandomState]]= None,
@@ -72,6 +75,25 @@ class BaseAdvisor(object, metaclass=abc.ABCMeta):
             task_id=task_id, num_objectives=num_objectives, num_constraints=num_constraints, config_space=config_space,
             ref_point=ref_point, meta_info=None,  # todo: add meta info
         )
+
+
+        # early stop
+        self.early_stop = early_stop
+        early_stop_kwargs = early_stop_kwargs or dict()
+        self.early_stop_algorithm = EarlyStopAlgorithm(**early_stop_kwargs) if self.early_stop else None
+        if self.early_stop:
+            logger.info(f'Early stop is enabled.')
+
+    def early_stop_perf(self, history):
+        if not self.early_stop:
+            return
+
+        if self.early_stop_algorithm.already_early_stopped(history):
+            raise EarlyStopException("Early stop triggered!")
+
+        if self.early_stop_algorithm.decide_early_stop_before_suggest(history):
+            self.early_stop_algorithm.set_already_early_stopped(history)
+            raise EarlyStopException("Early stop triggered!")
 
     def get_suggestion(self, *args, **kwargs) -> Configuration:
         """

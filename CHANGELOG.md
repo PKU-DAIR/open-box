@@ -1,3 +1,10 @@
+# v0.8.4 - Sep 9, 2024
+
+### Major Changes
++ support early stop for all advisors (#98)
++ compatible with python3.11 (#95)
+
+
 # v0.8.3 - Apr 27, 2024
 
 ### Major Changes

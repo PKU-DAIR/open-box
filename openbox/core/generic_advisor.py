@@ -7,7 +7,7 @@ from openbox.utils.util_funcs import deprecate_kwarg
 from openbox.utils.history import History
 from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import NondominatedPartitioning
-from openbox.utils.early_stop import EarlyStopAlgorithm, EarlyStopException
+from openbox.utils.early_stop import EarlyStopException
 from openbox.core.base import build_acq_func, build_surrogate
 from openbox.acq_optimizer import build_acq_optimizer
 from openbox.core.base_advisor import BaseAdvisor
@@ -126,6 +126,8 @@ class Advisor(BaseAdvisor):
             num_objectives=num_objectives,
             num_constraints=num_constraints,
             ref_point=ref_point,
+            early_stop=early_stop,
+            early_stop_kwargs=early_stop_kwargs,
             output_dir=output_dir,
             task_id=task_id,
             random_state=random_state,
@@ -153,12 +155,6 @@ class Advisor(BaseAdvisor):
             self.initial_configurations = self.create_initial_design(self.init_strategy)
             self.init_num = len(self.initial_configurations)
 
-        # early stop
-        self.early_stop = early_stop
-        early_stop_kwargs = early_stop_kwargs or dict()
-        self.early_stop_algorithm = EarlyStopAlgorithm(**early_stop_kwargs) if self.early_stop else None
-        if self.early_stop:
-            logger.info(f'Early stop is enabled.')
 
         self.surrogate_model = None
         self.constraint_models = None
@@ -429,7 +425,20 @@ class Advisor(BaseAdvisor):
 
         return initial_configs
 
-    def get_suggestion(self, history: History = None, return_list: bool = False) -> Configuration:
+    def early_stop_ei(self, history, challengers):
+        if not self.early_stop:
+            return
+
+        if self.early_stop_algorithm.already_early_stopped(history):
+            raise EarlyStopException("Early stop triggered!")
+
+        max_acq_value = np.max(self.acquisition_function(challengers)).item()
+        if self.early_stop_algorithm.decide_early_stop_after_suggest(
+                history=history, max_acq_value=max_acq_value):
+            self.early_stop_algorithm.set_already_early_stopped(history)
+            raise EarlyStopException("Early stop triggered!")
+
+    def get_suggestion(self, history: History = None, return_list: bool = False):
         """
         Generate a configuration (suggestion) for this query.
         Returns
@@ -439,9 +448,10 @@ class Advisor(BaseAdvisor):
         if history is None:
             history = self.history
 
-        if self.early_stop and self.early_stop_algorithm.decide_early_stop_before_suggest(history):
-            self.early_stop_algorithm.set_already_early_stopped(history)
-            raise EarlyStopException("Early stop triggered!")
+        # if self.early_stop and self.early_stop_algorithm.decide_early_stop_before_suggest(history):
+        #     self.early_stop_algorithm.set_already_early_stopped(history)
+        #     raise EarlyStopException("Early stop triggered!")
+        self.early_stop_perf(history)
 
         self.alter_model(history)
 
@@ -469,7 +479,7 @@ class Advisor(BaseAdvisor):
         if (not return_list) and self.rng.random() < self.rand_prob:
             logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
             res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
-            return [res] if return_list else res
+            return res
 
         X = history.get_config_array(transform='scale')
         Y = history.get_objectives(transform='infeasible')
@@ -536,12 +546,13 @@ class Advisor(BaseAdvisor):
                 return challengers
 
             # early stop
-            if self.early_stop:
-                max_acq_value = np.max(self.acquisition_function(challengers)).item()
-                if self.early_stop_algorithm.decide_early_stop_after_suggest(
-                        history=history, max_acq_value=max_acq_value):
-                    self.early_stop_algorithm.set_already_early_stopped(history)
-                    raise EarlyStopException("Early stop triggered!")
+            # if self.early_stop:
+            #     max_acq_value = np.max(self.acquisition_function(challengers)).item()
+            #     if self.early_stop_algorithm.decide_early_stop_after_suggest(
+            #             history=history, max_acq_value=max_acq_value):
+            #         self.early_stop_algorithm.set_already_early_stopped(history)
+            #         raise EarlyStopException("Early stop triggered!")
+            self.early_stop_ei(history, challengers=challengers)
 
             for config in challengers:
                 if config not in history.configurations:
