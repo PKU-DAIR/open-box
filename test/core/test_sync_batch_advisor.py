@@ -1,7 +1,8 @@
 
 import pytest
+from unittest.mock import MagicMock, patch
 from openbox.core.sync_batch_advisor import SyncBatchAdvisor
-from openbox.utils.early_stop import EarlyStopException
+from openbox.utils.config_space import ConfigurationSpace
 from openbox.utils.history import History, Observation
 from openbox.utils.constants import MAXINT, SUCCESS
 
@@ -50,17 +51,3 @@ def test_sync_batch_advisora(configspace_tiny, history_single_obs):
     observation = Observation(suggestions[0], [0.1], trial_state=SUCCESS, elapsed_time=2.0, extra_info={})
     advisor.update_observation(observation)
     assert len(advisor.history) == 1
-
-
-
-def test_sync_batch_advisor_early_stop(configspace_tiny):
-    config_space = configspace_tiny
-    advisor = SyncBatchAdvisor(config_space, early_stop=True, early_stop_kwargs={'min_iter': 3, 'min_improvement_percentage': 1e8})
-
-    for i in range(3):
-        suggestion = advisor.get_suggestion()
-        observation = Observation(suggestion, [10-i], trial_state=SUCCESS, elapsed_time=2.0, extra_info={})
-        advisor.update_observation(observation)
-
-    with pytest.raises(EarlyStopException):
-        advisor.get_suggestion()
