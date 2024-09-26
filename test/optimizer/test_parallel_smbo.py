@@ -56,9 +56,7 @@ def test_psmbo_async(configspace_tiny):
     psmbo.async_run()
     history = psmbo.run()
     assert len(history) > 0
-    '''
-    看起来这个async_iterate一般不会被调用？他是异步生成n个observation
-    '''
+
     observations = psmbo.async_iterate(n=2)
     assert len(observations) == 2
 

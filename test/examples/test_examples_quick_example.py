@@ -45,8 +45,7 @@ def test_examples_quick_example():
     plt.close()
 
     # install pyrfr to use get_importance()
-    #method改成shap
-    print(history.get_importance(method='shap'))
+    print(history.get_importance())
 
     # Have a try on the new HTML visualization feature!
     # You can also call visualize_html() after optimization.
