@@ -238,8 +238,8 @@ class AbstractModel(object):
 
         if len(X.shape) != 2:
             raise ValueError('Expected 2d array, got %dd array!' % len(X.shape))
-        if X.shape[1] + self.n_feats != len(self._initial_types):
-            raise ValueError('Rows in X should have %d entries but have %d!' % (len(self._initial_types) - self.n_feats, X.shape[1]))
+        if X.shape[1] != len(self.types):
+            raise ValueError('Rows in X should have %d entries but have %d!' % (len(self.types), X.shape[1]))
 
         if self.instance_features is None or \
                 len(self.instance_features) == 0:

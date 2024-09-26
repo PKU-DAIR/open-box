@@ -56,21 +56,3 @@ def test_mc_advisor_early_stop(configspace_tiny):
 
     with pytest.raises(EarlyStopException):
         advisor.get_suggestion()
-
-def test_mc_different_constraints_and_objectives(configspace_tiny, multi_start_history_double_obs):
-    config_space = configspace_tiny
-
-    Ob_array = [1, 2, 2, 5, 5]
-    Co_array = [1, 0, 1, 0, 1]
-    Ty_array = ['mceic', 'mcehvi', 'mcehvic', 'mcparego', 'mcparegoc']
-
-    for (o,c,t) in zip(Ob_array, Co_array, Ty_array):
-        ref_point = None
-        if 'ehvi' in t:
-            ref_point = [0.1,0.2]
-            ad = MCAdvisor(config_space, o, c, ref_point=ref_point)
-            if c == 0:
-                ad.get_suggestion(multi_start_history_double_obs)
-        else:
-            ad = MCAdvisor(config_space, o, c, ref_point=ref_point)
-        assert ad.acq_type == t

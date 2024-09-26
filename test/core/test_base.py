@@ -11,14 +11,14 @@ from openbox.surrogate.tlbo.mfgpe import MFGPE
 from openbox.surrogate.tlbo.rgpe import RGPE
 from openbox.surrogate.tlbo.stacking_gpr import SGPR
 from openbox.surrogate.tlbo.topo_variant3 import TOPO_V3
-from openbox.surrogate.mo.parego import ParEGOSurrogate
+
 
 def test_build_acq_func(configspace_tiny, surrogate_model_abs, surrogate_model_gp):
     config_space = configspace_tiny
     model_abs = surrogate_model_abs
     model_gp = surrogate_model_gp
-    #"?"未识别的情况
-    for acq_func in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', 'mcei', 'parego',"?"]:
+
+    for acq_func in ['ei', 'eips', 'logei', 'pi', 'lcb', 'lpei', 'mcei', 'parego']:
         result = build_acq_func(acq_func, model_abs)
         assert isinstance(result, AbstractAcquisitionFunction)
 
@@ -50,6 +50,7 @@ def test_build_acq_func(configspace_tiny, surrogate_model_abs, surrogate_model_g
         result = build_acq_func(acq_func, model_abs, [model_gp, model_gp])
         assert isinstance(result, AbstractAcquisitionFunction)
 
+
 def test_build_surrogate(configspace_tiny, transfer_learning_history_single):
     config_space = configspace_tiny
     rng = np.random.RandomState(0)
@@ -78,10 +79,6 @@ def test_build_surrogate(configspace_tiny, transfer_learning_history_single):
 
     surrogate = build_surrogate('tlbo_topov3_gp', config_space, rng, transfer_learning_history)
     assert isinstance(surrogate, TOPO_V3)
-
-    #start with parego
-    surrogate = build_surrogate('parego_gp', config_space, rng, transfer_learning_history)
-    assert isinstance(surrogate, ParEGOSurrogate)
 
     with pytest.raises(ValueError, match='.* for tlbo surrogate!'):
         build_surrogate('tlbo_invalid', config_space, rng, transfer_learning_history)

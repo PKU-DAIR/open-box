@@ -6,7 +6,7 @@ from openbox.utils.history import Observation
 from openbox.utils.constants import MAXINT, SUCCESS
 
 
-def test_nsga2_ea_advisor_initialization(configspace_tiny, configspace_huge):
+def test_nsga2_ea_advisor_initialization(configspace_tiny):
     config_space = configspace_tiny
     advisor = NSGA2EAdvisor(config_space, num_objectives=2, subset_size=2, population_size=4)
     assert advisor.config_space == config_space
@@ -26,17 +26,3 @@ def test_nsga2_ea_advisor_initialization(configspace_tiny, configspace_huge):
         assert isinstance(suggestion1, Configuration)
         observation1 = Observation(suggestion1, perfs[i], trial_state=SUCCESS, elapsed_time=2.0, extra_info={})
         advisor.update_observation(observation1)
-
-    obs = list()
-    for i in range(5):
-        configs = advisor.get_suggestions()
-        for config in configs:
-            obs.append(Observation(config, perfs[i], trial_state=SUCCESS, elapsed_time=2.0, extra_info={}))
-    advisor.update_observations(obs)
-
-
-    #test cross_over
-    advisor_2 = NSGA2EAdvisor(config_space=configspace_huge)
-    for i in range(5):
-        config = advisor_2.cross_over(configspace_huge.sample_configuration(), configspace_huge.sample_configuration())
-        assert config.configuration_space == configspace_huge

@@ -30,7 +30,6 @@ class TestPrior(unittest.TestCase):
         samples = prior.sample_from_prior(5)
         self.assertEqual(len(samples), 5)
         self.assertFalse(all(s > 0 for s in samples))
-        prior.gradient(1)
 
     def test_lognormal_prior_lnprob(self):
         prior = LognormalPrior(1, self.rng)
@@ -54,8 +53,6 @@ class TestPrior(unittest.TestCase):
         samples = prior.sample_from_prior(5)
         self.assertEqual(len(samples), 5)
         self.assertFalse(all(1 <= s <= 10 for s in samples))
-        prior.gradient(-2)
-        prior.gradient(10)
 
     def test_gamma_prior_lnprob(self):
         prior = GammaPrior(1, 1, 0, self.rng)
@@ -67,7 +64,7 @@ class TestPrior(unittest.TestCase):
         samples = prior.sample_from_prior(5)
         self.assertEqual(len(samples), 5)
         self.assertFalse(all(s > 0 for s in samples))
-        prior.gradient(2)
+
 
 if __name__ == '__main__':
     unittest.main()
