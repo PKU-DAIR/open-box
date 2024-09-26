@@ -1,4 +1,5 @@
 import pytest
+import random
 from unittest.mock import MagicMock, patch
 from openbox.core.ea_advisor import EA_Advisor
 from openbox.utils.config_space import ConfigurationSpace
@@ -29,6 +30,8 @@ def test_ea_advisor_initialization(configspace_tiny):
     assert advisor.population == []
     assert advisor.history is not None
 
+    
+
     config = advisor.get_suggestion()
     assert config in advisor.all_configs
     assert config in advisor.running_configs
@@ -53,3 +56,19 @@ def test_ea_advisor_initialization(configspace_tiny):
     # test get_history()
     history = advisor.get_history()
     assert history == advisor.history
+
+    # test update_observation()
+    configs = advisor.get_suggestions(batch_size=30)
+    objectives = [(i)/10 for i in range(0,30)]
+    for (config,  objective) in zip(configs, objectives):
+        obesrvation = Observation(config, objective, trial_state=SUCCESS, elapsed_time=2.0, extra_info={})
+        advisor.update_observation(obesrvation)
+
+    assert len(advisor.population) == 30
+    assert dict(config=configs[0], age=2, pref=0.0) not in advisor.population
+
+    # test select a parent
+    configs = advisor.get_suggestions(batch_size=10)
+    for config in configs:
+        assert config in advisor.all_configs
+        assert config in advisor.running_configs
