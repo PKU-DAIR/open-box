@@ -51,7 +51,7 @@ class AdaptiveEAAdvisor(EAAdvisor):
         self.last_observations = []
 
     def get_suggestion(self):
-        if not self.last_suggestions:
+        while not self.last_suggestions:
             self.update_observations(self.last_observations)
             self.last_observations = []
             self.last_suggestions = self.get_suggestions()

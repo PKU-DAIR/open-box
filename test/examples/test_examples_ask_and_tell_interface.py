@@ -49,7 +49,10 @@ def test_examples_ask_and_tell_interface():
     plt.close()
 
     # install pyrfr to use get_importance()
-    print(history.get_importance())
+
+    #我修改了method
+    
+    print(history.get_importance(method='shap'))
 
     # Have a try on the new HTML visualization feature!
     # You can also call visualize_html() after optimization.

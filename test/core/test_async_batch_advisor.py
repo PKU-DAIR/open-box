@@ -1,12 +1,9 @@
 import pytest
 from unittest.mock import MagicMock, patch
-
-from openbox.utils.early_stop import EarlyStopException
 from openbox.core.async_batch_advisor import AsyncBatchAdvisor
 from openbox.utils.config_space import ConfigurationSpace
 from openbox.utils.history import History, Observation
 from openbox.utils.constants import MAXINT, SUCCESS
-from openbox import logger
 
 
 def test_async_batch_advisor_initialization(configspace_tiny, history_single_obs):
@@ -33,4 +30,12 @@ def test_async_batch_advisor_initialization(configspace_tiny, history_single_obs
     observation = Observation(suggestion, [0.1], trial_state=SUCCESS, elapsed_time=2.0, extra_info={})
     advisor.update_observation(observation)
     assert len(advisor.history) == 1
+#
 
+# def test_async_batch_advisor_update_observation():
+#     config_space = mock_config_space()
+#     advisor = AsyncBatchAdvisor(config_space)
+#     observation = mock_observation()
+#     advisor.running_configs.append(observation.config)
+#     advisor.update_observation(observation)
+#     assert observation.config not in advisor.running_configs

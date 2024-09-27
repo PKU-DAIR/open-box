@@ -24,6 +24,17 @@ def surrogate_model_gp(configspace_tiny):
                            bounds=bounds,
                            rng=rng)
 
+@pytest.fixture
+def surrogate_model_gp_rbf(configspace_tiny):
+    config_space = configspace_tiny
+    rng = np.random.RandomState(0)
+    types, bounds = get_types(config_space)
+    return create_gp_model(model_type='gp_rbf',
+                           config_space=config_space,
+                           types=types,
+                           bounds=bounds,
+                           rng=rng)
+
 
 @pytest.fixture
 def cons_kernel():
