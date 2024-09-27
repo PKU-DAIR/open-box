@@ -81,7 +81,7 @@ def test_es_decide_early_stop_before_suggest():
 def test_es_decide_early_stop_after_suggest():
     # check not reach min
     history = HistoryMock()
-    early_stop = EarlyStopAlgorithm(min_iter=5, min_improvement_percentage=0.05, max_no_improvement_rounds=0)
+    early_stop = EarlyStopAlgorithm(min_iter=5, max_no_improvement_rounds=0)
     history.observations = [[1], [1], [1]]
     assert not early_stop.decide_early_stop_after_suggest(history)
 
