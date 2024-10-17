@@ -20,7 +20,7 @@ Scroll down to the bottom of the page, find the **Tools for Visual Studio** sect
 download **Build Tools for Visual Studio**.
 
 After downloading, run the installer, select **Desktop development with C++**, 
-and check **at least the first two options** in the right panel:
+and check **at least the first two options** in the right panel(If it still doesn't work with only the Windows 11 SDK installed, you can try installing the Windows 10 SDK as well):
 
 <img src="../../imgs/installation/install_vc_build_tools.png" width="90%" class="align-center">
 
