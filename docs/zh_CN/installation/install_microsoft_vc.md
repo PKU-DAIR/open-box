@@ -18,7 +18,7 @@ pip install --upgrade setuptools
 
 滚动到页面底部，找到 **用于 Visual Studio 的工具** 部分，并下载 **Visual Studio 生成工具**。
 
-下载后，运行安装程序，选择 **使用 C++ 的桌面开发**，并在右侧面板中勾选 **至少前两个选项**：
+下载后，运行安装程序，选择 **使用 C++ 的桌面开发**，并在右侧面板中勾选 **至少前两个选项**(如果安装了一个Windows 11 SDK还是不行，可以尝试再勾选一下Windows 10 SDK)：
 
 <img src="../../imgs/installation/install_vc_build_tools.png" width="90%" class="align-center">
 
