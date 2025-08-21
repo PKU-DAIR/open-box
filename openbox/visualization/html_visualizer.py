@@ -154,6 +154,8 @@ class HTMLVisualizer(BaseVisualizer):
         # A[i][j]: value of configuration i, constraint j
         cons_list_rev = list()
 
+        parameters_list = list(self.history.get_config_space().get_hyperparameter_names())
+
         # todo: check if has invalid value
         for idx, obs in enumerate(self.history.observations):
             objectives = [round(v, 6) for v in obs.objectives]
@@ -162,7 +164,7 @@ class HTMLVisualizer(BaseVisualizer):
                 constraints = [round(v, 6) for v in obs.constraints]
                 cons_list_rev.append(constraints)
 
-            config_dic = obs.config.get_dictionary().copy()
+            config_dic = {key: obs.config[key] for key in parameters_list}
             config_str = str(config_dic)
             if len(config_str) > 35:
                 config_str = config_str[1:35]
@@ -186,9 +188,8 @@ class HTMLVisualizer(BaseVisualizer):
                 cons_list[i].append(constraints[i])
 
         if len(self.history) > 0:
-            parameters = self.history.get_config_space().get_hyperparameter_names()
 
-            option['schema'] = ['Uid'] + list(parameters) \
+            option['schema'] = ['Uid'] + parameters_list \
                                + ['Objs ' + str(i + 1) for i in range(self.history.num_objectives)] \
                                + ['Cons ' + str(i + 1) for i in range(self.history.num_constraints)]
 
