@@ -146,7 +146,12 @@ def pytest_sessionfinish(session: Session, exitstatus: ExitCode) -> None:
 
         # https://stackoverflow.com/questions/57336095/access-verbosity-level-in-a-pytest-helper-function
         if session.config.getoption("verbose") > 0:
-            print(child, child.cmdline())
+            try:
+                print(child, child.cmdline())
+            except psutil.NoSuchProcess:
+                print(f"[WARN] Process {child.pid} no longer exists.")
+            except Exception as e:
+                print((f"[ERROR] Failed to get cmdline for {child}: {e}"))
 
         # https://psutil.readthedocs.io/en/latest/#kill-process-tree
         try:
