@@ -166,78 +166,30 @@ class SMBO(BOBase):
 
         self.advisor_type = advisor_type
         advisor_kwargs = advisor_kwargs or {}
-        _logger_kwargs = {'force_init': False}  # do not init logger in advisor
-        if advisor_type == 'default':
-            from openbox.core.generic_advisor import Advisor
-            self.config_advisor = Advisor(config_space,
-                                          num_objectives=num_objectives,
-                                          num_constraints=num_constraints,
-                                          initial_trials=initial_runs,
-                                          init_strategy=init_strategy,
-                                          initial_configurations=initial_configurations,
-                                          optimization_strategy=sample_strategy,
-                                          surrogate_type=surrogate_type,
-                                          acq_type=acq_type,
-                                          acq_optimizer_type=acq_optimizer_type,
-                                          ref_point=ref_point,
-                                          transfer_learning_history=transfer_learning_history,
-                                          early_stop=early_stop,
-                                          early_stop_kwargs=early_stop_kwargs,
-                                          task_id=task_id,
-                                          output_dir=logging_dir,
-                                          random_state=random_state,
-                                          logger_kwargs=_logger_kwargs,
-                                          **advisor_kwargs)
-        elif advisor_type == 'mcadvisor':
-            from openbox.core.mc_advisor import MCAdvisor
-            self.config_advisor = MCAdvisor(config_space,
-                                            num_objectives=num_objectives,
-                                            num_constraints=num_constraints,
-                                            initial_trials=initial_runs,
-                                            init_strategy=init_strategy,
-                                            initial_configurations=initial_configurations,
-                                            optimization_strategy=sample_strategy,
-                                            surrogate_type=surrogate_type,
-                                            acq_type=acq_type,
-                                            acq_optimizer_type=acq_optimizer_type,
-                                            ref_point=ref_point,
-                                            transfer_learning_history=transfer_learning_history,
-                                            task_id=task_id,
-                                            output_dir=logging_dir,
-                                            random_state=random_state,
-                                            logger_kwargs=_logger_kwargs,
-                                            **advisor_kwargs)
-        elif advisor_type == 'tpe':
-            from openbox.core.tpe_advisor import TPE_Advisor
-            assert num_objectives == 1 and num_constraints == 0
-            self.config_advisor = TPE_Advisor(config_space, task_id=task_id, random_state=random_state,
-                                              logger_kwargs=_logger_kwargs, **advisor_kwargs)
-        elif advisor_type == 'ea':
-            from openbox.core.ea_advisor import EA_Advisor
-            assert num_objectives == 1 and num_constraints == 0
-            self.config_advisor = EA_Advisor(config_space,
-                                             num_objectives=num_objectives,
-                                             num_constraints=num_constraints,
-                                             optimization_strategy=sample_strategy,
-                                             batch_size=1,
-                                             task_id=task_id,
-                                             output_dir=logging_dir,
-                                             random_state=random_state,
-                                             logger_kwargs=_logger_kwargs,
-                                             **advisor_kwargs)
-        elif advisor_type == 'random':
-            from openbox.core.random_advisor import RandomAdvisor
-            self.config_advisor = RandomAdvisor(config_space,
-                                                num_objectives=num_objectives,
-                                                num_constraints=num_constraints,
-                                                ref_point=ref_point,
-                                                task_id=task_id,
-                                                output_dir=logging_dir,
-                                                random_state=random_state,
-                                                logger_kwargs=_logger_kwargs,
-                                                **advisor_kwargs)
-        else:
-            raise ValueError('Invalid advisor type!')
+        
+        from openbox.core import build_advisor
+        self.config_advisor = build_advisor(
+            advisor_type=advisor_type,
+            config_space=config_space,
+            num_objectives=num_objectives,
+            num_constraints=num_constraints,
+            initial_trials=initial_runs,
+            init_strategy=init_strategy,
+            initial_configurations=initial_configurations,
+            optimization_strategy=sample_strategy,
+            surrogate_type=surrogate_type,
+            acq_type=acq_type,
+            acq_optimizer_type=acq_optimizer_type,
+            ref_point=ref_point,
+            transfer_learning_history=transfer_learning_history,
+            early_stop=early_stop,
+            early_stop_kwargs=early_stop_kwargs,
+            task_id=task_id,
+            output_dir=logging_dir,
+            random_state=random_state,
+            logger_kwargs={'force_init': False},  # do not init logger in advisor
+            **advisor_kwargs
+        )
 
         self.visualizer = build_visualizer(
             option=visualization, history=self.get_history(),
