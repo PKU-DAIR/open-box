@@ -10,9 +10,6 @@ from openbox.utils.constants import SUCCESS, FAILED, TIMEOUT
 from openbox.core.computation.parallel_process import ParallelEvaluation
 from openbox.utils.limit import run_obj_func
 from openbox.utils.util_funcs import parse_result, deprecate_kwarg
-from openbox.core.sync_batch_advisor import SyncBatchAdvisor
-from openbox.core.async_batch_advisor import AsyncBatchAdvisor
-from openbox.core.ea_advisor import EA_Advisor
 from openbox.utils.history import Observation, History
 from openbox.optimizer.base import BOBase
 
@@ -91,80 +88,50 @@ class pSMBO(BOBase):
         self.batch_size = batch_size
 
         advisor_kwargs = advisor_kwargs or {}
-        _logger_kwargs = {'force_init': False}  # do not init logger in advisor
+        
+        # Determine advisor type based on parallel and sample strategies
+        from openbox.core import build_advisor
+        
         if parallel_strategy == 'sync':
             if sample_strategy in ['random', 'bo']:
-                self.config_advisor = SyncBatchAdvisor(config_space,
-                                                       num_objectives=num_objectives,
-                                                       num_constraints=num_constraints,
-                                                       batch_size=batch_size,
-                                                       batch_strategy=batch_strategy,
-                                                       initial_trials=initial_runs,
-                                                       initial_configurations=initial_configurations,
-                                                       init_strategy=init_strategy,
-                                                       transfer_learning_history=transfer_learning_history,
-                                                       optimization_strategy=sample_strategy,
-                                                       surrogate_type=surrogate_type,
-                                                       acq_type=acq_type,
-                                                       acq_optimizer_type=acq_optimizer_type,
-                                                       ref_point=ref_point,
-                                                       task_id=task_id,
-                                                       output_dir=logging_dir,
-                                                       random_state=random_state,
-                                                       logger_kwargs=_logger_kwargs,
-                                                       **advisor_kwargs)
+                advisor_type = 'sync_batch'
             elif sample_strategy == 'ea':
-                assert num_objectives == 1 and num_constraints == 0
-                self.config_advisor = EA_Advisor(config_space,
-                                                 num_objectives=num_objectives,
-                                                 num_constraints=num_constraints,
-                                                 optimization_strategy=sample_strategy,
-                                                 batch_size=batch_size,
-                                                 task_id=task_id,
-                                                 output_dir=logging_dir,
-                                                 random_state=random_state,
-                                                 logger_kwargs=_logger_kwargs,
-                                                 **advisor_kwargs)
+                advisor_type = 'ea'
             else:
                 raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
         elif parallel_strategy == 'async':
             self.advisor_lock = Lock()
             if sample_strategy in ['random', 'bo']:
-                self.config_advisor = AsyncBatchAdvisor(config_space,
-                                                        num_objectives=num_objectives,
-                                                        num_constraints=num_constraints,
-                                                        batch_size=batch_size,
-                                                        batch_strategy=batch_strategy,
-                                                        initial_trials=initial_runs,
-                                                        initial_configurations=initial_configurations,
-                                                        init_strategy=init_strategy,
-                                                        transfer_learning_history=transfer_learning_history,
-                                                        optimization_strategy=sample_strategy,
-                                                        surrogate_type=surrogate_type,
-                                                        acq_type=acq_type,
-                                                        acq_optimizer_type=acq_optimizer_type,
-                                                        ref_point=ref_point,
-                                                        task_id=task_id,
-                                                        output_dir=logging_dir,
-                                                        random_state=random_state,
-                                                        logger_kwargs=_logger_kwargs,
-                                                        **advisor_kwargs)
+                advisor_type = 'async_batch'
             elif sample_strategy == 'ea':
-                assert num_objectives == 1 and num_constraints == 0
-                self.config_advisor = EA_Advisor(config_space,
-                                                 num_objectives=num_objectives,
-                                                 num_constraints=num_constraints,
-                                                 optimization_strategy=sample_strategy,
-                                                 batch_size=batch_size,
-                                                 task_id=task_id,
-                                                 output_dir=logging_dir,
-                                                 random_state=random_state,
-                                                 logger_kwargs=_logger_kwargs,
-                                                 **advisor_kwargs)
+                advisor_type = 'ea'
             else:
                 raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
         else:
             raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
+        
+        self.config_advisor = build_advisor(
+            advisor_type=advisor_type,
+            config_space=config_space,
+            num_objectives=num_objectives,
+            num_constraints=num_constraints,
+            batch_size=batch_size,
+            batch_strategy=batch_strategy,
+            initial_trials=initial_runs,
+            initial_configurations=initial_configurations,
+            init_strategy=init_strategy,
+            transfer_learning_history=transfer_learning_history,
+            optimization_strategy=sample_strategy,
+            surrogate_type=surrogate_type,
+            acq_type=acq_type,
+            acq_optimizer_type=acq_optimizer_type,
+            ref_point=ref_point,
+            task_id=task_id,
+            output_dir=logging_dir,
+            random_state=random_state,
+            logger_kwargs={'force_init': False},  # do not init logger in advisor
+            **advisor_kwargs
+        )
 
     def callback(self, observation: Observation):
         # Report the result, and remove the config from the running queue.
