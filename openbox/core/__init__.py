@@ -104,6 +104,9 @@ def build_advisor(
         Initial configurations
     optimization_strategy : str
         Optimization strategy
+        - 'bo' (default)
+        - 'random'
+        - 'ea'
     surrogate_type : str
         Surrogate model type
     acq_type : str
@@ -250,8 +253,6 @@ def build_advisor(
     
     elif advisor_type == 'sync_batch':
         from openbox.core.sync_batch_advisor import SyncBatchAdvisor
-        if batch_size is None:
-            raise ValueError("batch_size must be specified for sync_batch advisor")
         return SyncBatchAdvisor(
             config_space,
             num_objectives=num_objectives,
@@ -276,8 +277,6 @@ def build_advisor(
     
     elif advisor_type == 'async_batch':
         from openbox.core.async_batch_advisor import AsyncBatchAdvisor
-        if batch_size is None:
-            raise ValueError("batch_size must be specified for async_batch advisor")
         return AsyncBatchAdvisor(
             config_space,
             num_objectives=num_objectives,
@@ -307,6 +306,20 @@ def build_advisor(
             f"'sync_batch', 'async_batch'"
         )
 
+def create_parallel_advisor(parallel_strategy, sample_strategy, **kwargs):
+    """Create a parallel advisor factory function."""
+    if parallel_strategy not in ['sync', 'async']:
+        raise ValueError('Invalid parallel strategy: %s' % parallel_strategy)
+    if sample_strategy not in ['random', 'bo', 'ea']:
+        raise ValueError('Invalid sample strategy: %s' % sample_strategy)
+    if parallel_strategy == 'sync':
+        advisor_type = 'sync_batch' if sample_strategy in ['random', 'bo'] else 'ea'
+    elif parallel_strategy == 'async':
+        advisor_type = 'async_batch' if sample_strategy in ['random', 'bo'] else 'ea'
+    else:
+        raise ValueError(f'Invalid parallel strategy: {parallel_strategy}')
+    
+    return build_advisor(advisor_type=advisor_type, **kwargs)
 
 # Register advisors (for future extensibility)
 # Users can register custom advisors like:
