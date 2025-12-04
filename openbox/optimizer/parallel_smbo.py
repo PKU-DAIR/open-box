@@ -53,9 +53,9 @@ class pSMBO(BOBase):
             num_objectives=1,
             num_constraints=0,
             parallel_strategy='async',
+            sample_strategy: str = 'bo',
             batch_size=4,
             batch_strategy='default',
-            sample_strategy: str = 'bo',
             max_runs=100,
             max_runtime_per_trial=None,
             surrogate_type='auto',
@@ -90,28 +90,10 @@ class pSMBO(BOBase):
         advisor_kwargs = advisor_kwargs or {}
         
         # Determine advisor type based on parallel and sample strategies
-        from openbox.core import build_advisor
-        
-        if parallel_strategy == 'sync':
-            if sample_strategy in ['random', 'bo']:
-                advisor_type = 'sync_batch'
-            elif sample_strategy == 'ea':
-                advisor_type = 'ea'
-            else:
-                raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
-        elif parallel_strategy == 'async':
-            self.advisor_lock = Lock()
-            if sample_strategy in ['random', 'bo']:
-                advisor_type = 'async_batch'
-            elif sample_strategy == 'ea':
-                advisor_type = 'ea'
-            else:
-                raise ValueError('Unknown sample_strategy: %s' % sample_strategy)
-        else:
-            raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
-        
-        self.config_advisor = build_advisor(
-            advisor_type=advisor_type,
+        from openbox.core import create_parallel_advisor
+        self.config_advisor = create_parallel_advisor(
+            parallel_strategy=parallel_strategy,
+            sample_strategy=sample_strategy,
             config_space=config_space,
             num_objectives=num_objectives,
             num_constraints=num_constraints,
