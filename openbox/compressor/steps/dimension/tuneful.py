@@ -1,10 +1,10 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 
 from .shap import SHAPDimensionStep
-from ...core.progress import OptimizerProgress
+from ...core import OptimizerProgress
 
 
 class TunefulDimensionStep(SHAPDimensionStep):    
@@ -14,17 +14,9 @@ class TunefulDimensionStep(SHAPDimensionStep):
                  period: int = 10,
                  reduction_ratio: float = 0.4,
                  min_dimensions: int = 5,
+                 source_similarities: Optional[List[Tuple[int, float]]] = None,
                  **kwargs):
-        """
-        Args:
-            strategy: Compression strategy ('tuneful' or 'none')
-            initial_topk: Initial number of parameters to keep
-            period: Number of iterations between dimension reductions
-            reduction_ratio: Ratio of dimensions to reduce (0.4 = reduce 40%, keep 60%)
-            min_dimensions: Minimum number of dimensions to keep
-            **kwargs: Additional parameters (passed to SHAPDimensionStep)
-        """
-        super().__init__(strategy='shap', topk=initial_topk, **kwargs)
+        super().__init__(strategy='shap', topk=initial_topk, source_similarities=source_similarities, **kwargs)
         self.strategy = strategy
         self.current_topk = initial_topk
         self.initial_topk = initial_topk
@@ -32,7 +24,6 @@ class TunefulDimensionStep(SHAPDimensionStep):
         self.reduction_ratio = reduction_ratio
         self.min_dimensions = min_dimensions
 
-        # Store original space for re-selection
         self.original_space: Optional[ConfigurationSpace] = None
         self.space_history: Optional[List[History]] = None
     
