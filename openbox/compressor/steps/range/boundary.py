@@ -1,0 +1,140 @@
+import copy
+import numpy as np
+import pandas as pd
+from typing import Optional, List, Tuple
+from openbox import logger
+from openbox.utils.history import History
+from ConfigSpace import ConfigurationSpace
+
+from .base import RangeCompressionStep
+from ...utils import (
+    prepare_historical_data,
+    create_space_from_ranges,
+    extract_numeric_hyperparameters
+)
+from ...sampling import MixedRangeSamplingStrategy
+
+
+class BoundaryRangeStep(RangeCompressionStep):
+    @staticmethod
+    def _clamp_range_bounds(min_val: float, max_val: float, 
+                               param_values: np.ndarray,
+                               original_space: ConfigurationSpace,
+                               param_name: str) -> Tuple[float, float]:
+        if min_val >= max_val:
+            min_val = np.min(param_values)
+            max_val = np.max(param_values)
+        
+        hp = original_space.get_hyperparameter(param_name)
+        original_min = hp.lower
+        original_max = hp.upper
+        
+        min_val = max(min_val, original_min)
+        max_val = min(max_val, original_max)
+        return min_val, max_val
+    
+    def __init__(self, 
+                 method: str = 'boundary',
+                 top_ratio: float = 0.8,
+                 sigma: float = 2.0,
+                 enable_mixed_sampling: bool = True,
+                 initial_prob: float = 0.9,
+                 use_shap: bool = True,
+                 seed: Optional[int] = None,
+                 **kwargs):
+        super().__init__(method=method, **kwargs)
+        self.top_ratio = top_ratio
+        self.sigma = sigma
+        self.enable_mixed_sampling = enable_mixed_sampling
+        self.initial_prob = initial_prob
+        self.use_shap = use_shap
+        self.seed = seed
+
+    
+    def compress(self, input_space: ConfigurationSpace, 
+                space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+        compressed_space = super().compress(input_space, space_history)
+        return compressed_space
+    
+    def _compute_compressed_space(self, 
+                                  input_space: ConfigurationSpace,
+                                  space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+        if not space_history:
+            logger.warning("No space history provided for boundary compression, returning input space")
+            return copy.deepcopy(input_space)
+        
+        hist_x, hist_y = prepare_historical_data(space_history)
+        
+        if len(hist_x) == 0 or len(hist_y) == 0:
+            logger.warning("No valid historical data for boundary compression, returning input space")
+            return copy.deepcopy(input_space)
+        
+        numeric_param_names, numeric_param_indices = extract_numeric_hyperparameters(input_space)
+        
+        if not numeric_param_names:
+            logger.warning("No numeric hyperparameters found, returning input space")
+            return copy.deepcopy(input_space)
+        
+        compressed_ranges = self._compute_simple_ranges(
+            hist_x, hist_y, numeric_param_names, numeric_param_indices, input_space
+        )
+
+        compressed_space = create_space_from_ranges(input_space, compressed_ranges)
+        logger.info(f"Boundary range compression: {len(compressed_ranges)} parameters compressed")
+        return compressed_space
+        
+    def _compute_simple_ranges(self, 
+                               hist_x: List[np.ndarray],
+                               hist_y: List[np.ndarray],
+                               numeric_param_names: List[str],
+                               numeric_param_indices: List[int],
+                               original_space: ConfigurationSpace) -> dict:
+        all_x = []
+        all_y = []
+        
+        for i in range(len(hist_x)):
+            if hist_x[i].shape[1] == len(numeric_param_names):
+                x_numeric = hist_x[i]
+            else:
+                x_numeric = hist_x[i][:, numeric_param_indices].astype(float)
+            
+            sorted_indices = np.argsort(hist_y[i])
+            top_n = int(len(sorted_indices) * self.top_ratio)
+            top_indices = sorted_indices[:top_n]
+            
+            all_x.append(x_numeric[top_indices])
+            all_y.append(hist_y[i][top_indices])
+        
+        if len(all_x) == 0:
+            return {}
+        
+        X_combined = np.vstack(all_x)
+        
+        compressed_ranges = {}
+        for i, param_name in enumerate(numeric_param_names):
+            values = X_combined[:, i]
+            
+            mean = np.mean(values)
+            std = np.std(values)
+            min_val = max(np.min(values), mean - self.sigma * std)
+            max_val = min(np.max(values), mean + self.sigma * std)
+            
+            min_val, max_val = self._clamp_range_bounds(
+                min_val, max_val, values, original_space, param_name
+            )
+            
+            compressed_ranges[param_name] = (min_val, max_val)
+        
+        return compressed_ranges
+    
+    def get_sampling_strategy(self):
+        if self.enable_mixed_sampling and self.original_space is not None:
+            compressed_space = self.output_space if self.output_space else self.original_space
+            return MixedRangeSamplingStrategy(
+                compressed_space=compressed_space,
+                original_space=self.original_space,
+                initial_prob=self.initial_prob,
+                method='boundary',
+                seed=self.seed
+            )
+        return None

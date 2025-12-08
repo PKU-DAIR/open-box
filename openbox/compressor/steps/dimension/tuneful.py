@@ -4,7 +4,7 @@ from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 
 from .shap import SHAPDimensionStep
-from ...progress import OptimizerProgress
+from ...core.progress import OptimizerProgress
 
 
 class TunefulDimensionStep(SHAPDimensionStep):    
