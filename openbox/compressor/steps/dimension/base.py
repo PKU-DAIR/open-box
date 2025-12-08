@@ -4,7 +4,7 @@ from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 
-from ...step import CompressionStep
+from ...core.step import CompressionStep
 
 
 class DimensionSelectionStep(CompressionStep):    
