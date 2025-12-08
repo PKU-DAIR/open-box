@@ -1,17 +1,24 @@
 import numpy as np
 import pandas as pd
 import shap
-from typing import Optional, List
+from typing import Optional, List, Tuple
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 
 from .base import DimensionSelectionStep
-from ...utils import prepare_historical_data
+from ...utils import (
+    extract_numeric_hyperparameters,
+    extract_top_samples_from_history,
+)
 
 
 class SHAPDimensionStep(DimensionSelectionStep):    
-    def __init__(self, strategy: str = 'shap', topk: int = 20, **kwargs):
+    def __init__(self, 
+                 strategy: str = 'shap', 
+                 topk: int = 20,
+                 source_similarities: Optional[List[Tuple[int, float]]] = None,
+                 **kwargs):
         super().__init__(strategy=strategy, **kwargs)
         self.topk = 0 if strategy == 'none' else topk
 
@@ -23,6 +30,17 @@ class SHAPDimensionStep(DimensionSelectionStep):
         
         self.numeric_hyperparameter_names: List[str] = []
         self.numeric_hyperparameter_indices: List[int] = []
+        
+        self.source_similarities = source_similarities or []
+        if self.source_similarities:
+            total_sim = sum(sim for _, sim in self.source_similarities)
+            if total_sim > 0:
+                self._similarity_dict = {idx: sim / total_sim for idx, sim in self.source_similarities}
+            else:
+                n_histories = len(self.source_similarities)
+                self._similarity_dict = {idx: 1.0 / n_histories for idx, _ in self.source_similarities}
+        else:
+            self._similarity_dict = {}
     
     def compress(self, input_space: ConfigurationSpace, 
                 space_history: Optional[List[History]] = None) -> ConfigurationSpace:
@@ -30,16 +48,10 @@ class SHAPDimensionStep(DimensionSelectionStep):
         return super().compress(input_space, space_history)
     
     def _extract_numeric_hyperparameters(self, input_space: ConfigurationSpace):
-        param_names = input_space.get_hyperparameter_names()
-        self.numeric_hyperparameter_names = []
-        self.numeric_hyperparameter_indices = []
+        self.numeric_hyperparameter_names, \
+        self.numeric_hyperparameter_indices \
+            = extract_numeric_hyperparameters(input_space)
         
-        for i, name in enumerate(param_names):
-            hp = input_space.get_hyperparameter(name)
-            if hasattr(hp, 'lower') and hasattr(hp, 'upper'):
-                self.numeric_hyperparameter_names.append(name)
-                self.numeric_hyperparameter_indices.append(i)
-    
     def _select_parameters(self, 
                         input_space: ConfigurationSpace,
                         space_history: Optional[List[History]] = None) -> List[int]:
@@ -51,13 +63,7 @@ class SHAPDimensionStep(DimensionSelectionStep):
             logger.warning("No space history provided for SHAP selection, keeping all parameters")
             return list(range(len(input_space.get_hyperparameters())))
         
-        hist_x, hist_y = prepare_historical_data(space_history)
-        
-        if len(hist_x) == 0 or len(hist_y) == 0:
-            logger.warning("No valid historical data for SHAP selection, keeping all parameters")
-            return list(range(len(input_space.get_hyperparameters())))
-        
-        _, importances, _ = self._compute_shap_importances(hist_x, hist_y)
+        _, importances, _ = self._compute_shap_importances(space_history, input_space)
         
         if importances is None or np.size(importances) == 0:
             logger.warning("SHAP importances unavailable, keeping all parameters")
@@ -72,7 +78,6 @@ class SHAPDimensionStep(DimensionSelectionStep):
         selected_param_names = [self.numeric_hyperparameter_names[i] for i in selected_numeric_indices]
         importances_selected = importances[selected_numeric_indices]
         
-        # Convert numeric parameter indices to global parameter indices
         selected_indices = [self.numeric_hyperparameter_indices[i] for i in selected_numeric_indices]
         
         logger.debug(f"SHAP dimension selection: {selected_param_names}")
@@ -81,54 +86,69 @@ class SHAPDimensionStep(DimensionSelectionStep):
         return selected_indices
     
     def _compute_shap_importances(self, 
-                                hist_x: List[np.ndarray], 
-                                hist_y: List[np.ndarray]):
+                                space_history: List[History],
+                                input_space: ConfigurationSpace):
         if (self._shap_cache['models'] is not None and
             self._shap_cache['importances'] is not None):
             logger.info("Using cached SHAP model")
             return (self._shap_cache['models'],
                     self._shap_cache['importances'],
                     self._shap_cache['shap_values'])
-        
+
         models = []
         importances = []
         shap_values = []
         
-        if len(hist_x) == 0:
+        if len(space_history) == 0:
             logger.warning("No historical data provided for SHAP")
             return models, None, shap_values
         
-        for i in range(len(hist_x)):
-            if hist_x[i].shape[1] == len(self.numeric_hyperparameter_names):
-                hist_x_numeric = hist_x[i]
-            else:
-                hist_x_numeric = hist_x[i][:, self.numeric_hyperparameter_indices]
-                hist_x_numeric = hist_x_numeric.astype(float)
+        all_x, all_y = extract_top_samples_from_history(
+            space_history, self.numeric_hyperparameter_names, input_space,
+            top_ratio=1.0, normalize=True
+        )
+        
+        importances_list = []
+        for task_idx, (hist_x_numeric, hist_y) in enumerate(zip(all_x, all_y)):
+            if len(hist_x_numeric) == 0:
+                continue
             
             from sklearn.ensemble import RandomForestRegressor
             model = RandomForestRegressor(n_estimators=100, random_state=42)
-            model.fit(hist_x_numeric, hist_y[i])
+            model.fit(hist_x_numeric, hist_y)
             
             explainer = shap.Explainer(model)
             shap_value = -np.abs(explainer(hist_x_numeric, check_additivity=False).values)
             mean_shap = shap_value.mean(axis=0)
             
             models.append(model)
-            importances.append(mean_shap)
+            importances_list.append(mean_shap)
             shap_values.append(shap_value)
             df = pd.DataFrame({
                 "feature": self.numeric_hyperparameter_names,
                 "importance": mean_shap,
-                "effect": np.where(mean_shap < 0, "increase_objective", "decrease_objective")
             }).sort_values("importance", ascending=True)
-            logger.debug(f"SHAP dimension compression feature importance: {df.to_string()}")
+            logger.debug(f"SHAP dimension compression feature importance (task {task_idx}): {df.to_string()}")
         
-        # Average importances across tasks
-        if len(importances) == 0:
+        if len(importances_list) == 0:
             logger.warning("No SHAP importances computed")
             return models, None, shap_values
         
-        importances = np.mean(np.array(importances), axis=0)
+        importances_array = np.array(importances_list)
+        if self._similarity_dict:
+            weights = np.array([
+                self._similarity_dict.get(task_idx, 0.0) 
+                for task_idx in range(len(importances_list))
+            ])
+            weights_sum = weights.sum()
+            if weights_sum > 1e-10:
+                weights = weights / weights_sum
+            else:
+                weights = np.ones(len(importances_list)) / len(importances_list)
+        else:
+            weights = np.ones(len(importances_list)) / len(importances_list)
+        
+        importances = np.average(importances_array, axis=0, weights=weights)
         
         self._shap_cache.update({
             'models': models,
