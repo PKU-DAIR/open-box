@@ -4,10 +4,11 @@ import os
 import abc
 import time
 import numpy as np
-from typing import List
+from typing import List, Optional
 from openbox import logger
 from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 from openbox.utils.history import History
+from manager import TaskManager
 
 
 class BOBase(object, metaclass=abc.ABCMeta):
@@ -48,6 +49,7 @@ class BOBase(object, metaclass=abc.ABCMeta):
         self.sample_strategy = sample_strategy
         self.transfer_learning_history = transfer_learning_history
         self.config_advisor = None
+        self.task_manager = getattr(TaskManager, "_instance", None)
 
     def run(self):
         raise NotImplementedError()
@@ -62,3 +64,29 @@ class BOBase(object, metaclass=abc.ABCMeta):
     def get_incumbents(self):
         assert self.config_advisor is not None
         return self.config_advisor.history.get_incumbents()
+    
+    def _sync_task_manager_history(
+        self,
+        config,
+        objectives: List[float],
+        timeout_status: bool,
+        traceback_msg: Optional[str],
+        elapsed_time: Optional[float],
+        extra_info: Optional[dict],
+    ) -> None:
+        if self.task_manager is None:
+            return
+        if getattr(self, "num_objectives", 1) != 1:
+            return
+        if not objectives:
+            return
+        if not hasattr(self.task_manager, "update_current_task_history"):
+            return
+        results = {
+            'result': {'objective': objectives[0]},
+            'timeout': timeout_status,
+            'traceback': traceback_msg,
+            'elapsed_time': elapsed_time,
+            'extra_info': extra_info or {},
+        }
+        self.task_manager.update_current_task_history(config, results)
