@@ -28,6 +28,9 @@ class REMBOProjectionStep(TransformativeProjectionStep):
         self._scaler: Optional[MinMaxScaler] = None
         self._q_scaler: Optional[MinMaxScaler] = None
         self.active_hps: List = []
+        
+        self._low_to_high_cache: dict = {}
+        self._high_to_low_cache: dict = {}
     
     def _build_projected_space(self, input_space: ConfigurationSpace) -> ConfigurationSpace:
         self.active_hps = list(input_space.get_hyperparameters())
@@ -78,7 +81,6 @@ class REMBOProjectionStep(TransformativeProjectionStep):
             np.array([-bbound_vector, bbound_vector])
         )
         
-        # Create random projection matrix: A ~ N(0,1)
         self._A = self._rs.normal(
             0, 1, (len(self.active_hps), self.low_dim)
         )
@@ -86,14 +88,21 @@ class REMBOProjectionStep(TransformativeProjectionStep):
         return target
     
     def unproject_point(self, point: Configuration) -> dict:
-        low_dim_point = np.array([
+        low_dim_point_raw = np.array([
             point.get(f'rembo_{idx}') for idx in range(self.low_dim)
         ])
         
+        low_dim_key = tuple(low_dim_point_raw.tolist())
+        if low_dim_key in self._low_to_high_cache:
+            return self._low_to_high_cache[low_dim_key].copy()
+
+        # Dequantize if needed
         if self._max_num_values is not None:
             assert self._q_scaler is not None
             # Dequantize: (1, q) -> (-sqrt(low_dim), sqrt(low_dim))
-            low_dim_point = self._q_scaler.transform([low_dim_point])[0]
+            low_dim_point = self._q_scaler.transform([low_dim_point_raw])[0]
+        else:
+            low_dim_point = low_dim_point_raw
         
         # Project: (-sqrt(low_dim), sqrt(low_dim)) -> (0, 1)
         high_dim_point = [
@@ -127,17 +136,25 @@ class REMBOProjectionStep(TransformativeProjectionStep):
         if dims_clipped > 0:
             logger.warning(f'Clipped {dims_clipped} dimensions during unprojection')
         
+        self._low_to_high_cache[low_dim_key] = high_dim_conf.copy()
+        high_dim_key = tuple(sorted(high_dim_conf.items()))
+        self._high_to_low_cache[high_dim_key] = low_dim_key
+        
         return high_dim_conf
     
     def project_point(self, point) -> dict:
-        # REMBO projection is many-to-one, so we use an approximation
-        # Sample a random point in low-dim space that could map to this point
-        if self._max_num_values is None:
-            # Continuous: sample uniformly from [-sqrt(low_dim), sqrt(low_dim)]
-            box_bound = np.sqrt(self.low_dim)
-            low_dim_point = self._rs.uniform(-box_bound, box_bound, size=self.low_dim)
+        if isinstance(point, Configuration):
+            high_dim_dict = point.get_dictionary()
+        elif isinstance(point, dict):
+            high_dim_dict = point
         else:
-            # Quantized: sample uniformly from [1, max_num_values]
-            low_dim_point = self._rs.randint(1, self._max_num_values + 1, size=self.low_dim)
+            high_dim_dict = dict(point)
         
-        return {f'rembo_{idx}': float(low_dim_point[idx]) for idx in range(self.low_dim)}
+        high_dim_key = tuple(sorted(high_dim_dict.items()))
+        if high_dim_key in self._high_to_low_cache:
+            low_dim_key = self._high_to_low_cache[high_dim_key]
+            low_dim_point = np.array(low_dim_key)
+            return {f'rembo_{idx}': float(low_dim_point[idx]) for idx in range(self.low_dim)}
+        else:
+            logger.error(f"Cache miss in project_point for high-dim point: {high_dim_dict}")
+            raise ValueError(f"Cache miss in project_point for high-dim point: {high_dim_dict}")
