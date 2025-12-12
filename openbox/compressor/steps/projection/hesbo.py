@@ -26,6 +26,9 @@ class HesBOProjectionStep(TransformativeProjectionStep):
         self._h: Optional[np.ndarray] = None
         self._sigma: Optional[np.ndarray] = None
         self.active_hps: List = []
+        
+        self._low_to_high_cache: dict = {}
+        self._high_to_low_cache: dict = {}
     
     def _build_projected_space(self, input_space: ConfigurationSpace) -> ConfigurationSpace:
         self.active_hps = list(input_space.get_hyperparameters())
@@ -84,7 +87,11 @@ class HesBOProjectionStep(TransformativeProjectionStep):
             point.get(f'hesbo_{idx}') for idx in range(self.low_dim)
         ]
         
-        # Project using hashing: high_dim[i] = sigma[i] * low_dim[h[i]]
+        low_dim_key = tuple(low_dim_point)
+        
+        if low_dim_key in self._low_to_high_cache:
+            return self._low_to_high_cache[low_dim_key].copy()
+        
         high_dim_point = [
             self._sigma[idx] * low_dim_point[self._h[idx]]
             for idx in range(len(self.active_hps))
@@ -110,20 +117,24 @@ class HesBOProjectionStep(TransformativeProjectionStep):
             
             high_dim_conf[hp.name] = value
         
+        self._low_to_high_cache[low_dim_key] = high_dim_conf.copy()
+        high_dim_key = tuple(sorted(high_dim_conf.items()))
+        self._high_to_low_cache[high_dim_key] = low_dim_key
         return high_dim_conf
     
     def project_point(self, point) -> dict:
-        # HesBO projection is many-to-one, so we use an approximation
-        # Sample a random point in low-dim space that could map to this point
-        if self._max_num_values is None:
-            # Continuous: sample uniformly from [-1, 1]
-            low_dim_point = self._rs.uniform(-1, 1, size=self.low_dim)
+        if isinstance(point, Configuration):
+            high_dim_dict = point.get_dictionary()
+        elif isinstance(point, dict):
+            high_dim_dict = point
         else:
-            # Quantized: sample uniformly with step size
-            q = 2. / self._max_num_values
-            num_steps = int(2 / q) + 1
-            low_dim_point = self._rs.choice(
-                np.arange(-1, 1 + q, q), size=self.low_dim
-            )
+            high_dim_dict = dict(point)
         
-        return {f'hesbo_{idx}': float(low_dim_point[idx]) for idx in range(self.low_dim)}
+        high_dim_key = tuple(sorted(high_dim_dict.items()))
+        if high_dim_key in self._high_to_low_cache:
+            low_dim_key = self._high_to_low_cache[high_dim_key]
+            low_dim_point = list(low_dim_key)
+            return {f'hesbo_{idx}': float(low_dim_point[idx]) for idx in range(self.low_dim)}
+        else:
+            logger.error(f"Cache miss in project_point for high-dim point: {high_dim_dict}")
+            raise ValueError(f"Cache miss in project_point for high-dim point: {high_dim_dict}")
