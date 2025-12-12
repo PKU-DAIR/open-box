@@ -7,7 +7,7 @@ from .shap import SHAPDimensionStep
 from ...core import OptimizerProgress
 
 
-class TunefulDimensionStep(SHAPDimensionStep):    
+class PeriodicDimensionStep(SHAPDimensionStep):    
     def __init__(self, 
                  strategy: str = 'tuneful',
                  initial_topk: int = 50,
