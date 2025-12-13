@@ -31,7 +31,7 @@ class RangeCompressionStep(CompressionStep):
         return copy.deepcopy(input_space)
     
     def needs_unproject(self) -> bool:
-        return self.method == 'quantization'
+        return False
     
     def affects_sampling_space(self) -> bool:
         return True
