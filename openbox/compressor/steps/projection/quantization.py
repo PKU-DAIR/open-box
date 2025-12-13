@@ -1,5 +1,3 @@
-import copy
-from typing import Optional, List
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace, Configuration
@@ -8,11 +6,11 @@ import ConfigSpace.hyperparameters as CSH
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-from .base import RangeCompressionStep
+from .base import TransformativeProjectionStep
 from ...core import OptimizerProgress
 
 
-class QuantizationRangeStep(RangeCompressionStep):
+class QuantizationProjectionStep(TransformativeProjectionStep):
     def __init__(self, 
                  method: str = 'quantization',
                  max_num_values: int = 10,
@@ -25,19 +23,7 @@ class QuantizationRangeStep(RangeCompressionStep):
         
         self._knobs_scalers: dict = {}
     
-    def compress(self, input_space: ConfigurationSpace, 
-                 space_history: Optional[List[History]] = None) -> ConfigurationSpace:
-        if self.method == 'none':
-            return copy.deepcopy(input_space)
-        
-        quantized_space = self._build_quantized_space(input_space)
-        
-        logger.info(f"Quantization compression: {len(input_space.get_hyperparameters())} -> "
-                f"{len(quantized_space.get_hyperparameters())} parameters")
-        
-        return quantized_space
-    
-    def _build_quantized_space(self, input_space: ConfigurationSpace) -> ConfigurationSpace:
+    def _build_projected_space(self, input_space: ConfigurationSpace) -> ConfigurationSpace:
         self._knobs_scalers = {}
         root_hyperparams = []
         
@@ -77,6 +63,7 @@ class QuantizationRangeStep(RangeCompressionStep):
         return root
     
     def _needs_quantization(self, hp: CSH.UniformIntegerHyperparameter) -> bool:
+        """Check if hyperparameter needs quantization."""
         return (hp.upper - hp.lower + 1) > self._max_num_values
     
     def unproject_point(self, point: Configuration) -> dict:
@@ -106,9 +93,6 @@ class QuantizationRangeStep(RangeCompressionStep):
         
         return unproject_coords
     
-    def needs_unproject(self) -> bool:
-        return True
-    
     def supports_adaptive_update(self) -> bool:
         return True
     
@@ -130,7 +114,3 @@ class QuantizationRangeStep(RangeCompressionStep):
                 return True
         
         return False
-    
-    def get_sampling_strategy(self):
-        # Quantization does NOT support mixed sampling (deterministic mapping)
-        return None
