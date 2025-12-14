@@ -93,6 +93,33 @@ class QuantizationProjectionStep(TransformativeProjectionStep):
         
         return unproject_coords
     
+    def project_point(self, point) -> dict:
+        if isinstance(point, Configuration):
+            original_dict = point.get_dictionary()
+        elif isinstance(point, dict):
+            original_dict = point
+        else:
+            original_dict = dict(point)
+        
+        quantized_dict = {}
+        
+        for name, value in original_dict.items():
+            if name in self._knobs_scalers:
+                scaler = self._knobs_scalers[name]
+                # Use inverse_transform:
+                # original value [lower, upper] -> quantized value [1, max_num_values]
+                # The scaler maps [1, max_num_values] -> [lower, upper],
+                # so inverse maps [lower, upper] -> [1, max_num_values]
+                lower, upper = scaler.feature_range
+                value_clamped = max(lower, min(upper, value))
+                quantized_value = round(scaler.inverse_transform([[value_clamped]])[0][0])
+                quantized_value = max(1, min(self._max_num_values, quantized_value))
+                quantized_dict[f'{name}|q'] = quantized_value
+            else:
+                quantized_dict[name] = value
+        
+        return quantized_dict
+    
     def supports_adaptive_update(self) -> bool:
         return True
     
