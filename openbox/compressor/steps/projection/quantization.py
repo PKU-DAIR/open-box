@@ -17,7 +17,7 @@ class QuantizationProjectionStep(TransformativeProjectionStep):
                  seed: int = 42,
                  **kwargs):
         super().__init__(method=method, **kwargs)
-        self.max_num_values = max_num_values
+        self._max_num_values = max_num_values
         self.seed = seed
         self._rs = np.random.RandomState(seed=seed)
         
@@ -26,14 +26,18 @@ class QuantizationProjectionStep(TransformativeProjectionStep):
     def _build_projected_space(self, input_space: ConfigurationSpace) -> ConfigurationSpace:
         self._knobs_scalers = {}
         root_hyperparams = []
+        quantized_params = []
+        unchanged_params = []
         
         for adaptee_hp in input_space.get_hyperparameters():
             if not isinstance(adaptee_hp, CSH.UniformIntegerHyperparameter):
                 root_hyperparams.append(adaptee_hp)
+                unchanged_params.append(adaptee_hp.name)
                 continue
             
             if not self._needs_quantization(adaptee_hp):
                 root_hyperparams.append(adaptee_hp)
+                unchanged_params.append(adaptee_hp.name)
                 continue
             
             # Quantize knob
@@ -53,6 +57,19 @@ class QuantizationProjectionStep(TransformativeProjectionStep):
                 default_value=default_value,
             )
             root_hyperparams.append(quantized_hp)
+            
+            # 记录量化信息
+            original_num_values = upper - lower + 1
+            compression_ratio = self._max_num_values / original_num_values
+            quantized_params.append({
+                'name': adaptee_hp.name,
+                'type': 'UniformIntegerHyperparameter',
+                'original_range': (int(lower), int(upper)),
+                'compressed_range': (1, self._max_num_values),
+                'original_num_values': original_num_values,
+                'quantized_num_values': self._max_num_values,
+                'compression_ratio': compression_ratio
+            })
         
         root = CS.ConfigurationSpace(
             name=input_space.name,
@@ -60,10 +77,21 @@ class QuantizationProjectionStep(TransformativeProjectionStep):
         )
         root.add_hyperparameters(root_hyperparams)
         
+        if quantized_params:
+            avg_compression_ratio = sum(p['compression_ratio'] for p in quantized_params) / len(quantized_params)
+        else:
+            avg_compression_ratio = 1.0
+        
+        self.compression_info = {
+            'compressed_params': quantized_params,
+            'unchanged_params': unchanged_params,
+            'total_quantized': len(quantized_params),
+            'avg_compression_ratio': avg_compression_ratio
+        }
+        
         return root
     
     def _needs_quantization(self, hp: CSH.UniformIntegerHyperparameter) -> bool:
-        """Check if hyperparameter needs quantization."""
         return (hp.upper - hp.lower + 1) > self._max_num_values
     
     def unproject_point(self, point: Configuration) -> dict:
