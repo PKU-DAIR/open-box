@@ -36,11 +36,12 @@ class KPCAProjectionStep(TransformativeProjectionStep):
         self.active_hps: List = []
         self.numeric_param_names: List[str] = []
         self.numeric_param_indices: List[int] = []
+        self._projected_samples: Optional[np.ndarray] = None
         
         self.space_history = space_history
     
     def compress(self, input_space: ConfigurationSpace,
-                 space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+                space_history: Optional[List[History]] = None) -> ConfigurationSpace:
         if self.method == 'none':
             logger.info("KPCA projection disabled, returning input space")
             return input_space
@@ -104,11 +105,22 @@ class KPCAProjectionStep(TransformativeProjectionStep):
             )
             self._kpca.fit(X_scaled)
             
-            self.n_components = self._kpca.n_components_
+            if hasattr(self._kpca, 'n_components_'):
+                self.n_components = self._kpca.n_components_
+            elif hasattr(self._kpca, 'alphas_'):
+                self.n_components = len(self._kpca.alphas_)
+            else:
+                self.n_components = n_components
+                logger.warning(f"Could not determine actual n_components, using requested: {n_components}")
             
-            logger.debug(f"KPCA trained: {X_scaled.shape[1]} features -> {self.n_components} components")
+            self._projected_samples = self._kpca.transform(X_scaled)
+            
+            logger.info(f"KPCA trained successfully: {X_scaled.shape[1]} features -> {self.n_components} components "
+                        f"(kernel={self.kernel}, samples={X_scaled.shape[0]})")
         except Exception as e:
             logger.error(f"Failed to train KPCA: {e}")
+            import traceback
+            logger.debug(traceback.format_exc())
             self._kpca = None
     
     def _build_projected_space(self, input_space: ConfigurationSpace) -> ConfigurationSpace:

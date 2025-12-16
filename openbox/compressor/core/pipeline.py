@@ -28,9 +28,6 @@ class CompressionPipeline:
         if self.original_space is None:
             self.original_space = original_space
         
-        # Store space_history for re-compression
-        self._last_space_history = space_history
-        
         logger.debug(f"Starting compression pipeline with {len(self.steps)} steps")
         
         current_space = copy.deepcopy(original_space)
@@ -38,25 +35,49 @@ class CompressionPipeline:
         self.space_after_steps = [current_space]
         
         for i, step in enumerate(self.steps):
-            logger.debug(f"Executing step {i+1}/{len(self.steps)}: {step.name}")
+            input_dim = len(current_space.get_hyperparameters())
+            logger.info(f"Step {i+1}/{len(self.steps)}: {step.name}")
+            logger.info(f"  Input: {input_dim} parameters")
+            
             step.input_space = current_space
             current_space = step.compress(current_space, space_history)
             current_space.seed(self.seed)
             step.output_space = current_space
+            
+            output_dim = len(current_space.get_hyperparameters())
+            dimension_ratio = output_dim / input_dim if input_dim > 0 else 1.0
+            
+            effective_ratio = dimension_ratio
+            if hasattr(step, 'compression_info') and step.compression_info:
+                if 'avg_compression_ratio' in step.compression_info:
+                    effective_ratio = step.compression_info['avg_compression_ratio']
+                    logger.info(f"  Output: {output_dim} parameters (dimension: {dimension_ratio:.2%}, effective: {effective_ratio:.2%})")
+                else:
+                    logger.info(f"  Output: {output_dim} parameters (compression ratio: {dimension_ratio:.2%})")
+                logger.info(f"  Details: {step.compression_info}")
+            else:
+                logger.info(f"  Output: {output_dim} parameters (compression ratio: {dimension_ratio:.2%})")
+            
             self.space_after_steps.append(current_space)
-            logger.debug(f"Step {i+1} output: {len(current_space.get_hyperparameters())} parameters")
         
         self._determine_spaces()
         
         self._build_sampling_strategy(original_space)
         
-        logger.debug(f"Pipeline completed: sample_space={len(self.sample_space.get_hyperparameters())} params, "
-                    f"surrogate_space={len(self.surrogate_space.get_hyperparameters())} params")
-        logger.debug(f"Sample space: {self.sample_space}")
-        logger.debug(f"Surrogate space: {self.surrogate_space}")
-        logger.debug(f"Sampling strategy: {self.sampling_strategy}")
+        original_dim = len(original_space.get_hyperparameters())
+        sample_dim = len(self.sample_space.get_hyperparameters())
+        surrogate_dim = len(self.surrogate_space.get_hyperparameters())
         
-        return self.sample_space, self.surrogate_space
+        logger.info("=" * 60)
+        logger.info("Compression Pipeline Summary")
+        logger.info("=" * 60)
+        logger.info(f"Original space: {original_dim} parameters")
+        logger.info(f"Sample space: {sample_dim} parameters (ratio: {sample_dim/original_dim:.2%})")
+        logger.info(f"Surrogate space: {surrogate_dim} parameters (ratio: {surrogate_dim/original_dim:.2%})")
+        logger.info(f"Sampling strategy: {type(self.sampling_strategy).__name__}")
+        logger.info("=" * 60)
+
+        return self.surrogate_space, self.sample_space
     
     def _determine_spaces(self):
         sample_space_idx = 0
@@ -90,9 +111,9 @@ class CompressionPipeline:
                     logger.info(f"Step {step.name} updated compression strategy")
         
         if updated and self.original_space is not None:
-            space_history = getattr(self, '_last_space_history', None)
-            if space_history is None:
-                space_history = [history] if history else None
+            # Use current history for re-compression during adaptive update
+            # This ensures we use the latest optimization data, not the initial transfer learning data
+            space_history = [history] if history else None
             self.compress_space(self.original_space, space_history)
             return True
         
@@ -107,15 +128,7 @@ class CompressionPipeline:
         return any(step.needs_unproject() for step in self.steps)
     
     def unproject_point(self, point) -> dict:
-        """
-        Unproject a point through all steps (in reverse order).
-        
-        Args:
-            point: Configuration in final space
-            
-        Returns:
-            Dictionary of configuration in original space
-        """
+        # Unproject a point through all steps (in reverse order)
         current_dict = point.get_dictionary() if hasattr(point, 'get_dictionary') else dict(point)
 
         for step in reversed(self.steps):
@@ -126,15 +139,7 @@ class CompressionPipeline:
         return current_dict
     
     def project_point(self, point) -> dict:
-        """
-        Project a point through all steps (in forward order).
-        
-        Args:
-            point: Configuration in original space
-            
-        Returns:
-            Dictionary of configuration in final space
-        """
+        # project a point through all steps (in forward order)
         current_dict = point.get_dictionary() if hasattr(point, 'get_dictionary') else dict(point)
         
         for step in self.steps:
