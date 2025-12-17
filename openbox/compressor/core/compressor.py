@@ -34,9 +34,11 @@ class Compressor(ABC):
         if pipeline is not None:
             self.pipeline = pipeline
             self.pipeline.original_space = config_space
+            self.pipeline.filling_strategy = self.filling_strategy
         elif steps is not None:
             from .pipeline import CompressionPipeline
             self.pipeline = CompressionPipeline(steps, seed=self.seed, original_space=config_space)
+            self.pipeline.filling_strategy = self.filling_strategy
         
     
     def compress_space(self, space_history: Optional[List] = None) -> Tuple[ConfigurationSpace, ConfigurationSpace]:
@@ -90,10 +92,8 @@ class Compressor(ABC):
         if hasattr(config, 'configuration_space') and config.configuration_space == self.surrogate_space:
             return config
         
+        # project_point() handles all transformations: filtering, clipping, and filling
         projected_dict = self.project_point(config)
-        projected_dict = self.filling_strategy.fill_missing_parameters(
-            projected_dict, self.surrogate_space
-        )
         
         projected_config = Configuration(self.surrogate_space, values=projected_dict)
         if hasattr(config, 'origin') and config.origin is not None:
@@ -104,13 +104,10 @@ class Compressor(ABC):
         if hasattr(config, 'configuration_space') and config.configuration_space == self.sample_space:
             return config
         
+        # project_point() handles all transformations: filtering, clipping, and filling
         projected_dict = self.project_point(config)
-        sample_names = self.sample_space.get_hyperparameter_names()
-        filtered_dict = {name: projected_dict[name] for name in sample_names if name in projected_dict}
-        filtered_dict = self.filling_strategy.fill_missing_parameters(
-            filtered_dict, self.sample_space
-        )
-        sample_config = Configuration(self.sample_space, values=filtered_dict)
+        
+        sample_config = Configuration(self.sample_space, values=projected_dict)
         if hasattr(config, 'origin') and config.origin is not None:
             sample_config.origin = config.origin
         return sample_config
