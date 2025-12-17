@@ -116,7 +116,7 @@ class REMBOProjectionStep(TransformativeProjectionStep):
         dims_clipped = 0
         for hp, value in zip(self.active_hps, high_dim_point):
             if value <= 0 or value >= 1:
-                logger.warning(f'Point clipped in dim: {hp.name}')
+                logger.debug(f'Point clipped in dim: {hp.name}')
                 dims_clipped += 1
             # Clip value to [0, 1]
             value = np.clip(value, 0., 1.)
@@ -181,4 +181,8 @@ class REMBOProjectionStep(TransformativeProjectionStep):
             return {f'rembo_{idx}': float(low_dim_point[idx]) for idx in range(self.low_dim)}
         else:
             logger.warning(f"Cache miss in project_point, using pseudoinverse approximation")
-            return self._approximate_project(high_dim_dict)
+            low_dim_result = self._approximate_project(high_dim_dict)
+            low_dim_key = tuple(low_dim_result[f'rembo_{i}'] for i in range(self.low_dim))
+            self._high_to_low_cache[high_dim_key] = low_dim_key
+            
+            return low_dim_result
