@@ -19,7 +19,7 @@ class REMBOProjectionStep(TransformativeProjectionStep):
                  **kwargs):
         super().__init__(method=method, **kwargs)
         self.low_dim = low_dim
-        self.max_num_values = max_num_values
+        self._max_num_values = max_num_values
         self.seed = seed
         self._rs = np.random.RandomState(seed=seed)
         
@@ -142,6 +142,30 @@ class REMBOProjectionStep(TransformativeProjectionStep):
         
         return high_dim_conf
     
+    def _approximate_project(self, high_dim_dict: dict) -> dict:
+        high_dim_array = self._normalize_high_dim_config(high_dim_dict, self.active_hps)
+        
+        # inverse transform: (0, 1) -> (-sqrt(low_dim), sqrt(low_dim))
+        high_dim_scaled = self._scaler.inverse_transform([high_dim_array])[0]
+        
+        # pseudoinverse projection: A+ @ high_dim = low_dim
+        # where A+ = (A^T @ A)^(-1) @ A^T (Moore-Penrose pseudoinverse)
+        A_pinv = np.linalg.pinv(self._A)
+        low_dim_approx = A_pinv @ high_dim_scaled
+        
+        if self._max_num_values is not None and self._q_scaler is not None:
+            low_dim_approx = self._q_scaler.inverse_transform([low_dim_approx])[0]
+            low_dim_approx = np.round(low_dim_approx).astype(int)
+            low_dim_approx = np.clip(low_dim_approx, 1, self._max_num_values)
+            low_dim_result = {f'rembo_{idx}': int(low_dim_approx[idx]) for idx in range(self.low_dim)}
+        else:
+            box_bound = np.sqrt(self.low_dim)
+            low_dim_approx = np.clip(low_dim_approx, -box_bound, box_bound)
+            low_dim_result = {f'rembo_{idx}': float(low_dim_approx[idx]) for idx in range(self.low_dim)}
+        
+        logger.warning(f"Approximated projection: {len(high_dim_dict)} dims -> {self.low_dim} dims")
+        return low_dim_result
+    
     def project_point(self, point) -> dict:
         if isinstance(point, Configuration):
             high_dim_dict = point.get_dictionary()
@@ -156,5 +180,5 @@ class REMBOProjectionStep(TransformativeProjectionStep):
             low_dim_point = np.array(low_dim_key)
             return {f'rembo_{idx}': float(low_dim_point[idx]) for idx in range(self.low_dim)}
         else:
-            logger.error(f"Cache miss in project_point for high-dim point: {high_dim_dict}")
-            raise ValueError(f"Cache miss in project_point for high-dim point: {high_dim_dict}")
+            logger.warning(f"Cache miss in project_point, using pseudoinverse approximation")
+            return self._approximate_project(high_dim_dict)
