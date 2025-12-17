@@ -18,6 +18,7 @@ class CompressionStep(ABC):
         self.kwargs = kwargs
         self.input_space: Optional[ConfigurationSpace] = None
         self.output_space: Optional[ConfigurationSpace] = None
+        self.filling_strategy = None  # Will be set by pipeline/compressor
     
     @abstractmethod
     def compress(self, input_space: ConfigurationSpace, 
@@ -25,12 +26,21 @@ class CompressionStep(ABC):
         pass
     
     def project_point(self, point) -> dict:
+        # project a point from input_space to output_space.
+        # fill missing parameters if output_space is set
         if hasattr(point, 'get_dictionary'):
-            return point.get_dictionary()
+            point_dict = point.get_dictionary()
         elif isinstance(point, dict):
-            return point
+            point_dict = point
         else:
-            return dict(point)
+            point_dict = dict(point)
+        
+        if self.output_space is not None and self.filling_strategy is not None:
+            point_dict = self.filling_strategy.fill_missing_parameters(
+                point_dict, self.output_space
+            )
+        
+        return point_dict
     
     def unproject_point(self, point) -> dict:
         if hasattr(point, 'get_dictionary'):

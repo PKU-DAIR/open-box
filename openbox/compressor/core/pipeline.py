@@ -21,6 +21,7 @@ class CompressionPipeline:
         self.surrogate_space: Optional[ConfigurationSpace] = None
         
         self.sampling_strategy: Optional[SamplingStrategy] = None
+        self.filling_strategy = None
     
     def compress_space(self, 
                       original_space: ConfigurationSpace,
@@ -40,6 +41,7 @@ class CompressionPipeline:
             logger.info(f"  Input: {input_dim} parameters")
             
             step.input_space = current_space
+            step.filling_strategy = self.filling_strategy
             current_space = step.compress(current_space, space_history)
             current_space.seed(self.seed)
             step.output_space = current_space

@@ -84,6 +84,32 @@ class RangeCompressionStep(CompressionStep):
                                   space_history: Optional[List[History]] = None) -> ConfigurationSpace:
         return copy.deepcopy(input_space)
     
+    def project_point(self, point) -> dict:
+        # project a point from input_space to output_space.
+        # clip values to compressed ranges and fill missing parameters.
+        if hasattr(point, 'get_dictionary'):
+            point_dict = point.get_dictionary()
+        elif isinstance(point, dict):
+            point_dict = point
+        else:
+            point_dict = dict(point)
+        
+        # if no compression was applied (output_space not set), return as is
+        if self.output_space is None:
+            return point_dict
+        
+        # clip values to the compressed ranges
+        from ...filling import clip_values_to_space
+        clipped_dict = clip_values_to_space(point_dict, self.output_space, report=False)
+        
+        # fill missing parameters if needed
+        if self.filling_strategy is not None:
+            clipped_dict = self.filling_strategy.fill_missing_parameters(
+                clipped_dict, self.output_space
+            )
+        
+        return clipped_dict
+    
     def needs_unproject(self) -> bool:
         return False
     
