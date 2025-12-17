@@ -122,6 +122,27 @@ class HesBOProjectionStep(TransformativeProjectionStep):
         self._high_to_low_cache[high_dim_key] = low_dim_key
         return high_dim_conf
     
+    def _approximate_project(self, high_dim_dict: dict) -> dict:
+        high_dim_array = self._normalize_high_dim_config(high_dim_dict, self.active_hps)
+        high_dim_scaled = self._scaler.inverse_transform([high_dim_array])[0]
+        
+        # approximate low_dim from high_dim using embedding structure
+        # low_dim[i] = high_dim[h[i]] / sigma[h[i]]
+        low_dim_approx = np.zeros(self.low_dim)
+        for i in range(self.low_dim):# aggregate all dimensions that map to this low dimension
+            contributing_dims = [j for j in range(len(self.active_hps)) if self._h[j] == i]
+            if contributing_dims:   # average the contributions
+                contributions = [high_dim_scaled[j] / self._sigma[j] for j in contributing_dims]
+                low_dim_approx[i] = np.mean(contributions)
+            else:
+                low_dim_approx[i] = 0.0
+        
+        box_bound = np.sqrt(self.low_dim)
+        low_dim_approx = np.clip(low_dim_approx, -box_bound, box_bound)
+        low_dim_result = {f'hesbo_{idx}': float(low_dim_approx[idx]) for idx in range(self.low_dim)}
+        logger.warning(f"Approximated HesBO projection: {len(high_dim_dict)} dims -> {self.low_dim} dims")
+        return low_dim_result
+    
     def project_point(self, point) -> dict:
         if isinstance(point, Configuration):
             high_dim_dict = point.get_dictionary()
@@ -136,5 +157,5 @@ class HesBOProjectionStep(TransformativeProjectionStep):
             low_dim_point = list(low_dim_key)
             return {f'hesbo_{idx}': float(low_dim_point[idx]) for idx in range(self.low_dim)}
         else:
-            logger.error(f"Cache miss in project_point for high-dim point: {high_dim_dict}")
-            raise ValueError(f"Cache miss in project_point for high-dim point: {high_dim_dict}")
+            logger.warning(f"Cache miss in project_point, using approximation")
+            return self._approximate_project(high_dim_dict)
