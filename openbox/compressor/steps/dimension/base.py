@@ -63,6 +63,30 @@ class DimensionSelectionStep(CompressionStep):
         
         return compressed_space
     
+    def project_point(self, point) -> dict:
+        # project a point from input_space to output_space.
+        # filter to selected parameters and fill missing ones.
+        if hasattr(point, 'get_dictionary'):
+            point_dict = point.get_dictionary()
+        elif isinstance(point, dict):
+            point_dict = point
+        else:
+            point_dict = dict(point)
+        
+        # filter to only selected parameters
+        if self.selected_param_names is None:
+            filtered_dict = point_dict
+        else:
+            filtered_dict = {name: point_dict[name] for name in self.selected_param_names if name in point_dict}
+        
+        # fill missing parameters if needed
+        if self.output_space is not None and self.filling_strategy is not None:
+            filtered_dict = self.filling_strategy.fill_missing_parameters(
+                filtered_dict, self.output_space
+            )
+        
+        return filtered_dict
+    
     def needs_unproject(self) -> bool:
         # Dimension selection is one-way, no unprojection needed
         return False
