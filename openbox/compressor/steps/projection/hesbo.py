@@ -158,4 +158,8 @@ class HesBOProjectionStep(TransformativeProjectionStep):
             return {f'hesbo_{idx}': float(low_dim_point[idx]) for idx in range(self.low_dim)}
         else:
             logger.warning(f"Cache miss in project_point, using approximation")
-            return self._approximate_project(high_dim_dict)
+            low_dim_result = self._approximate_project(high_dim_dict)
+            low_dim_key = tuple(low_dim_result[f'hesbo_{i}'] for i in range(self.low_dim))
+            self._high_to_low_cache[high_dim_key] = low_dim_key
+            
+            return low_dim_result
