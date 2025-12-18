@@ -105,18 +105,25 @@ class CompressionPipeline:
         self.progress.update_from_history(history)
         
         updated = False
+        updated_steps = []
         for step in self.steps:
-            # only boundary range and periodic dimension selection can support adaptive update
             if step.supports_adaptive_update():
                 if step.update(self.progress, history):
                     updated = True
+                    updated_steps.append(step)
                     logger.info(f"Step {step.name} updated compression strategy")
         
         if updated and self.original_space is not None:
-            # Use current history for re-compression during adaptive update
-            # This ensures we use the latest optimization data, not the initial transfer learning data
+            uses_progressive = all(step.uses_progressive_compression() for step in updated_steps)
+            if uses_progressive:
+                start_space = self.surrogate_space
+                logger.debug(f"Using progressive compression, starting from {len(start_space.get_hyperparameters())} parameters")
+            else:
+                start_space = self.original_space
+                logger.debug(f"Using re-compression, starting from {len(start_space.get_hyperparameters())} parameters")
+            
             space_history = [history] if history else None
-            self.compress_space(self.original_space, space_history)
+            self.compress_space(start_space, space_history)
             return True
         
         return False
@@ -136,7 +143,9 @@ class CompressionPipeline:
         for step in reversed(self.steps):
             if step.needs_unproject():
                 from ConfigSpace import Configuration
-                temp_config = Configuration(step.output_space, values=current_dict)
+                filtered_dict = {k: v for k, v in current_dict.items() 
+                                if k in step.output_space}
+                temp_config = Configuration(step.output_space, values=filtered_dict)
                 current_dict = step.unproject_point(temp_config)
         return current_dict
     
@@ -147,6 +156,8 @@ class CompressionPipeline:
         for step in self.steps:
             from ConfigSpace import Configuration
             if step.input_space is not None:
-                temp_config = Configuration(step.input_space, values=current_dict)
+                filtered_dict = {k: v for k, v in current_dict.items() 
+                                if k in step.input_space}
+                temp_config = Configuration(step.input_space, values=filtered_dict)
                 current_dict = step.project_point(temp_config)
         return current_dict
