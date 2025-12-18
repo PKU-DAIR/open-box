@@ -26,6 +26,7 @@ class SHAPDimensionStep(DimensionSelectionStep):
             'models': None,
             'importances': None,
             'shap_values': None,
+            'n_features': None,
         }
         
         self.numeric_hyperparameter_names: List[str] = []
@@ -88,9 +89,15 @@ class SHAPDimensionStep(DimensionSelectionStep):
     def _compute_shap_importances(self, 
                                 space_history: List[History],
                                 input_space: ConfigurationSpace):
-        if (self._shap_cache['models'] is not None and
-            self._shap_cache['importances'] is not None):
-            logger.info("Using cached SHAP model")
+        current_n_features = len(self.numeric_hyperparameter_names)
+        cache_valid = (
+            self._shap_cache['models'] is not None and
+            self._shap_cache['importances'] is not None and
+            self._shap_cache['n_features'] == current_n_features
+        )
+        
+        if cache_valid:
+            logger.info(f"Using cached SHAP model (n_features={current_n_features})")
             return (self._shap_cache['models'],
                     self._shap_cache['importances'],
                     self._shap_cache['shap_values'])
@@ -154,6 +161,7 @@ class SHAPDimensionStep(DimensionSelectionStep):
             'models': models,
             'importances': importances,
             'shap_values': shap_values,
+            'n_features': len(self.numeric_hyperparameter_names),
         })
         
         return models, importances, shap_values

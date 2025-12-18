@@ -47,6 +47,10 @@ class PeriodicDimensionStep(SHAPDimensionStep):
     def supports_adaptive_update(self) -> bool:
         return True
     
+    def uses_progressive_compression(self) -> bool:
+        # periodic uses progressive compression: compress on top of previous result
+        return True
+    
     def update(self, progress: OptimizerProgress, history: History) -> bool:
         if not progress.should_periodic_update(period=self.period):
             return False
