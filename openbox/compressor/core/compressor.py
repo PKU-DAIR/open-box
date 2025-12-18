@@ -116,7 +116,8 @@ class Compressor(ABC):
         if self.pipeline is not None:
             updated = self.pipeline.update_compression(history)
             if updated:
-                self.compress_space(history)
+                self.surrogate_space = self.pipeline.surrogate_space
+                self.sample_space = self.pipeline.sample_space
             return updated
         return False
     

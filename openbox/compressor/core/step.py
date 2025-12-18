@@ -65,3 +65,13 @@ class CompressionStep(ABC):
     
     def supports_adaptive_update(self) -> bool:
         return False
+    
+    def uses_progressive_compression(self) -> bool:
+        """
+        Whether this step uses progressive compression (compress on top of previous compression)
+        or re-compression (compress from original space).
+        
+        Progressive: periodic dimension reduction (30d -> 24d -> 19d)
+        Re-compression: re-evaluate from scratch based on new data
+        """
+        return False
