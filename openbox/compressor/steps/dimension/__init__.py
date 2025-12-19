@@ -1,13 +1,21 @@
 from .base import DimensionSelectionStep
 from .shap import SHAPDimensionStep
 from .expert import ExpertDimensionStep
-from .periodic import PeriodicDimensionStep
-from .spearman import SpearmanDimensionStep
+from .correlation import CorrelationDimensionStep
+from .adaptive import AdaptiveDimensionStep
+from .importance import (
+    ImportanceCalculator,
+    SHAPImportanceCalculator,
+    CorrelationImportanceCalculator,
+)
 
 __all__ = [
     'DimensionSelectionStep',
     'SHAPDimensionStep',
     'ExpertDimensionStep',
-    'PeriodicDimensionStep',
-    'SpearmanDimensionStep',
+    'CorrelationDimensionStep',
+    'AdaptiveDimensionStep',
+    'ImportanceCalculator',
+    'SHAPImportanceCalculator',
+    'CorrelationImportanceCalculator',
 ]

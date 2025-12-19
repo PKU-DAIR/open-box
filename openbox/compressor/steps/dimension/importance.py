@@ -42,11 +42,7 @@ class SHAPImportanceCalculator(ImportanceCalculator):
                              source_similarities: Optional[List[Tuple[int, float]]] = None) -> Tuple[List[str], np.ndarray]:
         self.numeric_hyperparameter_names, \
         self.numeric_hyperparameter_indices = extract_numeric_hyperparameters(input_space)
-        
-        if not space_history:
-            logger.warning("No space history provided for SHAP, returning uniform importances")
-            return self.numeric_hyperparameter_names, np.ones(len(self.numeric_hyperparameter_names))
-        
+                
         current_n_features = len(self.numeric_hyperparameter_names)
         cache_valid = (
             self._cache['models'] is not None and
@@ -59,11 +55,6 @@ class SHAPImportanceCalculator(ImportanceCalculator):
             return self.numeric_hyperparameter_names, self._cache['importances']
         
         importances = self._compute_shap_importances(space_history, input_space, source_similarities)
-        
-        if importances is None or np.size(importances) == 0:
-            logger.warning("SHAP importances unavailable, returning uniform importances")
-            return self.numeric_hyperparameter_names, np.ones(len(self.numeric_hyperparameter_names))
-        
         return self.numeric_hyperparameter_names, importances
     
     def _compute_shap_importances(self,
@@ -155,15 +146,10 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
                              source_similarities: Optional[List[Tuple[int, float]]] = None) -> Tuple[List[str], np.ndarray]:
         numeric_param_names, _ = extract_numeric_hyperparameters(input_space)
         
-        if not space_history:
-            logger.warning("No space history provided for correlation, returning uniform importances")
-            return numeric_param_names, np.ones(len(numeric_param_names))
-        
         all_x, all_y = extract_top_samples_from_history(
             space_history, numeric_param_names, input_space,
             top_ratio=1.0, normalize=True
         )
-        
         if len(all_x) == 0:
             logger.warning("No data available for correlation")
             return numeric_param_names, np.ones(len(numeric_param_names))
