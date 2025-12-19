@@ -21,3 +21,4 @@ class StandardSamplingStrategy(SamplingStrategy):
     
     def get_spaces(self) -> Tuple[ConfigurationSpace, Optional[ConfigurationSpace]]:
         return (self.space, None)
+

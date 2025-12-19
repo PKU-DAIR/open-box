@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, List, Tuple
+from typing import Optional, List, Dict
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
@@ -12,7 +12,6 @@ class CorrelationDimensionStep(DimensionSelectionStep):
     def __init__(self, 
                  method: str = 'spearman',
                  topk: int = 20,
-                 source_similarities: Optional[List[Tuple[int, float]]] = None,
                  **kwargs):
         super().__init__(strategy=method, **kwargs)
         self.method = method
@@ -23,13 +22,13 @@ class CorrelationDimensionStep(DimensionSelectionStep):
     
     def compress(self, input_space: ConfigurationSpace, 
                 space_history: Optional[List[History]] = None,
-                source_similarities: Optional[List[Tuple[int, float]]] = None) -> ConfigurationSpace:
+                source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:
         return super().compress(input_space, space_history, source_similarities)
     
     def _select_parameters(self, 
                           input_space: ConfigurationSpace,
                           space_history: Optional[List[History]] = None,
-                          source_similarities: Optional[List[Tuple[int, float]]] = None) -> List[int]:
+                          source_similarities: Optional[Dict[int, float]] = None) -> List[int]:
         if self.topk <= 0:
             logger.warning(f"No topk provided for {self.method} selection, keeping all parameters")
             return list(range(len(input_space.get_hyperparameters())))
@@ -61,3 +60,4 @@ class CorrelationDimensionStep(DimensionSelectionStep):
         logger.debug(f"{self.method.capitalize()} importances: {importances_selected}")
         
         return selected_indices
+

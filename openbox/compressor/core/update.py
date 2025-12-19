@@ -86,3 +86,4 @@ class HybridUpdateStrategy(UpdateStrategy):
         if self.improvement_threshold is not None:
             parts.append(f"improve({self.improvement_threshold})")
         return " OR ".join(parts)
+

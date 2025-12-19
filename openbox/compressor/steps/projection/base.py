@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 import numpy as np
 from openbox import logger
 from openbox.utils.history import History
@@ -14,8 +14,9 @@ class TransformativeProjectionStep(CompressionStep):
         self.method = method
     
     def compress(self, input_space: ConfigurationSpace, 
-                space_history: Optional[List[History]] = None) -> ConfigurationSpace:
-        # space_history is not used for projection
+                space_history: Optional[List[History]] = None,
+                source_similarities: Optional[Dict[int, float]] = None,
+                **kwargs) -> ConfigurationSpace:
         if self.method == 'none':
             logger.info("Projection disabled, returning input space")
             return input_space
@@ -63,3 +64,4 @@ class TransformativeProjectionStep(CompressionStep):
                 normalized = 0.5
             high_dim_values.append(normalized)
         return np.array(high_dim_values)
+

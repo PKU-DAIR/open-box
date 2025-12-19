@@ -82,3 +82,4 @@ class MixedRangeSamplingStrategy(SamplingStrategy):
             'compressed_mean': sum(self.compressed_results) / len(self.compressed_results) if self.compressed_results else None,
             'original_mean': sum(self.original_results) / len(self.original_results) if self.original_results else None,
         }
+
