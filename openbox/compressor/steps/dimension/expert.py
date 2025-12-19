@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Dict
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
@@ -17,7 +17,8 @@ class ExpertDimensionStep(DimensionSelectionStep):
     
     def _select_parameters(self, 
                           input_space: ConfigurationSpace,
-                          space_history: Optional[List[History]] = None) -> List[int]:
+                          space_history: Optional[List[History]] = None,
+                          source_similarities: Optional[Dict[int, float]] = None) -> List[int]:
         if not self.expert_params:
             logger.warning("No expert parameters provided, keeping all parameters")
             return list(range(len(input_space.get_hyperparameters())))
@@ -42,3 +43,4 @@ class ExpertDimensionStep(DimensionSelectionStep):
         logger.debug(f"Selected parameters: {valid_params}")
         
         return sorted(selected_indices)
+

@@ -1,5 +1,5 @@
 import copy
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
@@ -25,7 +25,8 @@ class CompressionPipeline:
     
     def compress_space(self, 
                       original_space: ConfigurationSpace,
-                      space_history: Optional[List] = None) -> Tuple[ConfigurationSpace, ConfigurationSpace]:
+                      space_history: Optional[List] = None,
+                      source_similarities: Optional[Dict[int, float]] = None) -> Tuple[ConfigurationSpace, ConfigurationSpace]:
         if self.original_space is None:
             self.original_space = original_space
         
@@ -42,7 +43,7 @@ class CompressionPipeline:
             
             step.input_space = current_space
             step.filling_strategy = self.filling_strategy
-            current_space = step.compress(current_space, space_history)
+            current_space = step.compress(current_space, space_history, source_similarities)
             current_space.seed(self.seed)
             step.output_space = current_space
             
@@ -123,7 +124,9 @@ class CompressionPipeline:
                 logger.debug(f"Using re-compression, starting from {len(start_space.get_hyperparameters())} parameters")
             
             space_history = [history] if history else None
-            self.compress_space(start_space, space_history)
+            # Note: source_similarities should be passed from the caller (compressor/advisor)
+            # Here use None since we're updating based on current task's history
+            self.compress_space(start_space, space_history, source_similarities=None)
             return True
         
         return False
@@ -161,3 +164,4 @@ class CompressionPipeline:
                 temp_config = Configuration(step.input_space, values=filtered_dict)
                 current_dict = step.project_point(temp_config)
         return current_dict
+

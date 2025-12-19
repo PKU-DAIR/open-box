@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, List, Tuple
+from typing import Optional, List, Dict
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
@@ -21,13 +21,13 @@ class SHAPDimensionStep(DimensionSelectionStep):
     
     def compress(self, input_space: ConfigurationSpace, 
                 space_history: Optional[List[History]] = None,
-                source_similarities: Optional[List[Tuple[int, float]]] = None) -> ConfigurationSpace:
+                source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:
         return super().compress(input_space, space_history, source_similarities)
     
     def _select_parameters(self, 
                         input_space: ConfigurationSpace,
                         space_history: Optional[List[History]] = None,
-                        source_similarities: Optional[List[Tuple[int, float]]] = None) -> List[int]:
+                        source_similarities: Optional[Dict[int, float]] = None) -> List[int]:
         if self.topk <= 0:
             logger.warning("No topk provided for SHAP selection, keeping all parameters")
             return list(range(len(input_space.get_hyperparameters())))

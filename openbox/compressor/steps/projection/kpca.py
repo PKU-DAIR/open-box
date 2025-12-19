@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from typing import Optional, List
+from typing import Optional, List, Dict
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace, Configuration
@@ -41,7 +41,8 @@ class KPCAProjectionStep(TransformativeProjectionStep):
         self.space_history = space_history
     
     def compress(self, input_space: ConfigurationSpace,
-                space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+                space_history: Optional[List[History]] = None,
+                source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:
         if self.method == 'none':
             logger.info("KPCA projection disabled, returning input space")
             return input_space
@@ -196,3 +197,4 @@ class KPCAProjectionStep(TransformativeProjectionStep):
     def affects_sampling_space(self) -> bool:
         # does not affect sampling space (sampling happens in original space)
         return False
+

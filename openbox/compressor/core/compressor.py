@@ -160,3 +160,4 @@ class Compressor(ABC):
         
         logger.info(f"Successfully transformed {len(transformed)} histories")
         return transformed
+

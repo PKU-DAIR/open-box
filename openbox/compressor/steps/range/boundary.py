@@ -51,14 +51,10 @@ class BoundaryRangeStep(RangeCompressionStep):
         self.seed = seed
 
     
-    def compress(self, input_space: ConfigurationSpace, 
-                space_history: Optional[List[History]] = None) -> ConfigurationSpace:
-        compressed_space = super().compress(input_space, space_history)
-        return compressed_space
-    
     def _compute_compressed_space(self, 
                                 input_space: ConfigurationSpace,
-                                space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+                                space_history: Optional[List[History]] = None,
+                                source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:
         if not space_history:
             logger.warning("No space history provided for boundary compression, returning input space")
             return copy.deepcopy(input_space)
@@ -129,3 +125,4 @@ class BoundaryRangeStep(RangeCompressionStep):
                 seed=self.seed
             )
         return None
+

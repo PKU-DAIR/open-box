@@ -1,5 +1,5 @@
 import copy
-from typing import Optional, List
+from typing import Optional, List, Dict
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
@@ -14,13 +14,15 @@ class RangeCompressionStep(CompressionStep):
         self.original_space: Optional[ConfigurationSpace] = None
     
     def compress(self, input_space: ConfigurationSpace, 
-                space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+                space_history: Optional[List[History]] = None,
+                source_similarities: Optional[Dict[int, float]] = None,
+                **kwargs) -> ConfigurationSpace:
         if self.method == 'none':
             logger.info("Range compression disabled, returning input space")
             return input_space
         
         self.original_space = copy.deepcopy(input_space)
-        compressed_space = self._compute_compressed_space(input_space, space_history)
+        compressed_space = self._compute_compressed_space(input_space, space_history, source_similarities)
         
         self.compression_info = self._collect_compression_details(input_space, compressed_space)
 
@@ -81,7 +83,9 @@ class RangeCompressionStep(CompressionStep):
     
     def _compute_compressed_space(self, 
                                   input_space: ConfigurationSpace,
-                                  space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+                                  space_history: Optional[List[History]] = None,
+                                  source_similarities: Optional[Dict[int, float]] = None,
+                                  **kwargs) -> ConfigurationSpace:
         return copy.deepcopy(input_space)
     
     def project_point(self, point) -> dict:
@@ -115,3 +119,4 @@ class RangeCompressionStep(CompressionStep):
     
     def affects_sampling_space(self) -> bool:
         return True
+
