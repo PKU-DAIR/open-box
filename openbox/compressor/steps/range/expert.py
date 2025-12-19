@@ -30,7 +30,8 @@ class ExpertRangeStep(RangeCompressionStep):
     
     def _compute_compressed_space(self, 
                                   input_space: ConfigurationSpace,
-                                  space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+                                  space_history: Optional[List[History]] = None,
+                                  source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:
         if not self.expert_ranges:
             logger.warning("No expert ranges provided, returning input space")
             return copy.deepcopy(input_space)
@@ -82,3 +83,4 @@ class ExpertRangeStep(RangeCompressionStep):
                 seed=self.seed
             )
         return None
+

@@ -66,3 +66,4 @@ class PeriodicDimensionStep(SHAPDimensionStep):
             return True
         
         return False
+

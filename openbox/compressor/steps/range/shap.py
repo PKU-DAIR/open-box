@@ -20,7 +20,6 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
                  method: str = 'shap_boundary',
                  top_ratio: float = 0.8,
                  sigma: float = 2.0,
-                 source_similarities: Optional[List[Tuple[int, float]]] = None,
                  enable_mixed_sampling: bool = True,
                  initial_prob: float = 0.9,
                  seed: Optional[int] = None,
@@ -35,20 +34,11 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
             seed=seed,
             **kwargs
         )
-        self.source_similarities = source_similarities or []
-        if self.source_similarities:
-            total_sim = sum(sim for _, sim in self.source_similarities)
-            if total_sim > 0:
-                self._similarity_dict = {idx: sim / total_sim for idx, sim in self.source_similarities}
-            else:
-                n_histories = len(self.source_similarities)
-                self._similarity_dict = {idx: 1.0 / n_histories for idx, _ in self.source_similarities}
-        else:
-            self._similarity_dict = {}
     
     def _compute_compressed_space(self,
                                   input_space: ConfigurationSpace,
-                                  space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+                                  space_history: Optional[List[History]] = None,
+                                  source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:
         if not space_history:
             logger.warning("No space history provided for SHAP boundary compression, returning input space")
             return copy.deepcopy(input_space)
@@ -60,7 +50,7 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
             return copy.deepcopy(input_space)
         
         compressed_ranges = self._compute_shap_based_ranges(
-            space_history, numeric_param_names, input_space
+            space_history, numeric_param_names, input_space, source_similarities
         )
         
         compressed_space = create_space_from_ranges(input_space, compressed_ranges)
@@ -72,7 +62,8 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
     def _compute_shap_based_ranges(self,
                                    space_history: List[History],
                                    numeric_param_names: List[str],
-                                   original_space: ConfigurationSpace) -> Dict[str, Tuple[float, float]]:        
+                                   original_space: ConfigurationSpace,
+                                   source_similarities: Optional[Dict[int, float]] = None) -> Dict[str, Tuple[float, float]]:        
         all_x, all_y, sample_history_indices = extract_top_samples_from_history(
             space_history, numeric_param_names, original_space,
             top_ratio=self.top_ratio, normalize=True, return_history_indices=True
@@ -119,9 +110,10 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
                 )
                 beneficial_shap = -beneficial_shap  # Convert negative to positive weights
             
-            beneficial_similarities = np.array([
-                self._similarity_dict.get(idx, 0.0) for idx in beneficial_history_indices
-            ])
+            if source_similarities:
+                beneficial_similarities = np.array([
+                    source_similarities.get(idx, 0.0) for idx in beneficial_history_indices
+                ])
             
             # Combined weight = SHAP weight * similarity weight
             combined_weights = beneficial_shap * beneficial_similarities
@@ -160,3 +152,4 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
         
         logger.info(f"SHAP-based ranges computed for {len(compressed_ranges)} parameters")
         return compressed_ranges
+

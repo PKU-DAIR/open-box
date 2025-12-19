@@ -3,7 +3,7 @@ Compression step base class and interface.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, Dict, TYPE_CHECKING
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 
@@ -22,7 +22,9 @@ class CompressionStep(ABC):
     
     @abstractmethod
     def compress(self, input_space: ConfigurationSpace, 
-                 space_history: Optional[List[History]] = None) -> ConfigurationSpace:
+                 space_history: Optional[List[History]] = None,
+                 source_similarities: Optional[Dict[int, float]] = None,
+                 **kwargs) -> ConfigurationSpace:
         pass
     
     def project_point(self, point) -> dict:
@@ -75,3 +77,4 @@ class CompressionStep(ABC):
         Re-compression: re-evaluate from scratch based on new data
         """
         return False
+

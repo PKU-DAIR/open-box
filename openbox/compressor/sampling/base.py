@@ -14,3 +14,4 @@ class SamplingStrategy(ABC):
     @abstractmethod
     def get_spaces(self) -> Tuple[ConfigurationSpace, Optional[ConfigurationSpace]]:
         pass
+

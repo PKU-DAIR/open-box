@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
@@ -17,7 +17,7 @@ class ImportanceCalculator(ABC):
     def calculate_importances(self,
                              input_space: ConfigurationSpace,
                              space_history: Optional[List[History]] = None,
-                             source_similarities: Optional[List[Tuple[int, float]]] = None) -> Tuple[List[str], np.ndarray]:
+                             source_similarities: Optional[Dict[int, float]] = None) -> Tuple[List[str], np.ndarray]:
         pass
     
     @abstractmethod
@@ -39,7 +39,7 @@ class SHAPImportanceCalculator(ImportanceCalculator):
     def calculate_importances(self,
                              input_space: ConfigurationSpace,
                              space_history: Optional[List[History]] = None,
-                             source_similarities: Optional[List[Tuple[int, float]]] = None) -> Tuple[List[str], np.ndarray]:
+                             source_similarities: Optional[Dict[int, float]] = None) -> Tuple[List[str], np.ndarray]:
         self.numeric_hyperparameter_names, \
         self.numeric_hyperparameter_indices = extract_numeric_hyperparameters(input_space)
                 
@@ -60,7 +60,7 @@ class SHAPImportanceCalculator(ImportanceCalculator):
     def _compute_shap_importances(self,
                                  space_history: List[History],
                                  input_space: ConfigurationSpace,
-                                 source_similarities: Optional[List[Tuple[int, float]]] = None) -> np.ndarray:
+                                 source_similarities: Optional[Dict[int, float]] = None) -> np.ndarray:
         import shap
         from sklearn.ensemble import RandomForestRegressor
         
@@ -104,9 +104,8 @@ class SHAPImportanceCalculator(ImportanceCalculator):
         
         importances_array = np.array(importances_list)
         if source_similarities:
-            similarity_dict = {idx: sim for idx, sim in source_similarities}
             weights = np.array([
-                similarity_dict.get(task_idx, 0.0) 
+                source_similarities.get(task_idx, 0.0) 
                 for task_idx in range(len(importances_list))
             ])
             weights_sum = weights.sum()
@@ -143,7 +142,7 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
     def calculate_importances(self,
                              input_space: ConfigurationSpace,
                              space_history: Optional[List[History]] = None,
-                             source_similarities: Optional[List[Tuple[int, float]]] = None) -> Tuple[List[str], np.ndarray]:
+                             source_similarities: Optional[Dict[int, float]] = None) -> Tuple[List[str], np.ndarray]:
         numeric_param_names, _ = extract_numeric_hyperparameters(input_space)
         
         all_x, all_y = extract_top_samples_from_history(
@@ -191,9 +190,7 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
     def _compute_weighted_correlations(self, all_x, all_y, numeric_param_names,
                                     source_similarities) -> np.ndarray:
         from scipy.stats import spearmanr, pearsonr
-        
-        similarity_dict = {idx: sim for idx, sim in source_similarities}
-        
+                
         correlations_list = []
         for task_idx, (hist_x_numeric, hist_y) in enumerate(zip(all_x, all_y)):
             if len(hist_x_numeric) == 0:
@@ -228,7 +225,7 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
         
         correlations_array = np.array(correlations_list)
         weights = np.array([
-            similarity_dict.get(task_idx, 0.0) 
+            source_similarities.get(task_idx, 0.0) 
             for task_idx in range(len(correlations_list))
         ])
         weights_sum = weights.sum()

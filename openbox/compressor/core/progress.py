@@ -77,3 +77,4 @@ class OptimizerProgress:
         self.improvement_count = 0
         self.stagnation_count = 0
         self.last_best_value = None
+

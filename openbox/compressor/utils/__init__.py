@@ -1,6 +1,5 @@
 import json
 import copy
-import shap
 import numpy as np
 import pandas as pd
 from typing import Dict, Any, Tuple, List, Optional, Union
