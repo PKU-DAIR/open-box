@@ -12,8 +12,8 @@ from .steps.dimension import (
     DimensionSelectionStep,
     SHAPDimensionStep,
     ExpertDimensionStep,
-    PeriodicDimensionStep,
-    SpearmanDimensionStep,
+    CorrelationDimensionStep,
+    AdaptiveDimensionStep,
 )
 
 from .steps.range import (
@@ -174,9 +174,8 @@ __all__ = [
     'DimensionSelectionStep',
     'SHAPDimensionStep',
     'ExpertDimensionStep',
-    'PeriodicDimensionStep',
-    'SpearmanDimensionStep',
-    
+    'CorrelationDimensionStep',
+    'AdaptiveDimensionStep',
     'RangeCompressionStep',
     'BoundaryRangeStep',
     'ExpertRangeStep',
