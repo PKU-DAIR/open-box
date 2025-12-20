@@ -115,13 +115,28 @@ class CompressionPipeline:
                     logger.info(f"Step {step.name} updated compression strategy")
         
         if updated and self.original_space is not None:
-            uses_progressive = all(step.uses_progressive_compression() for step in updated_steps)
-            if uses_progressive:
-                start_space = self.surrogate_space
-                logger.debug(f"Using progressive compression, starting from {len(start_space.get_hyperparameters())} parameters")
-            else:
+            # Check if any step needs to increase dimensions
+            # For dimension increase, we must start from original_space
+            # For dimension decrease, we can use progressive compression from surrogate_space
+            needs_original_space = False
+            for step in updated_steps:
+                if hasattr(step, 'current_topk') and hasattr(step, 'initial_topk'):
+                    # If current_topk > number of params in surrogate_space, need original_space
+                    if self.surrogate_space and step.current_topk > len(self.surrogate_space.get_hyperparameters()):
+                        needs_original_space = True
+                        break
+            
+            if needs_original_space:
                 start_space = self.original_space
-                logger.debug(f"Using re-compression, starting from {len(start_space.get_hyperparameters())} parameters")
+                logger.debug(f"Dimension increase detected, re-compressing from original space with {len(start_space.get_hyperparameters())} parameters")
+            else:
+                uses_progressive = all(step.uses_progressive_compression() for step in updated_steps)
+                if uses_progressive:
+                    start_space = self.surrogate_space
+                    logger.debug(f"Using progressive compression, starting from {len(start_space.get_hyperparameters())} parameters")
+                else:
+                    start_space = self.original_space
+                    logger.debug(f"Using re-compression, starting from {len(start_space.get_hyperparameters())} parameters")
             
             space_history = [history] if history else None
             # Note: source_similarities should be passed from the caller (compressor/advisor)
@@ -145,11 +160,7 @@ class CompressionPipeline:
 
         for step in reversed(self.steps):
             if step.needs_unproject():
-                from ConfigSpace import Configuration
-                filtered_dict = {k: v for k, v in current_dict.items() 
-                                if k in step.output_space}
-                temp_config = Configuration(step.output_space, values=filtered_dict)
-                current_dict = step.unproject_point(temp_config)
+                current_dict = step.unproject_point(current_dict)
         return current_dict
     
     def project_point(self, point) -> dict:
@@ -157,11 +168,7 @@ class CompressionPipeline:
         current_dict = point.get_dictionary() if hasattr(point, 'get_dictionary') else dict(point)
         
         for step in self.steps:
-            from ConfigSpace import Configuration
             if step.input_space is not None:
-                filtered_dict = {k: v for k, v in current_dict.items() 
-                                if k in step.input_space}
-                temp_config = Configuration(step.input_space, values=filtered_dict)
-                current_dict = step.project_point(temp_config)
+                current_dict = step.project_point(current_dict)
         return current_dict
 
