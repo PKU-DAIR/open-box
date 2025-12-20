@@ -95,7 +95,7 @@ class QuantizationProjectionStep(TransformativeProjectionStep):
         return (hp.upper - hp.lower + 1) > self._max_num_values
     
     def unproject_point(self, point: Configuration) -> dict:
-        coords = point.get_dictionary()
+        coords = point.get_dictionary() if hasattr(point, 'get_dictionary') else dict(point)
         valid_dim_names = [dim.name for dim in self.input_space.get_hyperparameters()]
         unproject_coords = {}
         
