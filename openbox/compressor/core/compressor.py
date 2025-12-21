@@ -66,6 +66,9 @@ class Compressor(ABC):
             return self.surrogate_space, self.sample_space
         else:
             return self._compress_space_impl(space_history)
+
+    def get_unprojected_space(self) -> ConfigurationSpace:
+        return self.pipeline.unprojected_space
     
     def _compress_space_impl(self, space_history: Optional[List] = None) -> Tuple[ConfigurationSpace, ConfigurationSpace]:
         raise NotImplementedError(
