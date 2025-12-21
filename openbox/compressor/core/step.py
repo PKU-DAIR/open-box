@@ -77,4 +77,18 @@ class CompressionStep(ABC):
         Re-compression: re-evaluate from scratch based on new data
         """
         return False
+    
+    def get_step_info(self) -> dict:
+        info = {
+            'name': self.name,
+            'type': type(self).__name__,
+            'input_space_params': len(self.input_space.get_hyperparameters()) if self.input_space else 0,
+            'output_space_params': len(self.output_space.get_hyperparameters()) if self.output_space else 0,
+            'supports_adaptive_update': self.supports_adaptive_update(),
+            'uses_progressive_compression': self.uses_progressive_compression()
+        }
+        
+        if hasattr(self, 'compression_info') and self.compression_info:
+            info['compression_info'] = self.compression_info
+        return info
 

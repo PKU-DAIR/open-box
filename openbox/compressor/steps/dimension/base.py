@@ -96,4 +96,14 @@ class DimensionSelectionStep(CompressionStep):
     def affects_sampling_space(self) -> bool:
         # Dimension selection affects sampling space
         return True
-
+    
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        if self.selected_param_names:
+            info['selected_parameters'] = self.selected_param_names
+        if self.selected_indices:
+            info['selected_indices'] = self.selected_indices
+        if hasattr(self, '_calculator') and self._calculator:
+            info['calculator'] = type(self._calculator).__name__
+        info['compression_ratio'] = len(self.selected_indices) / len(self.input_space.get_hyperparameters())
+        return info

@@ -39,7 +39,6 @@ class BoundaryRangeStep(RangeCompressionStep):
                  sigma: float = 2.0,
                  enable_mixed_sampling: bool = True,
                  initial_prob: float = 0.9,
-                 use_shap: bool = True,
                  seed: Optional[int] = None,
                  **kwargs):
         super().__init__(method=method, **kwargs)
@@ -47,7 +46,6 @@ class BoundaryRangeStep(RangeCompressionStep):
         self.sigma = sigma
         self.enable_mixed_sampling = enable_mixed_sampling
         self.initial_prob = initial_prob
-        self.use_shap = use_shap
         self.seed = seed
 
     
@@ -59,7 +57,7 @@ class BoundaryRangeStep(RangeCompressionStep):
             logger.warning("No space history provided for boundary compression, returning input space")
             return copy.deepcopy(input_space)
         
-        numeric_param_names, numeric_param_indices = extract_numeric_hyperparameters(input_space)
+        numeric_param_names, _ = extract_numeric_hyperparameters(input_space)
         
         if not numeric_param_names:
             logger.warning("No numeric hyperparameters found, returning input space")
@@ -126,3 +124,10 @@ class BoundaryRangeStep(RangeCompressionStep):
             )
         return None
 
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['top_ratio'] = self.top_ratio
+        info['sigma'] = self.sigma
+        info['enable_mixed_sampling'] = self.enable_mixed_sampling
+        info['initial_prob'] = self.initial_prob
+        return info

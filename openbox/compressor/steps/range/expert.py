@@ -84,3 +84,11 @@ class ExpertRangeStep(RangeCompressionStep):
             )
         return None
 
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['n_expert_ranges'] = len(self.expert_ranges)
+        info['expert_ranges'] = self.expert_ranges
+        info['enable_mixed_sampling'] = self.enable_mixed_sampling
+        info['initial_prob'] = self.initial_prob
+        info['seed'] = self.seed
+        return info
