@@ -197,4 +197,11 @@ class KPCAProjectionStep(TransformativeProjectionStep):
     def affects_sampling_space(self) -> bool:
         # does not affect sampling space (sampling happens in original space)
         return False
-
+    
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['n_components'] = self.n_components
+        info['kernel'] = self.kernel
+        if self.gamma is not None:
+            info['gamma'] = self.gamma
+        return info

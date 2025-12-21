@@ -119,4 +119,7 @@ class RangeCompressionStep(CompressionStep):
     
     def affects_sampling_space(self) -> bool:
         return True
-
+    
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        return info

@@ -20,6 +20,12 @@ class CorrelationDimensionStep(DimensionSelectionStep):
         
         logger.debug(f"CorrelationDimensionStep initialized: method={method}, topk={topk}")
     
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['method'] = self.method
+        info['topk'] = self.topk
+        return info
+    
     def compress(self, input_space: ConfigurationSpace, 
                 space_history: Optional[List[History]] = None,
                 source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:

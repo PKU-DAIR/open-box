@@ -15,6 +15,13 @@ class ExpertDimensionStep(DimensionSelectionStep):
         super().__init__(strategy=strategy, **kwargs)
         self.expert_params = expert_params
     
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        if self.expert_params:
+            info['expert_params'] = self.expert_params
+            info['n_expert_params'] = len(self.expert_params)
+        return info
+    
     def _select_parameters(self, 
                           input_space: ConfigurationSpace,
                           space_history: Optional[List[History]] = None,

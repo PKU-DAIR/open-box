@@ -30,7 +30,6 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
             sigma=sigma,
             enable_mixed_sampling=enable_mixed_sampling,
             initial_prob=initial_prob,
-            use_shap=True,
             seed=seed,
             **kwargs
         )

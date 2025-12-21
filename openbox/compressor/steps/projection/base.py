@@ -37,6 +37,12 @@ class TransformativeProjectionStep(CompressionStep):
     def affects_sampling_space(self) -> bool:
         return True
     
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        if hasattr(self, 'low_dim'):
+            info['low_dim'] = self.low_dim
+        return info
+    
     def _normalize_high_dim_config(self, high_dim_dict: dict, active_hps: List[CSH.Hyperparameter]) -> np.ndarray:
         high_dim_values = []
         for hp in active_hps:

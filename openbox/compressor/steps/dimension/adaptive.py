@@ -111,3 +111,18 @@ class AdaptiveDimensionStep(DimensionSelectionStep):
             return True
         
         return False
+    
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['importance_calculator'] = type(self.importance_calculator).__name__
+
+        if self.update_strategy:
+            info['update_strategy'] = self.update_strategy.get_name()
+
+        info['current_topk'] = self.current_topk
+        info['initial_topk'] = self.initial_topk
+        info['min_dimensions'] = self.min_dimensions
+        info['reduction_ratio'] = self.reduction_ratio
+        if self.max_dimensions:
+            info['max_dimensions'] = self.max_dimensions
+        return info

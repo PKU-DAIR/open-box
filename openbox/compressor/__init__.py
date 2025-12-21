@@ -20,6 +20,8 @@ from .steps.range import (
     RangeCompressionStep,
     BoundaryRangeStep,
     ExpertRangeStep,
+    SHAPBoundaryRangeStep,
+    KDEBoundaryRangeStep
 )
 
 from .steps.projection import (
@@ -176,10 +178,13 @@ __all__ = [
     'ExpertDimensionStep',
     'CorrelationDimensionStep',
     'AdaptiveDimensionStep',
+
     'RangeCompressionStep',
     'BoundaryRangeStep',
     'ExpertRangeStep',
-    
+    'SHAPBoundaryRangeStep',
+    'KDEBoundaryRangeStep',
+
     'TransformativeProjectionStep',
     'REMBOProjectionStep',
     'HesBOProjectionStep',
@@ -192,7 +197,6 @@ __all__ = [
     
     'load_expert_params',
     'create_space_from_ranges',
-    'compute_shap_based_ranges',
     
     'get_compressor',
 ]

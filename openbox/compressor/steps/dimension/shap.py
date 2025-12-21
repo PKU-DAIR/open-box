@@ -19,6 +19,11 @@ class SHAPDimensionStep(DimensionSelectionStep):
         self._calculator = SHAPImportanceCalculator()
         logger.debug(f"SHAPDimensionStep initialized: topk={topk}")
     
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['topk'] = self.topk
+        return info
+    
     def compress(self, input_space: ConfigurationSpace, 
                 space_history: Optional[List[History]] = None,
                 source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:

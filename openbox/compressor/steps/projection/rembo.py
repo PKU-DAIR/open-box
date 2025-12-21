@@ -186,3 +186,10 @@ class REMBOProjectionStep(TransformativeProjectionStep):
             self._high_to_low_cache[high_dim_key] = low_dim_key
             
             return low_dim_result
+    
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['low_dim'] = self.low_dim
+        if self._max_num_values is not None:
+            info['max_num_values'] = self._max_num_values
+        return info
