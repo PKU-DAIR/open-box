@@ -80,7 +80,15 @@ class CompressionPipeline:
         self.surrogate_space = self.space_after_steps[-1]
         # Sample space is determined by the last step that affects it
         self.sample_space = self.space_after_steps[sample_space_idx]
-    
+        
+        # Unprojected space is the input to the first transformative step (that needs unproject)
+        # Default: unproject to original space
+        self.unprojected_space = self.space_after_steps[0]  # original space
+        for i, step in enumerate(self.steps):
+            if step.needs_unproject():
+                self.unprojected_space = self.space_after_steps[i]
+                break
+
     def _build_sampling_strategy(self, original_space: ConfigurationSpace):
         # Check from last to first, only range compression can provide a mixed sampling strategy
         for step in reversed(self.steps):
