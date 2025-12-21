@@ -33,7 +33,6 @@ class KDEBoundaryRangeStep(BoundaryRangeStep):
             sigma=2.0,  # Not used in KDE method
             enable_mixed_sampling=enable_mixed_sampling,
             initial_prob=initial_prob,
-            use_shap=False,
             seed=seed,
             **kwargs
         )
@@ -163,4 +162,10 @@ class KDEBoundaryRangeStep(BoundaryRangeStep):
         
         logger.info(f"KDE-based ranges computed for {len(compressed_ranges)} parameters")
         return compressed_ranges
+    
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['source_top_ratio'] = self.source_top_ratio
+        info['kde_coverage'] = self.kde_coverage
+        return info
 

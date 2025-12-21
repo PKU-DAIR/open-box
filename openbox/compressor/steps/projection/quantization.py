@@ -170,3 +170,8 @@ class QuantizationProjectionStep(TransformativeProjectionStep):
                 return True
         
         return False
+    
+    def get_step_info(self) -> dict:
+        info = super().get_step_info()
+        info['max_num_values'] = self._max_num_values
+        return info

@@ -19,6 +19,7 @@ class CompressionPipeline:
         self.space_after_steps: List[ConfigurationSpace] = []
         self.sample_space: Optional[ConfigurationSpace] = None
         self.surrogate_space: Optional[ConfigurationSpace] = None
+        self.unprojected_space: Optional[ConfigurationSpace] = None  # Target space after unprojection
         
         self.sampling_strategy: Optional[SamplingStrategy] = None
         self.filling_strategy = None
@@ -67,19 +68,6 @@ class CompressionPipeline:
         
         self._build_sampling_strategy(original_space)
         
-        original_dim = len(original_space.get_hyperparameters())
-        sample_dim = len(self.sample_space.get_hyperparameters())
-        surrogate_dim = len(self.surrogate_space.get_hyperparameters())
-        
-        logger.info("=" * 60)
-        logger.info("Compression Pipeline Summary")
-        logger.info("=" * 60)
-        logger.info(f"Original space: {original_dim} parameters")
-        logger.info(f"Sample space: {sample_dim} parameters (ratio: {sample_dim/original_dim:.2%})")
-        logger.info(f"Surrogate space: {surrogate_dim} parameters (ratio: {surrogate_dim/original_dim:.2%})")
-        logger.info(f"Sampling strategy: {type(self.sampling_strategy).__name__}")
-        logger.info("=" * 60)
-
         return self.surrogate_space, self.sample_space
     
     def _determine_spaces(self):
