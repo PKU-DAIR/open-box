@@ -1,8 +1,8 @@
 import random
 from typing import List, Optional, Tuple, Dict, Any
-from openbox import logger
 from ConfigSpace import ConfigurationSpace, Configuration
 from .base import SamplingStrategy
+from openbox import logger
 
 
 class MixedRangeSamplingStrategy(SamplingStrategy):    
