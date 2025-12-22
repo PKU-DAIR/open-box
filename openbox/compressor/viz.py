@@ -5,132 +5,132 @@ from typing import List, Dict, Tuple, Optional
 from ConfigSpace import ConfigurationSpace
 import json
 import os
+from openbox import logger
 
 sns.set_style("whitegrid")
 plt.rcParams['figure.figsize'] = (12, 8)
 plt.rcParams['font.size'] = 10
 
 
-def visualize_compression_details(compressor, save_dir: str):
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as mpatches
-    from matplotlib.gridspec import GridSpec
-    
-    os.makedirs(save_dir, exist_ok=True)
-    
-    pipeline = compressor.pipeline
-    if pipeline is None:
-        print("  No pipeline found in compressor")
+def visualize_range_compression_step(step, step_index: int, save_dir: str):    
+    if not (hasattr(step, 'compression_info') and step.compression_info):
         return
     
-    for i, step in enumerate(pipeline.steps):
-        if hasattr(step, 'compression_info') and step.compression_info:
-            info = step.compression_info
+    info = step.compression_info
+    if 'compressed_params' not in info or len(info['compressed_params']) == 0:
+        return
+    
+    fig = plt.figure(figsize=(14, max(8, len(info['compressed_params']) * 0.4)))
+    
+    compressed_params = info['compressed_params']
+    n_params = len(compressed_params)
+    
+    if n_params > 30:
+        compressed_params = compressed_params[:30]
+        n_params = 30
+    
+    param_names = [p['name'].split('.')[-1] for p in compressed_params]
+    
+    original_ranges = []
+    compressed_ranges = []
+    compression_ratios = []
+    param_labels = []
+    
+    for param in compressed_params:
+        if 'original_range' in param:
+            original_ranges.append(param['original_range'])
+            compressed_ranges.append(param['compressed_range'])
+            compression_ratios.append(param['compression_ratio'])
             
-            if 'compressed_params' in info and len(info['compressed_params']) > 0:
-                fig = plt.figure(figsize=(14, max(8, len(info['compressed_params']) * 0.4)))
-                
-                compressed_params = info['compressed_params']
-                n_params = len(compressed_params)
-                
-                if n_params > 30:
-                    compressed_params = compressed_params[:30]
-                    n_params = 30
-                
-                param_names = [p['name'].split('.')[-1] for p in compressed_params]  # shorten label
-                
-                original_ranges = []
-                compressed_ranges = []
-                compression_ratios = []
-                param_labels = []
-                
-                for param in compressed_params:
-                    if 'original_range' in param:
-                        original_ranges.append(param['original_range'])
-                        compressed_ranges.append(param['compressed_range'])
-                        compression_ratios.append(param['compression_ratio'])
-                        
-                        if 'original_num_values' in param:
-                            label = f"{param['original_num_values']}→{param['quantized_num_values']} values"
-                            param_labels.append(label)
-                        else:
-                            param_labels.append('')
-                
-                y_pos = np.arange(n_params)
-                
-                ax = plt.subplot(111)
-                
-                for idx, (orig, comp, name, label) in enumerate(zip(original_ranges, compressed_ranges, param_names, param_labels)):
-                    orig_min, orig_max = orig[0], orig[1]
-                    comp_min, comp_max = comp[0], comp[1]
-                    
-                    norm_orig_start = 0.0
-                    norm_orig_end = 1.0
-                    
-                    is_quantization = label != ''  # quantiazation if has label
-                    
-                    if is_quantization:
-                        norm_comp_start = 0.0
-                        norm_comp_end = 1.0
-                        edge_style = 'dashed'
-                    else:
-                        if orig_max - orig_min > 0:
-                            norm_comp_start = (comp_min - orig_min) / (orig_max - orig_min)
-                            norm_comp_end = (comp_max - orig_min) / (orig_max - orig_min)
-                        else:
-                            norm_comp_start = 0.0
-                            norm_comp_end = 1.0
-                        edge_style = 'solid'
-                    
-                    ax.barh(idx, norm_orig_end - norm_orig_start, left=norm_orig_start, height=0.4, 
-                           alpha=0.3, color='gray', label='Original' if idx == 0 else '')
-                    
-                    ratio = compression_ratios[idx]
-                    color = plt.cm.RdYlGn_r(ratio)  # greener if has smaller compress ratio
-                    
-                    if is_quantization:
-                        ax.barh(idx, norm_comp_end - norm_comp_start, left=norm_comp_start, height=0.4,
-                               alpha=0.5, color=color, edgecolor=color, linewidth=2, linestyle='--',
-                               label='Quantized (mapped)' if idx == 0 and label else '')
-                    else:
-                        ax.barh(idx, norm_comp_end - norm_comp_start, left=norm_comp_start, height=0.4,
-                               alpha=0.8, color=color, label='Compressed' if idx == 0 and not label else '')
-                    
-                    if label:  # 量化参数
-                        ax.text(1.02, idx, f'{ratio:.1%} ({label})', 
-                               va='center', fontsize=7)
-                        ax.text(0.5, idx - 0.35, f'→[{int(comp_min)}, {int(comp_max)}]', 
-                               va='top', ha='center', fontsize=6, color='black', 
-                               fontweight='bold', style='italic')
-                    else:  # 范围压缩参数
-                        ax.text(1.02, idx, f'{ratio:.1%}', 
-                               va='center', fontsize=8)
-                        ax.text(0.5, idx - 0.35, f'→[{comp_min:.0f}, {comp_max:.0f}]', 
-                               va='top', ha='center', fontsize=6, color='black', 
-                               fontweight='bold')
-                    
-                    ax.text(-0.05, idx + 0.25, f'{orig_min:.0f}', 
-                           va='center', ha='right', fontsize=7, color='gray', alpha=0.6)
-                    ax.text(1.05, idx + 0.25, f'{orig_max:.0f}', 
-                           va='center', ha='left', fontsize=7, color='gray', alpha=0.6)
-                
-                ax.set_yticks(y_pos)
-                ax.set_yticklabels(param_names, fontsize=9)
-                ax.set_xlim(-0.15, 1.25)
-                ax.set_xlabel('Normalized Range [0=lower, 1=upper]', fontsize=12, fontweight='bold')
-                ax.set_title(f'{step.name}: Range Compression Details (Top {n_params} params)', 
-                           fontsize=14, fontweight='bold', pad=20)
-                ax.legend(loc='upper right')
-                ax.grid(axis='x', alpha=0.3)
-                
-                plt.tight_layout()
-                plt.savefig(os.path.join(save_dir, f'range_compression_step_{i+1}.png'), 
-                           dpi=300, bbox_inches='tight')
-                plt.close()
-                print(f"  Saved range_compression_step_{i+1}.png")
+            if 'original_num_values' in param:
+                label = f"{param['original_num_values']}→{param['quantized_num_values']} values"
+                param_labels.append(label)
+            else:
+                param_labels.append('')
+    
+    y_pos = np.arange(n_params)
+    ax = plt.subplot(111)
+    
+    for idx, (orig, comp, name, label) in enumerate(zip(original_ranges, compressed_ranges, param_names, param_labels)):
+        orig_min, orig_max = orig[0], orig[1]
+        comp_min, comp_max = comp[0], comp[1]
+        
+        norm_orig_start = 0.0
+        norm_orig_end = 1.0
+        
+        is_quantization = label != ''
+        
+        if is_quantization:
+            norm_comp_start = 0.0
+            norm_comp_end = 1.0
+            edge_style = 'dashed'
+        else:
+            if orig_max - orig_min > 0:
+                norm_comp_start = (comp_min - orig_min) / (orig_max - orig_min)
+                norm_comp_end = (comp_max - orig_min) / (orig_max - orig_min)
+            else:
+                norm_comp_start = 0.0
+                norm_comp_end = 1.0
+            edge_style = 'solid'
+        
+        ax.barh(idx, norm_orig_end - norm_orig_start, left=norm_orig_start, height=0.4, 
+               alpha=0.3, color='gray', label='Original' if idx == 0 else '')
+        
+        ratio = compression_ratios[idx]
+        color = plt.cm.RdYlGn_r(ratio)
+        
+        if is_quantization:
+            ax.barh(idx, norm_comp_end - norm_comp_start, left=norm_comp_start, height=0.4,
+                   alpha=0.5, color=color, edgecolor=color, linewidth=2, linestyle='--',
+                   label='Quantized (mapped)' if idx == 0 and label else '')
+        else:
+            ax.barh(idx, norm_comp_end - norm_comp_start, left=norm_comp_start, height=0.4,
+                   alpha=0.8, color=color, label='Compressed' if idx == 0 and not label else '')
+        
+        if label:
+            ax.text(1.02, idx, f'{ratio:.1%} ({label})', va='center', fontsize=7)
+            ax.text(0.5, idx - 0.35, f'→[{int(comp_min)}, {int(comp_max)}]', 
+                   va='top', ha='center', fontsize=12, color='black', 
+                   fontweight='bold', style='italic')
+        else:
+            ax.text(1.02, idx, f'{ratio:.1%}', va='center', fontsize=8)
+            ax.text(0.5, idx - 0.35, f'→[{comp_min:.0f}, {comp_max:.0f}]', 
+                   va='top', ha='center', fontsize=12, color='black', 
+                   fontweight='bold')
+        
+        ax.text(-0.05, idx + 0.25, f'{orig_min:.0f}', 
+               va='center', ha='right', fontsize=7, color='gray', alpha=0.6)
+        ax.text(1.05, idx + 0.25, f'{orig_max:.0f}', 
+               va='center', ha='left', fontsize=7, color='gray', alpha=0.6)
+    
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(param_names, fontsize=9)
+    ax.set_xlim(-0.15, 1.25)
+    ax.set_xlabel('Normalized Range [0=lower, 1=upper]', fontsize=12, fontweight='bold')
+    ax.set_title(f'{step.name}: Range Compression Details (Top {n_params} params)', 
+               fontsize=14, fontweight='bold', pad=20)
+    ax.legend(loc='upper right')
+    ax.grid(axis='x', alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_dir, f'range_compression_step_{step_index}.png'), 
+               dpi=300, bbox_inches='tight')
+    plt.close()
+    print(f"  Saved range_compression_step_{step_index}.png")
+
+
+def visualize_compression_summary(pipeline, save_path: str):
+    """
+    Generate a 4-panel compression summary visualization.
+    
+    Args:
+        pipeline: CompressionPipeline with compression steps
+        save_path: Path to save the summary plot
+    """
     
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     
+    # Panel 1: Dimension Reduction Across Steps
     ax = axes[0, 0]
     step_names = ['Original'] + [step.name for step in pipeline.steps]
     dimensions = [len(space.get_hyperparameters()) for space in pipeline.space_after_steps]
@@ -149,6 +149,7 @@ def visualize_compression_details(compressor, save_dir: str):
     ax.set_title('Dimension Reduction Across Steps', fontsize=12, fontweight='bold')
     ax.grid(axis='y', alpha=0.3)
     
+    # Panel 2: Compression Ratio by Step
     ax = axes[0, 1]
     compression_ratios = [dim / dimensions[0] for dim in dimensions[1:]]
     step_names_no_orig = step_names[1:]
@@ -169,6 +170,7 @@ def visualize_compression_details(compressor, save_dir: str):
     ax.legend()
     ax.grid(axis='y', alpha=0.3)
     
+    # Panel 3: Range Compression Statistics
     ax = axes[1, 0]
     range_stats = []
     step_labels = []
@@ -202,6 +204,7 @@ def visualize_compression_details(compressor, save_dir: str):
                transform=ax.transAxes, fontsize=14)
         ax.axis('off')
     
+    # Panel 4: Text Summary
     ax = axes[1, 1]
     ax.axis('off')
     
@@ -235,40 +238,124 @@ def visualize_compression_details(compressor, save_dir: str):
            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
     
     plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, 'compression_summary.png'), dpi=300, bbox_inches='tight')
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
     print(f"  Saved compression_summary.png")
 
 
-def visualize_dimension_reduction(steps: List[str], dimensions: List[int], save_path: str):
-    fig, ax = plt.subplots(figsize=(10, 6))
+def visualize_compression_details(compressor, save_dir: str):
+    """
+    Intelligently visualize compression details based on the steps used.
     
-    x_pos = np.arange(len(steps))
-    bars = ax.bar(x_pos, dimensions, alpha=0.7, color='steelblue')
+    This is the main dispatcher that coordinates all visualization functions.
+    It automatically generates relevant plots based on:
+    - Compression steps used (dimension selection, range compression, projection)
+    - Whether transfer learning is used (source similarities)
+    - Whether adaptive updates are used
+    - Whether multi-task data is available
     
-    for i, (bar, dim) in enumerate(zip(bars, dimensions)):
-        height = bar.get_height()
-        ax.text(bar.get_x() + bar.get_width()/2., height,
-                f'{dim}',
-                ha='center', va='bottom', fontsize=10, fontweight='bold')
+    Automatically generates:
+    - Compression summary (always)
+    - Range compression details (if range compression steps are used)
+    - Parameter importance (if importance-based dimension selection is used)
+    - Multi-task importance heatmap (if multiple source tasks are used)
+    - Dimension evolution (if adaptive dimension step with history is used)
+    - Source task similarities (if transfer learning is used)
+    """
+    os.makedirs(save_dir, exist_ok=True)
     
-    ax.set_xlabel('Compression Step', fontsize=12)
-    ax.set_ylabel('Number of Parameters', fontsize=12)
-    ax.set_title('Dimension Reduction Through Compression Pipeline', fontsize=14, fontweight='bold')
-    ax.set_xticks(x_pos)
-    ax.set_xticklabels(steps, rotation=45, ha='right')
-    ax.grid(axis='y', alpha=0.3)
+    pipeline = compressor.pipeline
+    if pipeline is None:
+        logger.warning("No pipeline found in compressor")
+        return
     
-    plt.tight_layout()
-    plt.savefig(save_path, dpi=300, bbox_inches='tight')
-    plt.close()
-    print(f"Saved dimension reduction plot to {save_path}")
+    # 1. Generate compression summary (always)
+    visualize_compression_summary(
+        pipeline=pipeline,
+        save_path=os.path.join(save_dir, 'compression_summary.png')
+    )
+    
+    # 2. Generate range compression details for each step
+    for i, step in enumerate(pipeline.steps):
+        visualize_range_compression_step(
+            step=step,
+            step_index=i+1,
+            save_dir=save_dir
+        )
+    
+    # Intelligent visualization based on step types
+    
+    # 1. Generate source task similarity plot if using transfer learning
+    if hasattr(compressor, '_source_similarities') and compressor._source_similarities:
+        try:
+            visualize_source_task_similarities(
+                similarities=compressor._source_similarities,
+                save_path=os.path.join(save_dir, 'source_task_similarities.png')
+            )
+        except Exception as e:
+            logger.warning(f"Failed to generate source task similarity plot: {e}")
+    
+    # Check for importance-based dimension selection steps
+    for i, step in enumerate(pipeline.steps):
+        step_class_name = step.__class__.__name__
+        
+        # 2. Generate parameter importance plot for SHAP/Correlation/Adaptive steps
+        if step_class_name in ['SHAPDimensionStep', 'CorrelationDimensionStep', 'AdaptiveDimensionStep']:
+            # Check if importance data is available
+            if hasattr(step, '_calculator') and hasattr(step._calculator, '_cache'):
+                cache = step._calculator._cache
+                if cache and 'importances' in cache and cache['importances'] is not None:
+                    importances = cache['importances']
+                    if hasattr(step._calculator, 'numeric_hyperparameter_names'):
+                        param_names = step._calculator.numeric_hyperparameter_names
+                        if len(param_names) > 0 and len(importances) > 0:
+                            # Generate single-task importance plot
+                            try:
+                                visualize_parameter_importance(
+                                    param_names=param_names,
+                                    importances=importances,
+                                    save_path=os.path.join(save_dir, f'parameter_importance_step_{i+1}.png'),
+                                    topk=min(20, len(param_names))
+                                )
+                            except Exception as e:
+                                logger.warning(f"Failed to generate parameter importance plot: {e}")
+                            
+                            # Check if multi-task data is available
+                            if (cache.get('importances_per_task') is not None and 
+                                cache.get('task_names') is not None):
+                                try:
+                                    visualize_importance_heatmap(
+                                        param_names=param_names,
+                                        importances=cache['importances_per_task'],
+                                        save_path=os.path.join(save_dir, f'multi_task_importance_heatmap_step_{i+1}.png'),
+                                        tasks=cache['task_names']
+                                    )
+                                except Exception as e:
+                                    logger.warning(f"Failed to generate multi-task importance heatmap: {e}")
+        
+        # 3. Generate dimension evolution plot for Adaptive step
+        if step_class_name == 'AdaptiveDimensionStep':
+            # Check if we have update history
+            if hasattr(compressor, '_dimension_history') and hasattr(compressor, '_iteration_history'):
+                iterations = compressor._iteration_history
+                dimensions = compressor._dimension_history
+                if len(iterations) > 1:  # Has at least initial + 1 update
+                    try:
+                        visualize_adaptive_dimension_evolution(
+                            iterations=iterations,
+                            dimensions=dimensions,
+                            save_path=os.path.join(save_dir, 'dimension_evolution.png'),
+                            title='Adaptive Dimension Evolution'
+                        )
+                    except Exception as e:
+                        logger.warning(f"Failed to generate dimension evolution plot: {e}")
 
 
 def visualize_parameter_importance(param_names: List[str], importances: List[float], save_path: str, topk: int = 20):
-    sorted_indices = np.argsort(importances)[-topk:]
+    abs_importances = np.abs(importances)
+    sorted_indices = np.argsort(abs_importances)[-topk:]
     top_names = [param_names[i] for i in sorted_indices]
-    top_importances = [importances[i] for i in sorted_indices]
+    top_importances = [abs_importances[i] for i in sorted_indices]
     
     fig, ax = plt.subplots(figsize=(10, 8))
     
@@ -293,131 +380,87 @@ def visualize_parameter_importance(param_names: List[str], importances: List[flo
     print(f"Saved parameter importance plot to {save_path}")
 
 
-def visualize_range_compression(original_ranges: Dict[str, Tuple[float, float]], 
-                                compressed_ranges: Dict[str, Tuple[float, float]],
-                                save_path: str, topk: int = 10):
-    compression_ratios = {}
-    for param_name in compressed_ranges:
-        if param_name in original_ranges:
-            orig_min, orig_max = original_ranges[param_name]
-            comp_min, comp_max = compressed_ranges[param_name]
-            orig_range = orig_max - orig_min
-            comp_range = comp_max - comp_min
-            if orig_range > 0:
-                compression_ratios[param_name] = comp_range / orig_range
+def visualize_adaptive_dimension_evolution(iterations: List[int], dimensions: List[int], 
+                                          save_path: str, title: str = 'Adaptive Dimension Evolution'):
+    fig, ax = plt.subplots(figsize=(10, 6))
     
-    sorted_params = sorted(compression_ratios.items(), key=lambda x: x[1])[:topk]
+    ax.plot(iterations, dimensions, marker='o', linewidth=2, markersize=8, 
+           color='steelblue', label='Dimensions')
     
-    fig, ax = plt.subplots(figsize=(12, 8))
+    for i in range(1, len(dimensions)):
+        if dimensions[i] != dimensions[i-1]:
+            ax.axvline(x=iterations[i], color='red', linestyle='--', alpha=0.5, linewidth=1)
+            # Annotate the change
+            change = dimensions[i] - dimensions[i-1]
+            change_str = f'+{change}' if change > 0 else str(change)
+            ax.annotate(f'{dimensions[i]}\n({change_str})', 
+                       xy=(iterations[i], dimensions[i]),
+                       xytext=(5, 10), textcoords='offset points',
+                       fontweight='bold', fontsize=9,
+                       bbox=dict(boxstyle='round,pad=0.3', facecolor='yellow', alpha=0.7))
     
-    y_pos = np.arange(len(sorted_params))
-    param_names = [p[0] for p in sorted_params]
+    ax.set_xlabel('Iteration', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Number of Dimensions', fontsize=12, fontweight='bold')
+    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc='best')
     
-    orig_widths = [original_ranges[p][1] - original_ranges[p][0] for p in param_names]
-    comp_widths = [compressed_ranges[p][1] - compressed_ranges[p][0] for p in param_names]
-    orig_starts = [original_ranges[p][0] for p in param_names]
-    comp_starts = [compressed_ranges[p][0] for p in param_names]
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
     
-    ax.barh(y_pos, orig_widths, left=orig_starts, alpha=0.5, label='Original Range', color='lightblue')
-    ax.barh(y_pos, comp_widths, left=comp_starts, alpha=0.8, label='Compressed Range', color='coral')
-    
-    ax.set_yticks(y_pos)
-    ax.set_yticklabels(param_names)
-    ax.set_xlabel('Parameter Value', fontsize=12)
-    ax.set_title(f'Range Compression (Top-{topk} Most Compressed)', fontsize=14, fontweight='bold')
-    ax.legend()
-    ax.grid(axis='x', alpha=0.3)
+    y_range = max(dimensions) - min(dimensions)
+    if y_range > 0:
+        ax.set_ylim([min(dimensions) - 0.5, max(dimensions) + 0.5])
     
     plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
-    print(f"Saved range compression plot to {save_path}")
+    print(f"Saved adaptive dimension evolution plot to {save_path}")
 
 
-def visualize_pipeline_flow(steps: List[Dict], save_path: str):
-    fig, ax = plt.subplots(figsize=(14, 6))
+def visualize_source_task_similarities(similarities: Dict[int, float], 
+                                       save_path: str,
+                                       task_names: Optional[List[str]] = None):    
+    if not similarities:
+        return
     
-    n_steps = len(steps)
-    x_positions = np.linspace(0, 10, n_steps + 1)
+    task_indices = sorted(similarities.keys())
+    sim_values = [similarities[idx] for idx in task_indices]
     
-    for i in range(n_steps):
-        step = steps[i]
-        x_start = x_positions[i]
-        x_end = x_positions[i + 1]
-        y_pos = 0.5
-        
-        rect = plt.Rectangle((x_start - 0.3, y_pos - 0.15), 0.6, 0.3,
-                            facecolor='steelblue', alpha=0.7, edgecolor='black')
-        ax.add_patch(rect)
-        
-        ax.text(x_start, y_pos, step['name'], ha='center', va='center',
-               fontsize=9, fontweight='bold', color='white')
-        
-        ax.text(x_start, y_pos - 0.3, f"{step['input_dim']}→{step['output_dim']}",
-               ha='center', va='top', fontsize=8)
-        
-        if i < n_steps - 1:
-            arrow = plt.Arrow(x_start + 0.3, y_pos, x_end - x_start - 0.6, 0,
-                            width=0.05, facecolor='black', edgecolor='black')
-            ax.add_patch(arrow)
+    if task_names is None:
+        task_names = [f'Source Task {idx}' for idx in task_indices]
     
-    ax.set_xlim(-0.5, 10.5)
-    ax.set_ylim(0, 1)
-    ax.set_aspect('equal')
-    ax.axis('off')
-    ax.set_title('Compression Pipeline Flow', fontsize=14, fontweight='bold', pad=20)
+    fig, ax = plt.subplots(figsize=(max(10, len(task_indices) * 0.8), 6))
+    
+    colors = plt.cm.RdYlGn(np.array(sim_values))
+    
+    bars = ax.bar(range(len(task_indices)), sim_values, color=colors, alpha=0.8, edgecolor='black')
+    
+    for bar, val in zip(bars, sim_values):
+        height = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+               f'{val:.3f}',
+               ha='center', va='bottom', fontweight='bold', fontsize=10)
+    
+    ax.set_xlabel('Source Tasks', fontsize=12, fontweight='bold')
+    ax.set_ylabel('Similarity Score', fontsize=12, fontweight='bold')
+    ax.set_title('Source Task Similarity to Target Task', fontsize=14, fontweight='bold')
+    ax.set_xticks(range(len(task_indices)))
+    ax.set_xticklabels(task_names, rotation=45, ha='right')
+    ax.set_ylim([0, max(sim_values) * 1.1])
+    ax.grid(axis='y', alpha=0.3)
     
     plt.tight_layout()
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
-    print(f"Saved pipeline flow plot to {save_path}")
-
-
-def save_compression_info(compressor, save_path: str):
-    info = {
-        'compression_info': compressor.compression_info,
-        'sample_space_params': len(compressor.sample_space.get_hyperparameters()),
-        'surrogate_space_params': len(compressor.surrogate_space.get_hyperparameters()),
-    }
-    
-    if hasattr(compressor, 'pipeline') and compressor.pipeline:
-        steps_info = []
-        for i, step in enumerate(compressor.pipeline.steps):
-            step_info = {
-                'step_index': i + 1,
-                'step_name': step.name,
-                'step_type': step.__class__.__name__,
-                'input_dim': len(step.input_space.get_hyperparameters()) if step.input_space else 0,
-                'output_dim': len(step.output_space.get_hyperparameters()) if step.output_space else 0
-            }
-            
-            if hasattr(step, '_shap_cache') and step._shap_cache.get('importances') is not None:
-                importances = step._shap_cache['importances']
-                param_names = step.input_space.get_hyperparameter_names() if step.input_space else []
-                importance_dict = {name: float(imp) for name, imp in zip(param_names, importances)}
-                step_info['parameter_importances'] = importance_dict
-                step_info['selected_params'] = getattr(step, 'selected_param_names', [])
-            
-            if hasattr(step, 'compression_info'):
-                step_info['compression_details'] = step.compression_info if step.compression_info else {}
-            
-            steps_info.append(step_info)
-        
-        info['steps'] = steps_info
-    
-    with open(save_path, 'w') as f:
-        json.dump(info, f, indent=2, default=str)
-    
-    print(f"Saved compression info to {save_path}")
-
+    print(f"  Saved source_task_similarities.png")
 
 
 def visualize_importance_heatmap(param_names: List[str], importances: np.ndarray, 
-                                 save_path: str, tasks: Optional[List[str]] = None):
-    import seaborn as sns
-    
+                                 save_path: str, tasks: Optional[List[str]] = None):    
     if len(importances.shape) == 1:
         importances = importances.reshape(1, -1)
+    
+    importances = np.abs(importances)
     
     n_tasks, n_params = importances.shape
     
@@ -433,21 +476,51 @@ def visualize_importance_heatmap(param_names: List[str], importances: np.ndarray
     
     short_names = [name.split('.')[-1] if len(name) > 20 else name for name in param_names]
     
-    fig, ax = plt.subplots(figsize=(max(12, n_params * 0.4), max(6, n_tasks * 0.5)))
+    fig, ax = plt.subplots(figsize=(max(14, n_params * 0.5), max(8, n_tasks * 0.6)))
     
-    sns.heatmap(importances, annot=False, fmt='.3f', cmap='YlOrRd', 
-                xticklabels=short_names, yticklabels=tasks,
-                cbar_kws={'label': 'Importance Score'}, ax=ax)
+    if importances.max() > 0:
+        normalized_importances = importances / importances.max()
+    else:
+        normalized_importances = importances
     
-    ax.set_xlabel('Parameters', fontsize=12, fontweight='bold')
-    ax.set_ylabel('Tasks', fontsize=12, fontweight='bold')
-    ax.set_title('Parameter Importance Heatmap', fontsize=14, fontweight='bold')
+    # Choose colormap (feel free to change):
+    # Option 1: 'RdYlGn_r' - Red (low) -> Yellow (medium) -> Green (high) [Intuitive]
+    # Option 2: 'viridis' - Purple (low) -> Green -> Yellow (high) [Perceptually uniform]
+    # Option 3: 'plasma' - Dark blue (low) -> Purple -> Orange -> Yellow (high) [Good contrast]
+    # Option 4: 'rocket_r' - Black (low) -> Red -> Orange (high) [High contrast]
+    # Option 5: 'mako_r' - Teal (low) -> Green -> Yellow (high) [Cool tones]
+    cmap = sns.color_palette("RdYlGn_r", as_cmap=True)
     
-    plt.xticks(rotation=45, ha='right')
-    plt.yticks(rotation=0)
+    show_annotations = (n_tasks <= 5 and n_params <= 20)
+    
+    sns.heatmap(normalized_importances, 
+                annot=show_annotations,
+                fmt='.2f' if show_annotations else '',
+                cmap=cmap,
+                xticklabels=short_names, 
+                yticklabels=tasks,
+                cbar_kws={
+                    'label': 'Normalized Importance Score',
+                    'orientation': 'vertical',
+                    'pad': 0.02
+                },
+                linewidths=0.5,
+                linecolor='white',
+                square=False,
+                ax=ax)
+    
+    ax.set_xlabel('Parameters', fontsize=13, fontweight='bold', labelpad=10)
+    ax.set_ylabel('Tasks', fontsize=13, fontweight='bold', labelpad=10)
+    ax.set_title('Multi-Task Parameter Importance Heatmap', 
+                fontsize=15, fontweight='bold', pad=15)
+    
+    plt.xticks(rotation=45, ha='right', fontsize=10)
+    plt.yticks(rotation=0, fontsize=11)
+    
+    ax.set_facecolor('#f0f0f0')
     
     plt.tight_layout()
-    plt.savefig(save_path, dpi=200, bbox_inches='tight')
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
     plt.close()
     
-    print(f"Saved importance heatmap to {save_path}")
+    print(f"  Saved multi_task_importance_heatmap.png")
