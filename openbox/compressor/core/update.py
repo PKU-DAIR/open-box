@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 from openbox.utils.history import History
 from .progress import OptimizerProgress
+from openbox import logger
 
 
 class UpdateStrategy(ABC):    

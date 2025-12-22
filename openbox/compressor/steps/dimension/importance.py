@@ -2,10 +2,9 @@ import numpy as np
 import pandas as pd
 from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple, Dict
-from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
-
+from openbox import logger
 from ...utils import (
     extract_numeric_hyperparameters,
     extract_top_samples_from_history,
@@ -32,6 +31,8 @@ class SHAPImportanceCalculator(ImportanceCalculator):
             'importances': None,
             'shap_values': None,
             'n_features': None,
+            'importances_per_task': None,  # Store per-task importances for multi-task visualization
+            'task_names': None,  # Store task names
         }
         self.numeric_hyperparameter_names: List[str] = []
         self.numeric_hyperparameter_indices: List[int] = []
@@ -105,7 +106,7 @@ class SHAPImportanceCalculator(ImportanceCalculator):
         importances_array = np.array(importances_list)
         if source_similarities:
             weights = np.array([
-                source_similarities.get(task_idx, 0.0) 
+                source_similarities.get(task_idx, 1.0) 
                 for task_idx in range(len(importances_list))
             ])
             weights_sum = weights.sum()
@@ -118,11 +119,21 @@ class SHAPImportanceCalculator(ImportanceCalculator):
         
         importances = np.average(importances_array, axis=0, weights=weights)
         
+        # Extract task names from history
+        task_names = []
+        for i, history in enumerate(space_history):
+            if hasattr(history, 'task_id') and history.task_id:
+                task_names.append(history.task_id)
+            else:
+                task_names.append(f'Task {i}')
+        
         self._cache.update({
             'models': models,
             'importances': importances,
             'shap_values': shap_values,
             'n_features': len(self.numeric_hyperparameter_names),
+            'importances_per_task': importances_array if len(importances_array) > 1 else None,  # Only save if multiple tasks
+            'task_names': task_names if len(task_names) > 1 else None,
         })
         
         return importances
@@ -138,12 +149,19 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
             method: 'spearman' or 'pearson'
         """
         self.method = method
+        self._cache = {
+            'importances': None,
+            'importances_per_task': None,
+            'task_names': None,
+        }
+        self.numeric_hyperparameter_names: List[str] = []
     
     def calculate_importances(self,
                              input_space: ConfigurationSpace,
                              space_history: Optional[List[History]] = None,
                              source_similarities: Optional[Dict[int, float]] = None) -> Tuple[List[str], np.ndarray]:
         numeric_param_names, _ = extract_numeric_hyperparameters(input_space)
+        self.numeric_hyperparameter_names = numeric_param_names
         
         all_x, all_y = extract_top_samples_from_history(
             space_history, numeric_param_names, input_space,
@@ -153,14 +171,26 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
             logger.warning("No data available for correlation")
             return numeric_param_names, np.ones(len(numeric_param_names))
         
-        if len(all_x) > 1 and source_similarities:
-            importances = self._compute_weighted_correlations(
-                all_x, all_y, numeric_param_names, source_similarities
-            )
-        else:
-            importances = self._compute_pooled_correlations(
-                all_x, all_y, numeric_param_names
-            )
+        if not source_similarities:
+            source_similarities = {i: 1.0 for i in range(len(all_x))}
+        
+        importances, importances_per_task = self._compute_weighted_correlations(
+            all_x, all_y, numeric_param_names, source_similarities
+        )
+        
+        # Extract task names from history
+        task_names = []
+        for i, history in enumerate(space_history):
+            if hasattr(history, 'task_id') and history.task_id:
+                task_names.append(history.task_id)
+            else:
+                task_names.append(f'Task {i}')
+        
+        self._cache.update({
+            'importances': importances,
+            'importances_per_task': importances_per_task if len(all_x) > 1 else None,
+            'task_names': task_names if len(all_x) > 1 else None,
+        })
         
         df = pd.DataFrame({
             "feature": numeric_param_names,
@@ -170,25 +200,13 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
         
         return numeric_param_names, importances
     
-    def _compute_pooled_correlations(self, all_x, all_y, numeric_param_names) -> np.ndarray:
-        from scipy.stats import spearmanr, pearsonr
-        X = np.vstack(all_x)
-        y = np.hstack(all_y)
-        if len(X) < 2:
-            logger.warning("Insufficient data for correlation")
-            return np.ones(len(numeric_param_names))
-        
-        importances = []
-        for i in range(X.shape[1]):
-            if self.method == 'spearman':
-                corr, _ = spearmanr(X[:, i], y)
-            else:
-                corr, _ = pearsonr(X[:, i], y)
-            importances.append(-abs(corr) if not np.isnan(corr) else 0.0)
-        return np.array(importances)
-    
     def _compute_weighted_correlations(self, all_x, all_y, numeric_param_names,
-                                    source_similarities) -> np.ndarray:
+                                    source_similarities):
+        """
+        Compute weighted correlations based on task similarities.
+        
+        Single task is treated as having similarity=1.0.
+        """
         from scipy.stats import spearmanr, pearsonr
                 
         correlations_list = []
@@ -221,11 +239,11 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
         
         if len(correlations_list) == 0:
             logger.warning("No correlations computed")
-            return np.ones(len(numeric_param_names))
+            return np.ones(len(numeric_param_names)), None
         
         correlations_array = np.array(correlations_list)
         weights = np.array([
-            source_similarities.get(task_idx, 0.0) 
+            source_similarities.get(task_idx, 1.0)  # Default to 1.0 if not specified
             for task_idx in range(len(correlations_list))
         ])
         weights_sum = weights.sum()
@@ -236,7 +254,12 @@ class CorrelationImportanceCalculator(ImportanceCalculator):
             weights = np.ones(len(correlations_list)) / len(correlations_list)
         
         correlations = np.average(correlations_array, axis=0, weights=weights)
-        return -correlations
+        
+        # Return weighted importance and per-task data (only for multiple tasks)
+        importances = -correlations
+        importances_per_task = -correlations_array if len(correlations_list) > 1 else None
+        
+        return importances, importances_per_task
     
     def get_name(self) -> str:
         return f"Correlation({self.method})"
