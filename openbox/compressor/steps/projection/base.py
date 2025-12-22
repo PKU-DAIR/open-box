@@ -1,11 +1,11 @@
 from typing import Optional, List, Dict
 import numpy as np
-from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 import ConfigSpace.hyperparameters as CSH
 
 from ...core.step import CompressionStep
+from openbox import logger
 
 
 class TransformativeProjectionStep(CompressionStep):

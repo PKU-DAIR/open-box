@@ -6,8 +6,7 @@ from typing import Dict, Any, Tuple, List, Optional, Union
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace, Configuration
 from ConfigSpace.hyperparameters import UniformIntegerHyperparameter, UniformFloatHyperparameter
-from openbox import space as sp, logger
-
+from openbox import space as sp, logger as _logger
 
 def create_param(key, value):
     q_val = value.get('q', None)
@@ -110,17 +109,17 @@ def create_space_from_ranges(
                         log=hp.log if hasattr(hp, 'log') else False
                     )
                 else:
-                    logger.warning(f"Unsupported hyperparameter type for {param_name}: {type(hp)}")
+                    _logger.warning(f"Unsupported hyperparameter type for {param_name}: {type(hp)}")
                     continue
                 compressed_space._hyperparameters.pop(param_name)
                 compressed_space.add_hyperparameter(new_hp)
                 
-                logger.info(
+                _logger.info(
                     f"Compressed {param_name}: [{original_lower}, {original_upper}] -> "
                     f"[{new_hp.lower}, {new_hp.upper}]"
                 )
         except Exception as e:
-            logger.warning(f"Failed to compress parameter {param_name}: {e}")
+            _logger.warning(f"Failed to compress parameter {param_name}: {e}")
             
     return compressed_space
 
@@ -128,10 +127,10 @@ def create_space_from_ranges(
 def load_performance_data(data_path: str) -> pd.DataFrame:
     try:
         data = pd.read_csv(data_path)
-        logger.debug(f"Loaded {len(data)} records from {data_path}")
+        _logger.debug(f"Loaded {len(data)} records from {data_path}")
         return data
     except Exception as e:
-        logger.error(f"Failed to load data from {data_path}: {e}")
+        _logger.error(f"Failed to load data from {data_path}: {e}")
         return None
 
 def extract_top_samples_from_history(
@@ -161,7 +160,7 @@ def extract_top_samples_from_history(
                     valid_objectives.append(obj_value)
         
         if len(valid_configs) == 0:
-            logger.debug(f"Skipping history with no valid objectives")
+            _logger.debug(f"Skipping history with no valid objectives")
             continue
         
         x_numeric = extract_numeric_values_from_configs(
@@ -201,11 +200,11 @@ def extract_numeric_values_from_configs(
         try:
             hp = input_space.get_hyperparameter(param_name)
         except KeyError:
-            logger.warning(f"Parameter {param_name} not found in input_space, skipping")
+            _logger.warning(f"Parameter {param_name} not found in input_space, skipping")
             continue
         
         if not hasattr(hp, 'lower') or not hasattr(hp, 'upper'):
-            logger.warning(f"Parameter {param_name} is not numeric, skipping")
+            _logger.warning(f"Parameter {param_name} is not numeric, skipping")
             continue
         
         lower = hp.lower
@@ -223,7 +222,7 @@ def extract_numeric_values_from_configs(
             
             if value is None:
                 value = hp.default_value
-                logger.warning(f"Parameter {param_name} not found in config {j}, using default {value}")
+                _logger.warning(f"Parameter {param_name} not found in config {j}, using default {value}")
             
             if normalize and range_size > 0:
                 normalized_value = (value - lower) / range_size
@@ -241,13 +240,13 @@ def load_expert_params(expert_config_file: str, key: str = 'spark') -> List[str]
         return expert_params
         
     except FileNotFoundError:
-        logger.warning(f"Expert config file not found: {expert_config_file}")
+        _logger.warning(f"Expert config file not found: {expert_config_file}")
         return []
     except json.JSONDecodeError as e:
-        logger.error(f"Error parsing expert config file: {e}")
+        _logger.error(f"Error parsing expert config file: {e}")
         return []
     except Exception as e:
-        logger.error(f"Error loading expert parameters: {e}")
+        _logger.error(f"Error loading expert parameters: {e}")
         return []
 
 

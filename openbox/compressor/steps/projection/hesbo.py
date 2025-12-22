@@ -1,11 +1,10 @@
 import numpy as np
 from typing import Optional, List
-from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace, Configuration
 import ConfigSpace as CS
 from sklearn.preprocessing import MinMaxScaler
-
+from openbox import logger
 from .base import TransformativeProjectionStep
 
 
