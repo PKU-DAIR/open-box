@@ -1,5 +1,6 @@
 from typing import List, Optional
 from openbox.utils.history import History
+from openbox import logger
 
 
 class OptimizerProgress:
