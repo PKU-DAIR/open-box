@@ -1,6 +1,5 @@
 import numpy as np
 from typing import Optional, List, Dict
-from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 
@@ -8,7 +7,7 @@ from .base import DimensionSelectionStep
 from .importance import ImportanceCalculator, SHAPImportanceCalculator
 from ...core import OptimizerProgress
 from ...core.update import UpdateStrategy, PeriodicUpdateStrategy
-
+from openbox import logger
 
 class AdaptiveDimensionStep(DimensionSelectionStep):    
     def __init__(self,
@@ -18,8 +17,10 @@ class AdaptiveDimensionStep(DimensionSelectionStep):
                  reduction_ratio: float = 0.2,
                  min_dimensions: int = 5,
                  max_dimensions: Optional[int] = None,
+                 expert_params: Optional[List[str]] = None,
+                 exclude_params: Optional[List[str]] = None,
                  **kwargs):
-        super().__init__(strategy='adaptive', **kwargs)
+        super().__init__(strategy='adaptive', expert_params=expert_params, exclude_params=exclude_params, **kwargs)
         
         self.importance_calculator = importance_calculator or SHAPImportanceCalculator()
         self.update_strategy = update_strategy or PeriodicUpdateStrategy(period=5)
@@ -48,39 +49,42 @@ class AdaptiveDimensionStep(DimensionSelectionStep):
                 source_similarities: Optional[Dict[int, float]] = None) -> ConfigurationSpace:
         self.original_space = input_space
         self.space_history = space_history
-        
+        # Use base class compress which handles expert_params and exclude_params
+        return super().compress(input_space, space_history, source_similarities)
+    
+    def _select_parameters(self,
+                          input_space: ConfigurationSpace,
+                          space_history: Optional[List[History]] = None,
+                          source_similarities: Optional[Dict[int, float]] = None) -> List[int]:
         param_names, importances = self.importance_calculator.calculate_importances(
             input_space, space_history, source_similarities
         )
         
         if len(param_names) == 0:
-            logger.warning("No numeric parameters detected, returning input space")
-            return input_space
+            logger.warning("No numeric parameters detected, keeping all parameters")
+            return list(range(len(input_space.get_hyperparameter_names())))
         
-        topk = min(self.current_topk, len(param_names))
-        if self.max_dimensions is not None:
-            topk = min(topk, self.max_dimensions)
-        topk = max(topk, self.min_dimensions)
-        
-        selected_numeric_indices = np.argsort(importances)[:topk].tolist()
-        selected_param_names = [param_names[i] for i in selected_numeric_indices]
-        importances_selected = importances[selected_numeric_indices]
-        
-        logger.debug(f"{self.importance_calculator.get_name()} selected parameters: {selected_param_names}")
-        logger.debug(f"{self.importance_calculator.get_name()} importances: {importances_selected}")
+        # Return all parameters sorted by importance (not just topk)
+        # Base class will select current_topk from this sorted list
+        sorted_numeric_indices = np.argsort(importances).tolist()
         
         all_param_names = input_space.get_hyperparameter_names()
-        selected_indices = [all_param_names.index(name) for name in selected_param_names]
+        sorted_indices = [all_param_names.index(param_names[i]) for i in sorted_numeric_indices]
         
-        compressed_space = self._create_compressed_space(input_space, selected_indices)
-        self.selected_indices = selected_indices
-        self.selected_param_names = selected_param_names
+        # Calculate target topk for logging
+        target_topk = min(self.current_topk, len(param_names))
+        if self.max_dimensions is not None:
+            target_topk = min(target_topk, self.max_dimensions)
+        target_topk = max(target_topk, self.min_dimensions)
         
-        logger.debug(f"Adaptive dimension selection: {len(input_space.get_hyperparameters())} -> "
-                    f"{len(compressed_space.get_hyperparameters())} parameters "
-                    f"(using {self.importance_calculator.get_name()})")
+        topk_indices = sorted_indices[:target_topk] if target_topk > 0 else []
+        topk_names = [all_param_names[i] for i in topk_indices]
+        topk_importances = importances[sorted_numeric_indices[:target_topk]] if target_topk > 0 else []
         
-        return compressed_space
+        logger.debug(f"{self.importance_calculator.get_name()} sorted all {len(sorted_indices)} parameters by importance")
+        logger.debug(f"{self.importance_calculator.get_name()} target top-{target_topk} parameters: {topk_names}")
+        logger.debug(f"{self.importance_calculator.get_name()} target top-{target_topk} importances: {topk_importances}")        
+        return sorted_indices
     
     def supports_adaptive_update(self) -> bool:
         return self.update_strategy is not None
