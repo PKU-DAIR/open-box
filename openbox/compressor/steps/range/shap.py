@@ -1,12 +1,11 @@
 import copy
 import numpy as np
 from typing import Optional, List, Tuple, Dict
-from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 from sklearn.ensemble import RandomForestRegressor
 import shap
-
+from openbox import logger
 from .boundary import BoundaryRangeStep
 from ...utils import (
     create_space_from_ranges,
@@ -85,7 +84,13 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
         
         compressed_ranges = {}
         
+        fixed_params = self._get_fixed_params()
+        
         for i, param_name in enumerate(numeric_param_names):
+            if param_name in fixed_params:
+                logger.debug(f"Skipping range compression for fixed parameter '{param_name}'")
+                continue
+            
             param_shap = shap_vals_array[:, i]  # Original SHAP values (can be negative)
             param_values = X_combined[:, i]
 
@@ -109,10 +114,13 @@ class SHAPBoundaryRangeStep(BoundaryRangeStep):
                 )
                 beneficial_shap = -beneficial_shap  # Convert negative to positive weights
             
+            # Get similarity weights for beneficial samples
             if source_similarities:
                 beneficial_similarities = np.array([
                     source_similarities.get(idx, 0.0) for idx in beneficial_history_indices
                 ])
+            else:
+                beneficial_similarities = np.ones_like(beneficial_shap)
             
             # Combined weight = SHAP weight * similarity weight
             combined_weights = beneficial_shap * beneficial_similarities
