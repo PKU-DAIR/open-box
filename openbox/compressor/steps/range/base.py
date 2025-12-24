@@ -1,8 +1,8 @@
 import copy
 from typing import Optional, List, Dict
-from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
+from openbox import logger
 
 from ...core.step import CompressionStep
 
@@ -80,6 +80,11 @@ class RangeCompressionStep(CompressionStep):
             details['avg_compression_ratio'] = 1.0
         
         return details
+    
+    def _get_fixed_params(self) -> set:
+        if self.filling_strategy is not None:
+            return set(self.filling_strategy.fixed_values.keys())
+        return set()
     
     def _compute_compressed_space(self, 
                                   input_space: ConfigurationSpace,

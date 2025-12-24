@@ -1,11 +1,10 @@
 import copy
 import numpy as np
 from typing import Optional, List, Tuple, Dict
-from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 from scipy.stats import gaussian_kde
-
+from openbox import logger
 from .boundary import BoundaryRangeStep
 from ...utils import (
     create_space_from_ranges,
@@ -17,16 +16,12 @@ from ...utils import (
 class KDEBoundaryRangeStep(BoundaryRangeStep):    
     def __init__(self,
                  method: str = 'kde_boundary',
-                 source_top_ratio: float = 0.3,  # Top 30% of source task configs
                  kde_coverage: float = 0.6,  # Coverage ratio for KDE interval
                  enable_mixed_sampling: bool = True,
                  initial_prob: float = 0.9,
                  seed: Optional[int] = None,
                  top_ratio: Optional[float] = None,
                  **kwargs):
-        if top_ratio is None:
-            top_ratio = source_top_ratio
-        
         super().__init__(
             method=method,
             top_ratio=top_ratio,
@@ -36,8 +31,8 @@ class KDEBoundaryRangeStep(BoundaryRangeStep):
             seed=seed,
             **kwargs
         )
-        self.source_top_ratio = source_top_ratio
         self.kde_coverage = kde_coverage
+        logger.info(f"KDEBoundaryRangeStep initialized with top_ratio={top_ratio}, kde_coverage={kde_coverage}")
 
     
     def _compute_compressed_space(self,
@@ -68,11 +63,15 @@ class KDEBoundaryRangeStep(BoundaryRangeStep):
                                 numeric_param_names: List[str],
                                 original_space: ConfigurationSpace,
                                 source_similarities: Optional[Dict[int, float]] = None) -> Dict[str, Tuple[float, float]]:
-        median_top_ratio = self.source_top_ratio
+        median_top_ratio = self.top_ratio
         
         compressed_ranges = {}
-        
+        fixed_params = self._get_fixed_params()
         for param_name in numeric_param_names:
+            if param_name in fixed_params:
+                logger.debug(f"Skipping range compression for fixed parameter '{param_name}'")
+                continue
+            
             weighted_values = []
             weights = []
             
@@ -94,11 +93,25 @@ class KDEBoundaryRangeStep(BoundaryRangeStep):
                 if len(objectives) == 0:
                     continue
                 
-                sorted_indices = np.argsort(objectives.flatten())
-                top_n = max(1, int(len(sorted_indices) * median_top_ratio))
-                top_indices = sorted_indices[: top_n]
+                obj_flat = objectives.flatten()
+                valid_mask = np.isfinite(obj_flat)
+                valid_indices = np.where(valid_mask)[0]
+                
+                if len(valid_indices) == 0:
+                    logger.warning(f"Task {task_idx}: all objectives are inf/nan, skipping")
+                    continue
+                
+                valid_objectives = obj_flat[valid_indices]
+                sorted_valid_indices = np.argsort(valid_objectives)
+                
+                top_n = max(1, int(len(valid_indices) * median_top_ratio))
+                top_indices_in_valid = sorted_valid_indices[:top_n]
+                
+                top_indices = valid_indices[top_indices_in_valid]
                 
                 top_configs = [history.observations[idx].config for idx in top_indices]
+
+                logger.debug(f"KDEBoundaryRangeStep: top_indices: {top_indices}, len(top_indices): {len(top_indices)}")
                 param_values = extract_numeric_values_from_configs(
                     top_configs, [param_name], original_space, normalize=False
                 )
@@ -165,7 +178,7 @@ class KDEBoundaryRangeStep(BoundaryRangeStep):
     
     def get_step_info(self) -> dict:
         info = super().get_step_info()
-        info['source_top_ratio'] = self.source_top_ratio
+        info['top_ratio'] = self.top_ratio
         info['kde_coverage'] = self.kde_coverage
         return info
 
