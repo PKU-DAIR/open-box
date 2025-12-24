@@ -2,10 +2,9 @@ import copy
 import numpy as np
 import pandas as pd
 from typing import Optional, List, Tuple, Dict
-from openbox import logger
 from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
-
+from openbox import logger
 from .base import RangeCompressionStep
 from ...utils import (
     create_space_from_ranges,
@@ -85,8 +84,13 @@ class BoundaryRangeStep(RangeCompressionStep):
         
         X_combined = np.vstack(all_x)
         
+        fixed_params = self._get_fixed_params()
+        
         compressed_ranges = {}
         for i, param_name in enumerate(numeric_param_names):
+            if param_name in fixed_params:
+                logger.debug(f"Skipping range compression for fixed parameter '{param_name}'")
+                continue
             values_norm = X_combined[:, i]
             
             mean = np.mean(values_norm)
