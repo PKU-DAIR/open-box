@@ -1,5 +1,5 @@
 from typing import Type, Optional
-from ConfigSpace import ConfigurationSpace
+from ConfigSpace import ConfigurationSpace, Configuration
 
 from .core import (
     CompressionStep,
@@ -43,6 +43,19 @@ from .utils import (
     create_space_from_ranges,
 )
 
+from .api import (
+    create_step_from_string,
+    create_steps_from_strings,
+    get_available_step_strings,
+    validate_step_string,
+    create_filling_from_string,
+    create_filling_from_config,
+    get_available_filling_strings,
+    validate_filling_string,
+    get_filling_info,
+    compress_from_config,
+)
+
 _COMPRESSOR_REGISTRY = {
     'pipeline': Compressor,
     'shap': None,
@@ -78,7 +91,16 @@ def get_compressor(compressor_type: Optional[str] = None,
             def _compress_space_impl(self, space_history=None):
                 return config_space, config_space
             def unproject_point(self, point):
-                return point.get_dictionary() if hasattr(point, 'get_dictionary') else dict(point)
+                if hasattr(point, 'get_dictionary'):
+                    values = point.get_dictionary()
+                    target_space = getattr(point, 'configuration_space', config_space)
+                elif isinstance(point, dict):
+                    values = point
+                    target_space = config_space
+                else:
+                    values = dict(point)
+                    target_space = config_space
+                return Configuration(target_space, values=values)
         return NoCompressor(config_space=config_space, **kwargs)
     
     steps = []
@@ -163,7 +185,16 @@ def get_compressor(compressor_type: Optional[str] = None,
             def _compress_space_impl(self, space_history=None):
                 return config_space, config_space
             def unproject_point(self, point):
-                return point.get_dictionary() if hasattr(point, 'get_dictionary') else dict(point)
+                if hasattr(point, 'get_dictionary'):
+                    values = point.get_dictionary()
+                    target_space = getattr(point, 'configuration_space', config_space)
+                elif isinstance(point, dict):
+                    values = point
+                    target_space = config_space
+                else:
+                    values = dict(point)
+                    target_space = config_space
+                return Configuration(target_space, values=values)
         return NoCompressor(config_space=config_space, **kwargs)
 
 
@@ -199,4 +230,16 @@ __all__ = [
     'create_space_from_ranges',
     
     'get_compressor',
+    
+    'create_step_from_string',
+    'create_steps_from_strings',
+    'get_available_step_strings',
+    'validate_step_string',
+    'create_filling_from_string',
+    'create_filling_from_config',
+    'get_available_filling_strings',
+    'validate_filling_string',
+    'get_filling_info',
+
+    'compress_from_config',
 ]
