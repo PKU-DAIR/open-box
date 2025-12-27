@@ -1,11 +1,17 @@
 from typing import Type, Optional
 from ConfigSpace import ConfigurationSpace, Configuration
+from .compressor import Compressor
+from .pipeline import CompressionPipeline
+from .progress import OptimizerProgress
+from .step import CompressionStep
 
-from .core import (
-    CompressionStep,
-    Compressor,
-    CompressionPipeline,
-    OptimizerProgress,
+from .update import (
+    UpdateStrategy,
+    PeriodicUpdateStrategy,
+    StagnationUpdateStrategy,
+    ImprovementUpdateStrategy,
+    HybridUpdateStrategy,
+    CompositeUpdateStrategy,
 )
 
 from .steps.dimension import (
@@ -203,6 +209,13 @@ __all__ = [
     'Compressor',
     'CompressionPipeline',
     'OptimizerProgress',
+
+    'UpdateStrategy',
+    'PeriodicUpdateStrategy',
+    'StagnationUpdateStrategy',
+    'ImprovementUpdateStrategy',
+    'HybridUpdateStrategy',
+    'CompositeUpdateStrategy',
     
     'DimensionSelectionStep',
     'SHAPDimensionStep',

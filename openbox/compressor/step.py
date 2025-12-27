@@ -8,10 +8,10 @@ from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 from openbox import logger
 
-from .progress import OptimizerProgress
+from . import OptimizerProgress
 if TYPE_CHECKING:
-    from ..sampling import SamplingStrategy
-    from ..filling import FillingStrategy
+    from .sampling import SamplingStrategy
+    from .filling import FillingStrategy
 
 
 class CompressionStep(ABC):    

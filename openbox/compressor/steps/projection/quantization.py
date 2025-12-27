@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from openbox import logger
 from .base import TransformativeProjectionStep
-from ...core import OptimizerProgress
+from ... import OptimizerProgress
 
 
 class QuantizationProjectionStep(TransformativeProjectionStep):
