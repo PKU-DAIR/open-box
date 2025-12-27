@@ -26,7 +26,7 @@ from ..steps.projection import (
     HesBOProjectionStep,
     KPCAProjectionStep,
 )
-from ..core import (
+from .. import (
     CompressionStep,
     PeriodicUpdateStrategy,
     StagnationUpdateStrategy,

@@ -6,7 +6,7 @@ from openbox import logger
 
 from .step import CompressionStep
 from .progress import OptimizerProgress
-from ..sampling import SamplingStrategy, StandardSamplingStrategy
+from .sampling import SamplingStrategy, StandardSamplingStrategy
 
 
 class CompressionPipeline:    

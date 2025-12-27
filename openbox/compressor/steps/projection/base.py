@@ -4,7 +4,7 @@ from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 import ConfigSpace.hyperparameters as CSH
 
-from ...core.step import CompressionStep
+from ... import CompressionStep
 from openbox import logger
 
 

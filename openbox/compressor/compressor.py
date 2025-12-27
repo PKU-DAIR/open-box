@@ -8,8 +8,8 @@ from datetime import datetime
 from openbox import logger
 
 if TYPE_CHECKING:
-    from ..sampling import SamplingStrategy
-    from ..filling import FillingStrategy
+    from .sampling import SamplingStrategy
+    from .filling import FillingStrategy
     from .pipeline import CompressionPipeline
     from .step import CompressionStep
 
@@ -38,7 +38,7 @@ class Compressor(ABC):
         self._source_similarities: Optional[Dict[int, float]] = None
         
         if filling_strategy is None:
-            from ..filling import DefaultValueFilling
+            from .filling import DefaultValueFilling
             self.filling_strategy = DefaultValueFilling()
         else:
             self.filling_strategy = filling_strategy
@@ -183,7 +183,7 @@ class Compressor(ABC):
     def get_sampling_strategy(self) -> 'SamplingStrategy':
         if self.pipeline is not None:
             return self.pipeline.get_sampling_strategy()
-        from ..sampling import StandardSamplingStrategy
+        from .sampling import StandardSamplingStrategy
         if self.sample_space is None:
             raise ValueError("Sample space not initialized. Call compress_space() first.")
         return StandardSamplingStrategy(self.sample_space)

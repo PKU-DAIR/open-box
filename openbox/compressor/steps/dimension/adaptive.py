@@ -5,8 +5,7 @@ from ConfigSpace import ConfigurationSpace
 
 from .base import DimensionSelectionStep
 from .importance import ImportanceCalculator, SHAPImportanceCalculator
-from ...core import OptimizerProgress
-from ...core.update import UpdateStrategy, PeriodicUpdateStrategy
+from ... import OptimizerProgress,UpdateStrategy, PeriodicUpdateStrategy
 from openbox import logger
 
 class AdaptiveDimensionStep(DimensionSelectionStep):    
