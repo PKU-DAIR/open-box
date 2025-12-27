@@ -23,7 +23,7 @@ from ConfigSpace.hyperparameters import (
 from openbox.utils.history import History, Observation
 from openbox.utils.constants import SUCCESS
 
-from ..core import Compressor
+from .. import Compressor
 from .step_factory import (
     validate_step_string,
     create_steps_from_strings,
