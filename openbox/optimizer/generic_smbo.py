@@ -314,15 +314,6 @@ class SMBO(BOBase):
             config=config, objectives=objectives, constraints=constraints,
             trial_state=trial_state, elapsed_time=elapsed_time, extra_info=extra_info,
         )
-
-        self._sync_task_manager_history(
-            config=config,          
-            objectives=objectives,
-            timeout_status=timeout_status,
-            traceback_msg=traceback_msg,
-            elapsed_time=elapsed_time,
-            extra_info=extra_info,
-        )
         
         return observation
 

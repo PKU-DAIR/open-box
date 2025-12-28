@@ -152,7 +152,7 @@ def build_advisor(
     
     _logger_kwargs = logger_kwargs or {}
     if 'force_init' not in _logger_kwargs:
-        _logger_kwargs['force_init'] = False
+        _logger_kwargs['force_init'] = True
     
     if advisor_type == 'default':
         from openbox.core.generic_advisor import Advisor
