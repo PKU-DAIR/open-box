@@ -5,12 +5,12 @@ import numpy as np
 from openbox import logger
 from openbox.utils.util_funcs import deprecate_kwarg
 from openbox.utils.history import History
-from openbox.utils.samplers import SobolSampler, LatinHypercubeSampler, HaltonSampler
 from openbox.utils.multi_objective import NondominatedPartitioning
 from openbox.utils.early_stop import EarlyStopException
 from openbox.core.base import build_acq_func, build_surrogate
 from openbox.acq_optimizer import build_acq_optimizer
 from openbox.core.base_advisor import BaseAdvisor
+from openbox.core.initial_config import InitialConfigProvider
 
 
 class Advisor(BaseAdvisor):
@@ -143,15 +143,18 @@ class Advisor(BaseAdvisor):
         self.acq_type = acq_type
         self.acq_optimizer_type = acq_optimizer_type
 
-        # initial design
-        self.init_num = initial_trials
         self.init_strategy = init_strategy
-        if initial_configurations is not None and len(initial_configurations) > 0:
-            self.initial_configurations = initial_configurations
-            self.init_num = len(initial_configurations)
-        else:
-            self.initial_configurations = self.create_initial_design(self.init_strategy)
-            self.init_num = len(self.initial_configurations)
+        self.initial_config_provider = InitialConfigProvider(
+            config_space=self.config_space,
+            init_num=initial_trials,
+            init_strategy=init_strategy,
+            initial_configurations=initial_configurations,
+            transfer_learning_history=transfer_learning_history,
+            warm_start_strategy='topk',
+            warm_start_num=None,  # use init_num by default
+            rng=self.rng,
+        )
+        self.init_num = len(self.initial_config_provider)
 
 
         self.surrogate_model = None
@@ -352,77 +355,6 @@ class Advisor(BaseAdvisor):
         self.acq_optimizer = build_acq_optimizer(
             func_str=self.acq_optimizer_type, config_space=self.config_space, rng=self.rng)
 
-    def create_initial_design(self, init_strategy='default'):
-        """
-        Create several configurations as initial design.
-        Parameters
-        ----------
-        init_strategy: str
-
-        Returns
-        -------
-        Initial configurations.
-        """
-        default_config = self.config_space.get_default_configuration()
-        num_random_config = self.init_num - 1
-        if init_strategy == 'random':
-            initial_configs = self.sample_random_configs(self.config_space, self.init_num)
-        elif init_strategy == 'default':
-            initial_configs = [default_config] + self.sample_random_configs(self.config_space, num_random_config)
-        elif init_strategy == 'random_explore_first':
-            candidate_configs = self.sample_random_configs(self.config_space, 100)
-            initial_configs = self.max_min_distance(default_config, candidate_configs, num_random_config)
-        elif init_strategy == 'sobol':
-            sobol = SobolSampler(self.config_space, num_random_config, random_state=self.rng)
-            initial_configs = [default_config] + sobol.generate(return_config=True)
-        elif init_strategy == 'latin_hypercube':
-            lhs = LatinHypercubeSampler(self.config_space, num_random_config, criterion='maximin')
-            initial_configs = [default_config] + lhs.generate(return_config=True)
-        elif init_strategy == 'halton':
-            halton = HaltonSampler(self.config_space, num_random_config, random_state=self.rng)
-            initial_configs = [default_config] + halton.generate(return_config=True)
-        else:
-            raise ValueError('Unknown initial design strategy: %s.' % init_strategy)
-
-        valid_configs = []
-        for config in initial_configs:
-            try:
-                config.is_valid_configuration()
-            except ValueError:
-                continue
-            valid_configs.append(config)
-        if len(valid_configs) != len(initial_configs):
-            logger.warning('Only %d/%d valid configurations are generated for initial design strategy: %s. '
-                           'Add more random configurations.'
-                           % (len(valid_configs), len(initial_configs), init_strategy))
-            num_random_config = self.init_num - len(valid_configs)
-            valid_configs += self.sample_random_configs(self.config_space, num_random_config,
-                                                        excluded_configs=valid_configs)
-        return valid_configs
-
-    def max_min_distance(self, default_config, src_configs, num):
-        min_dis = list()
-        initial_configs = list()
-        initial_configs.append(default_config)
-
-        for config in src_configs:
-            dis = np.linalg.norm(config.get_array() - default_config.get_array())
-            min_dis.append(dis)
-        min_dis = np.array(min_dis)
-
-        for i in range(num):
-            furthest_config = src_configs[np.argmax(min_dis)]
-            initial_configs.append(furthest_config)
-            min_dis[np.argmax(min_dis)] = -1
-
-            for j in range(len(src_configs)):
-                if src_configs[j] in initial_configs:
-                    continue
-                updated_dis = np.linalg.norm(src_configs[j].get_array() - furthest_config.get_array())
-                min_dis[j] = min(updated_dis, min_dis[j])
-
-        return initial_configs
-
     def early_stop_ei(self, history, challengers):
         if not self.early_stop:
             return
@@ -457,7 +389,7 @@ class Advisor(BaseAdvisor):
         num_config_successful = history.get_success_count()
 
         if num_config_evaluated < self.init_num:
-            res = self.initial_configurations[num_config_evaluated]
+            res = self.initial_config_provider.get_config(num_config_evaluated)
             return [res] if return_list else res
         if self.optimization_strategy == 'random':
             res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
