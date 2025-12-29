@@ -38,6 +38,14 @@ class Advisor(BaseAdvisor):
         If provided, the initial configurations will be evaluated in initial iterations of optimization.
     transfer_learning_history : List[History], optional
         Historical data for transfer learning.
+    warm_start_strategy : str, default='topk'
+        How to select configs from transfer learning history:
+        - 'no': Do not use warm start even if transfer_learning_history is provided
+        - 'best': Select best config from each source
+        - 'topk': Select top-k configs from each history
+    warm_start_num : int, optional
+        Number of configs to extract from transfer learning.
+        If None, uses init_num by default.
     rand_prob : float, default=0.1
         Probability to sample random configurations.
     surrogate_type : str, default='auto'
@@ -105,6 +113,8 @@ class Advisor(BaseAdvisor):
             initial_configurations=None,
             init_strategy='random_explore_first',
             transfer_learning_history=None,
+            warm_start_strategy='topk',
+            warm_start_num=None,
             rand_prob=0.1,
             optimization_strategy='bo',
             surrogate_type='auto',
@@ -150,8 +160,8 @@ class Advisor(BaseAdvisor):
             init_strategy=init_strategy,
             initial_configurations=initial_configurations,
             transfer_learning_history=transfer_learning_history,
-            warm_start_strategy='topk',
-            warm_start_num=None,  # use init_num by default
+            warm_start_strategy=warm_start_strategy,
+            warm_start_num=warm_start_num,
             rng=self.rng,
         )
         self.init_num = len(self.initial_config_provider)
