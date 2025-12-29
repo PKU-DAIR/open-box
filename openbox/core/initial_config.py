@@ -48,8 +48,9 @@ class InitialConfigProvider:
         User-provided initial configurations (highest priority).
     transfer_learning_history : List[History], optional
         Historical data for warm start.
-    warm_start_strategy : str, default='best'
+    warm_start_strategy : str, default='topk'
         How to select configs from transfer learning history:
+        - 'no': Do not use warm start even if transfer_learning_history is provided
         - 'best': Select best config from each source
         - 'topk': Select top-k configs from each history
     warm_start_num : int, optional
@@ -128,7 +129,9 @@ class InitialConfigProvider:
             logger.info(f'Added {len(initial_configurations)} user-provided configurations')
         
         # 2. Warm-start from transfer learning history (warm_start_num is independent of init_num)
-        if transfer_learning_history is not None and len(transfer_learning_history) > 0:
+        if (transfer_learning_history is not None 
+            and len(transfer_learning_history) > 0 
+            and self.warm_start_strategy != 'no'):
             num_warm = warm_start_num if warm_start_num is not None else self._init_num
             warm_configs = self._extract_warm_start_configs(
                 histories=transfer_learning_history,
