@@ -30,7 +30,7 @@ class QuantizationProjectionStep(TransformativeProjectionStep):
         unchanged_params = []
         
         for adaptee_hp in input_space.get_hyperparameters():
-            if not isinstance(adaptee_hp, CSH.UniformIntegerHyperparameter):
+            if not isinstance(adaptee_hp, CSH.UniformIntegerHyperparameter) and not isinstance(adaptee_hp, CSH.UniformFloatHyperparameter):
                 root_hyperparams.append(adaptee_hp)
                 unchanged_params.append(adaptee_hp.name)
                 continue

@@ -8,7 +8,7 @@ from openbox.utils.history import History
 from ConfigSpace import ConfigurationSpace
 from openbox import logger
 
-from . import OptimizerProgress
+from .progress import OptimizerProgress
 if TYPE_CHECKING:
     from .sampling import SamplingStrategy
     from .filling import FillingStrategy
