@@ -149,7 +149,7 @@ class Compressor(ABC):
             projected_config.origin = config.origin
         return projected_config
     
-    def conver_config_to_sample_space(self, config: Configuration) -> Configuration:
+    def convert_config_to_sample_space(self, config: Configuration) -> Configuration:
         if hasattr(config, 'configuration_space') and config.configuration_space == self.sample_space:
             return config
         
