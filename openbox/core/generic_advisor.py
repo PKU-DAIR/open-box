@@ -140,6 +140,7 @@ class Advisor(BaseAdvisor):
             task_id=task_id,
             random_state=random_state,
             logger_kwargs=logger_kwargs,
+            **kwargs,
         )
 
         # Basic components in Advisor.
@@ -148,6 +149,7 @@ class Advisor(BaseAdvisor):
 
         # Init the basic ingredients in Bayesian optimization.
         self.transfer_learning_history = transfer_learning_history
+        self.surrogate_transfer_learning_history = self.setup_space_adapter(self.transfer_learning_history)
         self.surrogate_type = surrogate_type
         self.constraint_surrogate_type = None
         self.acq_type = acq_type
@@ -314,7 +316,7 @@ class Advisor(BaseAdvisor):
                                           'optimization without constraints.')
             surrogate_str = self.surrogate_type.split('_')
             assert len(surrogate_str) == 3 and surrogate_str[0] == 'tlbo'
-            assert surrogate_str[1] in ['rgpe', 'sgpr', 'topov3']  # todo: 'mfgpe'
+            assert surrogate_str[1] in ['rgpe', 'sgpr', 'topov3', 'mfgpe']
 
         # early stop
         if self.early_stop:
@@ -329,20 +331,20 @@ class Advisor(BaseAdvisor):
         """
         if self.num_objectives == 1:
             self.surrogate_model = build_surrogate(func_str=self.surrogate_type,
-                                                   config_space=self.config_space,
+                                                   config_space=self.surrogate_space,
                                                    rng=self.rng,
-                                                   transfer_learning_history=self.transfer_learning_history)
+                                                   transfer_learning_history=self.surrogate_transfer_learning_history)
         elif self.acq_type == 'parego':
             func_str = 'parego_' + self.surrogate_type
             self.surrogate_model = build_surrogate(func_str=func_str,
-                                                   config_space=self.config_space,
+                                                   config_space=self.surrogate_space,
                                                    rng=self.rng,
-                                                   transfer_learning_history=self.transfer_learning_history)
+                                                   transfer_learning_history=self.surrogate_transfer_learning_history)
         else:  # multi-objectives
             self.surrogate_model = [build_surrogate(func_str=self.surrogate_type,
-                                                    config_space=self.config_space,
+                                                    config_space=self.surrogate_space,
                                                     rng=self.rng,
-                                                    transfer_learning_history=self.transfer_learning_history)
+                                                    transfer_learning_history=self.surrogate_transfer_learning_history)
                                     for _ in range(self.num_objectives)]
 
         if self.num_constraints > 0:
@@ -354,7 +356,7 @@ class Advisor(BaseAdvisor):
             self.acquisition_function = build_acq_func(func_str=self.acq_type,
                                                        model=self.surrogate_model,
                                                        constraint_models=self.constraint_models,
-                                                       config_space=self.config_space)
+                                                       config_space=self.surrogate_space)
         else:
             self.acquisition_function = build_acq_func(func_str=self.acq_type,
                                                        model=self.surrogate_model,
@@ -363,7 +365,7 @@ class Advisor(BaseAdvisor):
         if self.acq_type == 'usemo':
             self.acq_optimizer_type = 'usemo_optimizer'
         self.acq_optimizer = build_acq_optimizer(
-            func_str=self.acq_optimizer_type, config_space=self.config_space, rng=self.rng)
+            func_str=self.acq_optimizer_type, config_space=self.sample_space, rng=self.rng)
 
     def early_stop_ei(self, history, challengers):
         if not self.early_stop:
@@ -377,6 +379,17 @@ class Advisor(BaseAdvisor):
                 history=history, max_acq_value=max_acq_value):
             self.early_stop_algorithm.set_already_early_stopped(history)
             raise EarlyStopException("Early stop triggered!")
+
+    def update_compression(self, history: History = None) -> bool:
+        if history is None:
+            history = self.history
+        if not self.space_adapter.update(history):
+            return False
+        self.sample_space = self.space_adapter.sample_space
+        self.surrogate_space = self.space_adapter.surrogate_space
+        self.surrogate_transfer_learning_history = self.space_adapter.setup(self.transfer_learning_history)
+        self.setup_bo_basics()
+        return True
 
     def get_suggestion(self, history: History = None, return_list: bool = False):
         """
@@ -410,7 +423,7 @@ class Advisor(BaseAdvisor):
             res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
             return res
 
-        X = history.get_config_array(transform='scale')
+        X = self.space_adapter.get_surrogate_array(history)
         Y = history.get_objectives(transform='infeasible')
         cY = history.get_constraints(transform='bilog')
 
@@ -467,25 +480,21 @@ class Advisor(BaseAdvisor):
             # optimize acquisition function
             challengers = self.acq_optimizer.maximize(
                 acquisition_function=self.acquisition_function,
-                history=history,
+                # transform history to sample space for acq optimization
+                history=self.space_adapter.history_for_acq(history),
                 num_points=5000,
             )
             if return_list:
                 # Caution: return_list doesn't contain random configs sampled according to rand_prob
-                return challengers
+                # when sampling in projected space, we need unproject configs to original space
+                return [self.space_adapter.config_to_original(conf) for conf in challengers]
 
-            # early stop
-            # if self.early_stop:
-            #     max_acq_value = np.max(self.acquisition_function(challengers)).item()
-            #     if self.early_stop_algorithm.decide_early_stop_after_suggest(
-            #             history=history, max_acq_value=max_acq_value):
-            #         self.early_stop_algorithm.set_already_early_stopped(history)
-            #         raise EarlyStopException("Early stop triggered!")
             self.early_stop_ei(history, challengers=challengers)
 
             for config in challengers:
-                if config not in history.configurations:
-                    return config
+                original_config = self.space_adapter.config_to_original(config)
+                if original_config not in history.configurations:
+                    return original_config
             logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
                            'Sample random config.' % (len(challengers), ))
             return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
