@@ -1,6 +1,7 @@
 # License: MIT
 
 import time
+import inspect
 from typing import List
 from tqdm import tqdm
 import numpy as np
@@ -216,7 +217,7 @@ class SMBO(BOBase):
                    f'{self.scheduler.get_fidelity_levels()}')
         # Check if objective function supports resource_ratio for multi-fidelity optimization
         self._supports_resource_ratio = check_scheduler(objective_function, scheduler_type)
-        
+
         from openbox.core import build_advisor
         self.config_advisor = build_advisor(
             advisor_type=advisor_type,
@@ -238,6 +239,7 @@ class SMBO(BOBase):
             output_dir=logging_dir,
             random_state=random_state,
             logger_kwargs={'force_init': False},  # do not init logger in advisor
+            scheduler_type=scheduler_type,
             **advisor_kwargs
         )
 
@@ -246,6 +248,20 @@ class SMBO(BOBase):
             logging_dir=self.output_dir, optimizer=self, advisor=None, auto_open_html=auto_open_html,
         )
         self.visualizer.setup()
+        self._fidelity_support = self._check_fidelity_support()
+
+    def _check_fidelity_support(self) -> bool:
+        try:
+            signature = inspect.signature(self.config_advisor.update_observation)
+        except (TypeError, ValueError):
+            return False
+        return 'resource_ratio' in signature.parameters
+
+    def _update_advi_obs(self, observation: Observation, resource_ratio: float):
+        if self._fidelity_support:
+            self.config_advisor.update_observation(observation, resource_ratio=resource_ratio)
+        else:
+            self.config_advisor.update_observation(observation)
 
     def run(self) -> History:
         for idx in tqdm(range(self.iteration_id, self.max_runs)):
@@ -322,9 +338,10 @@ class SMBO(BOBase):
         
         # Initial runs: always use full fidelity (resource_ratio=1.0)
         if self.iteration_id <= self.config_advisor.init_num:
-            config = self.config_advisor.get_suggestion()
+            configs = self.config_advisor.get_suggestions(batch_size=1)
+            config = configs[0]
             observation = self._evaluate_single_config(config, resource_ratio=1.0, time_left=time_left)
-            self.config_advisor.update_observation(observation)
+            self._update_advi_obs(observation, resource_ratio=1.0)
             
             if self.num_constraints > 0:
                 logger.info('Iter %d (init), objectives: %s, constraints: %s, resource_ratio: 1.0' % 
@@ -355,7 +372,7 @@ class SMBO(BOBase):
             
             # First stage: sample new configurations
             if stage == 0:
-                candidates = [self.config_advisor.get_suggestion() for _ in range(n_configs)]
+                candidates = self.config_advisor.get_suggestions(batch_size=n_configs)
                 if self.scheduler_type != 'full' and len(candidates) > 1:
                     logger.info(f'Generated {len(candidates)} initial candidates for stage {stage}')
             
@@ -369,7 +386,7 @@ class SMBO(BOBase):
                 
                 # Update advisor if scheduler says so
                 if self.scheduler.should_update_history(resource_ratio):
-                    self.config_advisor.update_observation(obs)
+                    self._update_advi_obs(obs, resource_ratio=resource_ratio)
                     if self.num_constraints > 0:
                         logger.info('Iter %d, objectives: %s, constraints: %s, '
                                     'resource_ratio: %.3f' % 

@@ -59,7 +59,13 @@ def check_scheduler(objective_function: callable, scheduler_type: str = 'full') 
     """
     import inspect
     sig = inspect.signature(objective_function)
-    if scheduler_type != 'full' and 'resource_ratio' not in sig.parameters:
+    has_resource_ratio = 'resource_ratio' in sig.parameters
+    has_var_keyword = any(
+        p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+    )
+    supports_resource_ratio = has_resource_ratio or has_var_keyword
+
+    if scheduler_type != 'full' and not supports_resource_ratio:
         raise ValueError(
             f'Multi-fidelity scheduler "{scheduler_type}" requires objective function '
             f'to accept "resource_ratio" parameter.\n'
@@ -68,7 +74,8 @@ def check_scheduler(objective_function: callable, scheduler_type: str = 'full') 
             f'      ...\n'
             f'Or use scheduler_type="full" for single-fidelity optimization.'
         )
-    return True
+    # For full-fidelity scheduler, resource_ratio is not required and should not be passed.
+    return scheduler_type != 'full' and supports_resource_ratio
 
 
 __all__ = [
