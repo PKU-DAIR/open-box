@@ -188,6 +188,12 @@ class TPE_Advisor(BaseAdvisor):
 
         return config
 
+    def get_suggestions(self, batch_size=1, history=None):
+        if batch_size is None:
+            batch_size = 1
+        batch_size = int(batch_size)
+        return [self.get_suggestion(history=history) for _ in range(batch_size)]
+
     def impute_conditional_data(self, array):
 
         return_array = np.empty_like(array)

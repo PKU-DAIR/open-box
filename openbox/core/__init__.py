@@ -28,7 +28,6 @@ def register_advisor(name, advisor_class, required_conditions=None):
 
 
 def _check_advisor_conditions(advisor_type, num_objectives, num_constraints):
-    """Check if advisor requirements are met."""
     if advisor_type not in _ADVISOR_REGISTRY:
         return True
     
@@ -84,6 +83,7 @@ def build_advisor(
     advisor_type : str, default='default'
         Type of advisor to create:
         - 'default': Generic Bayesian Optimization advisor
+        - 'mf': Multi-fidelity Bayesian Optimization advisor
         - 'mcadvisor': Monte Carlo advisor
         - 'tpe': Tree-structured Parzen Estimator
         - 'ea': Evolutionary Algorithm advisor
@@ -157,6 +157,30 @@ def build_advisor(
     if advisor_type == 'default':
         from openbox.core.generic_advisor import Advisor
         return Advisor(
+            config_space,
+            num_objectives=num_objectives,
+            num_constraints=num_constraints,
+            initial_trials=initial_trials,
+            init_strategy=init_strategy,
+            initial_configurations=initial_configurations,
+            optimization_strategy=optimization_strategy,
+            surrogate_type=surrogate_type,
+            acq_type=acq_type,
+            acq_optimizer_type=acq_optimizer_type,
+            ref_point=ref_point,
+            transfer_learning_history=transfer_learning_history,
+            early_stop=early_stop,
+            early_stop_kwargs=early_stop_kwargs,
+            task_id=task_id,
+            output_dir=output_dir,
+            random_state=random_state,
+            logger_kwargs=_logger_kwargs,
+            **advisor_kwargs
+        )
+
+    elif advisor_type == 'mf':
+        from openbox.core.mf_advisor import MFAdvisor
+        return MFAdvisor(
             config_space,
             num_objectives=num_objectives,
             num_constraints=num_constraints,
@@ -303,7 +327,7 @@ def build_advisor(
         raise ValueError(
             f"Invalid advisor type: '{advisor_type}'. "
             f"Supported types: 'default', 'mcadvisor', 'tpe', 'ea', 'random', "
-            f"'sync_batch', 'async_batch'"
+            f"'sync_batch', 'async_batch', 'mf'"
         )
 
 def create_parallel_advisor(parallel_strategy, sample_strategy, **kwargs):

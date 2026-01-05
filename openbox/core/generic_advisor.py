@@ -156,10 +156,9 @@ class Advisor(BaseAdvisor):
         self.acq_optimizer_type = acq_optimizer_type
 
         self.init_strategy = init_strategy
-        self.initial_config_provider = InitialConfigProvider(
-            config_space=self.config_space,
-            init_num=initial_trials,
+        self.initial_configurations = self.create_initial_design(
             init_strategy=init_strategy,
+            init_num=initial_trials,
             initial_configurations=initial_configurations,
             transfer_learning_history=transfer_learning_history,
             warm_start_strategy=warm_start_strategy,
@@ -177,6 +176,28 @@ class Advisor(BaseAdvisor):
         self.algo_auto_selection()
         self.check_setup()
         self.setup_bo_basics()
+
+    def create_initial_design(self, init_strategy=None, init_num=None, \
+            initial_configurations=None, transfer_learning_history=None, \
+            warm_start_strategy='no', warm_start_num=0, rng=None):
+        if init_strategy is None:
+            init_strategy = self.init_strategy
+        if init_num is None:
+            init_num = self.init_num
+        if rng is None:
+            rng = self.rng
+
+        self.initial_config_provider = InitialConfigProvider(
+            config_space=self.config_space,
+            init_num=init_num,
+            init_strategy=init_strategy,
+            initial_configurations=initial_configurations,
+            transfer_learning_history=transfer_learning_history,
+            warm_start_strategy=warm_start_strategy,
+            warm_start_num=warm_start_num,
+            rng=rng,
+        )
+        return self.initial_config_provider.config_queue
 
     def algo_auto_selection(self):
         from ConfigSpace import UniformFloatHyperparameter, UniformIntegerHyperparameter, \
@@ -314,9 +335,12 @@ class Advisor(BaseAdvisor):
             if not (self.num_objectives == 1 and self.num_constraints == 0):
                 raise NotImplementedError('Currently, transfer learning is only supported for single objective '
                                           'optimization without constraints.')
-            surrogate_str = self.surrogate_type.split('_')
-            assert len(surrogate_str) == 3 and surrogate_str[0] == 'tlbo'
-            assert surrogate_str[1] in ['rgpe', 'sgpr', 'topov3', 'mfgpe']
+            if self.surrogate_type.startswith('mfgpe'):
+                pass
+            else:
+                surrogate_str = self.surrogate_type.split('_')
+                assert len(surrogate_str) == 3 and surrogate_str[0] == 'tlbo'
+                assert surrogate_str[1] in ['rgpe', 'sgpr', 'topov3', 'mfgpe']
 
         # early stop
         if self.early_stop:
@@ -391,112 +415,144 @@ class Advisor(BaseAdvisor):
         self.setup_bo_basics()
         return True
 
-    def get_suggestion(self, history: History = None, return_list: bool = False):
-        """
-        Generate a configuration (suggestion) for this query.
-        Returns
-        -------
-        A configuration.
-        """
-        if history is None:
-            history = self.history
-
-        # if self.early_stop and self.early_stop_algorithm.decide_early_stop_before_suggest(history):
-        #     self.early_stop_algorithm.set_already_early_stopped(history)
-        #     raise EarlyStopException("Early stop triggered!")
-        self.early_stop_perf(history)
-
-        self.alter_model(history)
-
+    def _get_bo_candidates(self, history: History):
         num_config_evaluated = len(history)
         num_config_successful = history.get_success_count()
 
-        if num_config_evaluated < self.init_num:
-            res = self.initial_config_provider.get_config(num_config_evaluated)
-            return [res] if return_list else res
-        if self.optimization_strategy == 'random':
-            res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
-            return [res] if return_list else res
-
-        if (not return_list) and self.rng.random() < self.rand_prob:
-            logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
-            res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
-            return res
+        if num_config_successful < max(self.init_num, 1):
+            logger.warning('No enough successful initial trials! Sample random configuration.')
+            return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)
 
         X = self.space_adapter.get_surrogate_array(history)
         Y = history.get_objectives(transform='infeasible')
         cY = history.get_constraints(transform='bilog')
 
-        if self.optimization_strategy == 'bo':
-            if num_config_successful < max(self.init_num, 1):
-                logger.warning('No enough successful initial trials! Sample random configuration.')
-                res = self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
-                return [res] if return_list else res
+        # train surrogate model
+        if self.num_objectives == 1:
+            self.surrogate_model.train(X, Y[:, 0])
+        elif self.acq_type == 'parego':
+            self.surrogate_model.train(X, Y)
+        else:  # multi-objectives
+            for i in range(self.num_objectives):
+                self.surrogate_model[i].train(X, Y[:, i])
 
-            # train surrogate model
-            if self.num_objectives == 1:
-                self.surrogate_model.train(X, Y[:, 0])
-            elif self.acq_type == 'parego':
-                self.surrogate_model.train(X, Y)
-            else:  # multi-objectives
-                for i in range(self.num_objectives):
-                    self.surrogate_model[i].train(X, Y[:, i])
+        # train constraint model
+        for i in range(self.num_constraints):
+            self.constraint_models[i].train(X, cY[:, i])
 
-            # train constraint model
-            for i in range(self.num_constraints):
-                self.constraint_models[i].train(X, cY[:, i])
-
-            # update acquisition function
-            if self.num_objectives == 1:
-                incumbent_value = history.get_incumbent_value()
+        # update acquisition function
+        if self.num_objectives == 1:
+            incumbent_value = history.get_incumbent_value()
+            self.acquisition_function.update(model=self.surrogate_model,
+                                             constraint_models=self.constraint_models,
+                                             eta=incumbent_value,
+                                             num_data=num_config_evaluated)
+        else:  # multi-objectives
+            mo_incumbent_values = history.get_mo_incumbent_values()
+            if self.acq_type == 'parego':
+                scalarized_obj = self.surrogate_model.get_scalarized_obj()
+                incumbent_value = scalarized_obj(np.atleast_2d(mo_incumbent_values))
                 self.acquisition_function.update(model=self.surrogate_model,
                                                  constraint_models=self.constraint_models,
                                                  eta=incumbent_value,
                                                  num_data=num_config_evaluated)
-            else:  # multi-objectives
-                mo_incumbent_values = history.get_mo_incumbent_values()
-                if self.acq_type == 'parego':
-                    scalarized_obj = self.surrogate_model.get_scalarized_obj()
-                    incumbent_value = scalarized_obj(np.atleast_2d(mo_incumbent_values))
-                    self.acquisition_function.update(model=self.surrogate_model,
-                                                     constraint_models=self.constraint_models,
-                                                     eta=incumbent_value,
-                                                     num_data=num_config_evaluated)
-                elif self.acq_type.startswith('ehvi'):
-                    partitioning = NondominatedPartitioning(self.num_objectives, Y)
-                    cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
-                    self.acquisition_function.update(model=self.surrogate_model,
-                                                     constraint_models=self.constraint_models,
-                                                     cell_lower_bounds=cell_bounds[0],
-                                                     cell_upper_bounds=cell_bounds[1])
-                else:
-                    self.acquisition_function.update(model=self.surrogate_model,
-                                                     constraint_models=self.constraint_models,
-                                                     constraint_perfs=cY,  # for MESMOC
-                                                     eta=mo_incumbent_values,
-                                                     num_data=num_config_evaluated,
-                                                     X=X, Y=Y)
+            elif self.acq_type.startswith('ehvi'):
+                partitioning = NondominatedPartitioning(self.num_objectives, Y)
+                cell_bounds = partitioning.get_hypercell_bounds(ref_point=self.ref_point)
+                self.acquisition_function.update(model=self.surrogate_model,
+                                                 constraint_models=self.constraint_models,
+                                                 cell_lower_bounds=cell_bounds[0],
+                                                 cell_upper_bounds=cell_bounds[1])
+            else:
+                self.acquisition_function.update(model=self.surrogate_model,
+                                                 constraint_models=self.constraint_models,
+                                                 constraint_perfs=cY,  # for MESMOC
+                                                 eta=mo_incumbent_values,
+                                                 num_data=num_config_evaluated,
+                                                 X=X, Y=Y)
 
-            # optimize acquisition function
-            challengers = self.acq_optimizer.maximize(
-                acquisition_function=self.acquisition_function,
-                # transform history to sample space for acq optimization
-                history=self.space_adapter.history_for_acq(history),
-                num_points=5000,
-            )
-            if return_list:
-                # Caution: return_list doesn't contain random configs sampled according to rand_prob
-                # when sampling in projected space, we need unproject configs to original space
-                return [self.space_adapter.config_to_original(conf) for conf in challengers]
+        challengers = self.acq_optimizer.maximize(
+            acquisition_function=self.acquisition_function,
+            history=self.space_adapter.history_for_acq(history),
+            num_points=5000,
+        )
+        return [self.space_adapter.config_to_original(conf) for conf in challengers]
 
-            self.early_stop_ei(history, challengers=challengers)
+    def get_suggestion(self, history: History = None):
+        if history is None:
+            history = self.history
 
-            for config in challengers:
-                original_config = self.space_adapter.config_to_original(config)
-                if original_config not in history.configurations:
-                    return original_config
-            logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
-                           'Sample random config.' % (len(challengers), ))
+        self.early_stop_perf(history)
+        self.alter_model(history)
+
+        num_config_evaluated = len(history)
+        if num_config_evaluated < self.init_num:
+            return self.initial_config_provider.get_config(num_config_evaluated)
+        if self.optimization_strategy == 'random':
             return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
-        else:
+
+        if self.rng.random() < self.rand_prob:
+            logger.info('Sample random config. rand_prob=%f.' % self.rand_prob)
+            return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
+
+        if self.optimization_strategy != 'bo':
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
+
+        candidates = self._get_bo_candidates(history)
+        self.early_stop_ei(history, challengers=candidates)
+        for config in candidates:
+            if config not in history.configurations:
+                return config
+        logger.warning('Cannot get non duplicate configuration from BO candidates (len=%d). '
+                       'Sample random config.' % (len(candidates),))
+        return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
+
+
+    def get_suggestions(self, batch_size=None, history: History = None):
+        if batch_size is None:
+            batch_size = 1
+        batch_size = int(batch_size)
+        if batch_size <= 0:
+            return []
+        if history is None:
+            history = self.history
+
+        self.early_stop_perf(history)
+        self.alter_model(history)
+
+        num_config_evaluated = len(history)
+        num_config_successful = history.get_success_count()
+        if (
+            num_config_evaluated < self.init_num
+            or self.optimization_strategy == 'random'
+            or num_config_successful < max(self.init_num, 1)
+        ):
+            return self.sample_random_configs(
+                self.config_space,
+                num_configs=batch_size,
+                excluded_configs=history.configurations,
+            )
+
+        if self.optimization_strategy != 'bo':
+            raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
+
+        candidates = self._get_bo_candidates(history)
+        self.early_stop_ei(history, challengers=candidates)
+
+        results = []
+        for config in candidates:
+            if config in history.configurations or config in results:
+                continue
+            results.append(config)
+            if len(results) >= batch_size:
+                return results
+
+        if len(results) < batch_size:
+            excluded = set(history.configurations)
+            excluded.update(results)
+            results.extend(self.sample_random_configs(
+                self.config_space,
+                num_configs=batch_size - len(results),
+                excluded_configs=excluded,
+            ))
+        return results
