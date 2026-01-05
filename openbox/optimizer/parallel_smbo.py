@@ -114,6 +114,7 @@ class pSMBO(BOBase):
             logger_kwargs={'force_init': False},  # do not init logger in advisor
             **advisor_kwargs
         )
+        self.advisor_lock = Lock()
 
     def callback(self, observation: Observation):
         # Report the result, and remove the config from the running queue.
