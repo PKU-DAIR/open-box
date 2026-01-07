@@ -70,6 +70,7 @@ def build_advisor(
     output_dir='logs',
     random_state=None,
     logger_kwargs=None,
+    scheduler_type=None,
     # Batch advisor specific parameters
     batch_size=None,
     batch_strategy='default',
@@ -147,6 +148,35 @@ def build_advisor(
         If advisor_type is invalid or requirements not met
     """
     advisor_type = advisor_type.lower()
+    scheduler_type = scheduler_type.lower() if isinstance(scheduler_type, str) else scheduler_type
+
+    mf_scheduler_types = {'mfes', 'mfes_flatten'}
+    bo_scheduler_types = {'full', 'fixed', 'bohb', 'flatten', 'bohb_flatten'}
+    if scheduler_type in mf_scheduler_types:
+        if advisor_type != 'mf':
+            logger.warning(
+                'scheduler_type=%s requires mf advisor; override advisor_type from %s to mf.'
+                % (scheduler_type, advisor_type)
+            )
+            advisor_type = 'mf'
+        if surrogate_type == 'auto':
+            surrogate_type = 'mfgpe'
+    elif scheduler_type in bo_scheduler_types:
+        if advisor_type == 'mf':
+            logger.warning(
+                'scheduler_type=%s should use regular BO advisor; override advisor_type from mf to default.'
+                % scheduler_type
+            )
+            advisor_type = 'default'
+        if surrogate_type == 'mfgpe':
+            logger.warning(
+                'scheduler_type=%s should not use mfgpe surrogate directly; override surrogate_type from mfgpe to auto.'
+                % scheduler_type
+            )
+            surrogate_type = 'auto'
+
+    if advisor_type == 'mf' and surrogate_type == 'auto':
+        surrogate_type = 'mfgpe'
     
     _check_advisor_conditions(advisor_type, num_objectives, num_constraints)
     
