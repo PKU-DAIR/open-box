@@ -3,7 +3,7 @@ import pytest
 from openbox.optimizer.scheduler import build_scheduler, check_scheduler
 
 
-def test_fixed_scheduler_stage_params_and_resource_ratio():
+def test_fixed_scheduler():
     scheduler = build_scheduler(
         'fixed',
         n_resources=[4, 2, 1],
@@ -21,7 +21,7 @@ def test_fixed_scheduler_stage_params_and_resource_ratio():
     assert scheduler.should_update_history(1.0)
 
 
-def test_bohb_scheduler_should_only_update_on_full_fidelity():
+def test_bohb_scheduler():
     scheduler = build_scheduler('bohb', R=9, eta=3)
 
     assert scheduler.s_values == [2, 1, 0]
@@ -45,7 +45,7 @@ def test_bohb_scheduler_should_only_update_on_full_fidelity():
     assert scheduler.should_update_history(1.0) is True
 
 
-def test_mfes_scheduler_should_update_on_any_fidelity():
+def test_mfes_scheduler():
     scheduler = build_scheduler('mfes', R=9, eta=3)
 
     expected_brackets = {
@@ -61,7 +61,7 @@ def test_mfes_scheduler_should_update_on_any_fidelity():
     assert scheduler.should_update_history(1.0) is True
 
 
-def test_flatten_scheduler_brackets_and_stage_params():
+def test_flatten_scheduler():
     scheduler = build_scheduler('flatten', R=9, eta=3, num_nodes=1)
 
     assert len(scheduler.brackets) == 5
@@ -91,7 +91,7 @@ def test_flatten_scheduler_brackets_and_stage_params():
     assert scheduler.should_update_history(1.0) is True
 
 
-def test_mfes_flatten_scheduler_should_update_on_any_fidelity():
+def test_mfes_flatten_scheduler():
     scheduler = build_scheduler('mfes_flatten', R=9, eta=3, num_nodes=1)
 
     assert len(scheduler.brackets) == 5
@@ -106,4 +106,87 @@ def test_check_scheduler_requires_resource_ratio_for_mf():
 
     with pytest.raises(ValueError, match='requires objective function to accept "resource_ratio"'):
         check_scheduler(objective_without_resource_ratio, scheduler_type='mfes')
+
+
+@pytest.mark.parametrize('scheduler_type', ['bohb', 'mfes'])
+@pytest.mark.parametrize(
+    'R,eta,expected_brackets',
+    [
+        (
+            9,
+            3,
+            {
+                2: [(9, 1), (3, 3), (1, 9)],
+                1: [(5, 3), (1, 9)],
+                0: [(3, 9)],
+            },
+        ),
+        (
+            27,
+            3,
+            {
+                3: [(27, 1), (9, 3), (3, 9), (1, 27)],
+                2: [(12, 3), (4, 9), (1, 27)],
+                1: [(6, 9), (2, 27)],
+                0: [(4, 27)],
+            },
+        ),
+    ],
+)
+def test_mf_scheduler(
+    scheduler_type, R, eta, expected_brackets
+):
+    scheduler = build_scheduler(scheduler_type, R=R, eta=eta)
+
+    # Bracket scheduling order should be s_max -> ... -> 0 and repeat cyclically.
+    expected_cycle = list(reversed(range(scheduler.s_max + 1)))
+    assert scheduler.s_values == expected_cycle
+    assert [scheduler.get_bracket_index(i) for i in range(len(expected_cycle) * 2)] == expected_cycle * 2
+
+    for s, stages in expected_brackets.items():
+        for stage, (expected_n, expected_r) in enumerate(stages):
+            n_configs, n_resource = scheduler.get_stage_params(s=s, stage=stage)
+            assert (n_configs, n_resource) == (expected_n, expected_r)
+            assert scheduler.calculate_resource_ratio(n_resource) == round(expected_r / R, 5)
+
+
+@pytest.mark.parametrize('scheduler_type', ['bohb', 'mfes'])
+@pytest.mark.parametrize(
+    'R,eta,bracket_s',
+    [
+        (9, 3, 2),
+        (27, 3, 3),
+    ],
+)
+def test_mf_scheduler_eliminate_candidates(
+    scheduler_type, R, eta, bracket_s
+):
+    scheduler = build_scheduler(scheduler_type, R=R, eta=eta)
+
+    n0, _ = scheduler.get_stage_params(s=bracket_s, stage=0)
+    total_n = n0
+    candidates = [f'cfg_{i}' for i in range(total_n)]
+    perfs = list(reversed(range(n0)))
+
+    current_candidates = candidates
+    current_perfs = perfs
+    survivors_by_stage = []
+
+    for stage in range(bracket_s):
+        next_n, _ = scheduler.get_stage_params(s=bracket_s, stage=stage + 1)
+        current_candidates, current_perfs = scheduler.eliminate_candidates(
+            current_candidates, current_perfs, s=bracket_s, stage=stage
+        )
+        survivors_by_stage.append(list(current_candidates))
+
+        assert len(current_candidates) == next_n
+        assert len(current_perfs) == next_n
+        assert current_perfs == sorted(current_perfs)
+
+    expected_survivors = []
+    for stage in range(bracket_s):
+        next_n, _ = scheduler.get_stage_params(s=bracket_s, stage=stage + 1)
+        expected_survivors.append([f'cfg_{i}' for i in range(total_n - 1, total_n - next_n - 1, -1)])
+
+    assert survivors_by_stage == expected_survivors
 

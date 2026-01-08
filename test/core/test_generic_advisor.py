@@ -16,7 +16,7 @@ def test_generic_advisor(configspace_tiny,configspace_cat,configspace_big,config
     config_space_4 = configspace_mid
 
     advisor_cat = Advisor(config_space_2,early_stop=True,early_stop_kwargs={"min_iter":1})
-    config=advisor_cat.get_suggestion()
+    config = advisor_cat.get_suggestion()
     observation = Observation(config, [0.1], trial_state=SUCCESS, elapsed_time=2.0, extra_info={})
     advisor_cat.update_observation(observation)
 
@@ -87,8 +87,7 @@ def test_generic_advisor(configspace_tiny,configspace_cat,configspace_big,config
     '''
     让initial configuration有值,注意传参不能跳过默认参数，要么就用关键字形式赋值
     '''
-    initial_configurations = advisor.create_initial_design(advisor.init_strategy)
-    new_advisor = Advisor(config_space,initial_configurations=initial_configurations)
+    _ = advisor.create_initial_design(init_strategy=advisor.init_strategy)
     advisor.save_json("test/datas/test.json")
 
     advisor.load_json("test/datas/test.json")
