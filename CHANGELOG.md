@@ -1,3 +1,18 @@
+# v0.9.0 - Mar 2026
+
+### Major Changes
++ Add pipeline-based Compressor module for search space compression in high-dimensional BBO,
+  supporting dimension selection (SHAP / Correlation / Adaptive / Expert), range compression,
+  projection (REMBO / HesBO / KPCA), quantization, and filling strategies.
++ Add `SpaceAdapter` for flexible configuration space transformation.
++ Add `MFAdvisor` with unified multi-fidelity scheduler and batched suggestion support in SMBO.
++ Refactor `AcquisitionOptimizer` with modular SearchGenerator and StrategySelector abstractions.
+
+### Bug Fixes
++ Fix TL surrogate robustness for multi-fidelity data edge cases.
+
+
+
 # v0.8.4 - Sep 9, 2024
 
 ### Major Changes
