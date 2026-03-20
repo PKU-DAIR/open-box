@@ -88,15 +88,16 @@ class SyncBatchAdvisor(Advisor):
         num_config_successful = history.get_success_count()
 
         if num_config_evaluated < self.init_num:
-            if self.initial_configurations is not None:  # self.init_num equals to len(self.initial_configurations)
-                next_configs = self.initial_configurations[num_config_evaluated: num_config_evaluated + batch_size]
-                if len(next_configs) < batch_size:
-                    next_configs.extend(self.sample_random_configs(
-                        self.config_space, batch_size - len(next_configs), excluded_configs=history.configurations))
-                return next_configs
-            else:
-                return self.sample_random_configs(
-                    self.config_space, batch_size, excluded_configs=history.configurations)
+            next_configs = []
+            for offset in range(batch_size):
+                config = self.initial_config_provider.get_config(num_config_evaluated + offset)
+                if config is None:
+                    break
+                next_configs.append(config)
+            if len(next_configs) < batch_size:
+                next_configs.extend(self.sample_random_configs(
+                    self.config_space, batch_size - len(next_configs), excluded_configs=history.configurations))
+            return next_configs
 
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(self.config_space, batch_size, excluded_configs=history.configurations)
@@ -120,8 +121,7 @@ class SyncBatchAdvisor(Advisor):
             batch_history = copy.deepcopy(history)
 
             for batch_i in range(batch_size):
-                # use super class get_suggestion
-                curr_batch_config = super().get_suggestion(batch_history)
+                curr_batch_config = super().get_suggestion(history=batch_history)
 
                 # imputation
                 observation = Observation(config=curr_batch_config, objectives=estimated_y, constraints=estimated_c,
@@ -163,8 +163,8 @@ class SyncBatchAdvisor(Advisor):
                         self.config_space, 1, excluded_configs=history.configurations + batch_configs_list)[0]
                 else:
                     if not surrogate_trained:
-                        # set return_list=True to ensure surrogate trained
-                        candidates = super().get_suggestion(history, return_list=True)
+                        # train surrogate once and get challenger list
+                        candidates = self._get_bo_candidates(history)
                         surrogate_trained = True
                     else:
                         # re-optimize acquisition function
@@ -186,7 +186,7 @@ class SyncBatchAdvisor(Advisor):
                 batch_configs_list.append(cur_config)
         elif self.batch_strategy == 'default':
             # select first N candidates
-            candidates = super().get_suggestion(history, return_list=True)
+            candidates = self._get_bo_candidates(history)
             self.early_stop_ei(history, challengers=candidates)
             idx = 0
             while len(batch_configs_list) < batch_size:
