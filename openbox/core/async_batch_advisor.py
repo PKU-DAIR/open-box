@@ -124,7 +124,8 @@ class AsyncBatchAdvisor(Advisor):
                                           trial_state=SUCCESS, elapsed_time=None, extra_info=None)
                 batch_history.update_observation(observation)
 
-            return super().get_suggestion(history=batch_history)
+            # use super class get_suggestion
+            return super().get_suggestion(batch_history)
 
         elif self.batch_strategy == 'local_penalization':
             # local_penalization only supports single objective with no constraint
@@ -144,7 +145,7 @@ class AsyncBatchAdvisor(Advisor):
 
         elif self.batch_strategy == 'default':
             # select first N candidates
-            candidates = self._get_bo_candidates(history)
+            candidates = super().get_suggestion(history, return_list=True)
             self.early_stop_ei(history, challengers=candidates)
 
             for config in candidates:

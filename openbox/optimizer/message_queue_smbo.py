@@ -63,30 +63,49 @@ class mqSMBO(BOBase):
         self.master_messager = MasterMessager(ip, port, authkey, max_queue_len, max_queue_len)
 
         advisor_kwargs = advisor_kwargs or {}
-        from openbox.core import create_parallel_advisor
-        self.config_advisor = create_parallel_advisor(
-            parallel_strategy=parallel_strategy,
-            sample_strategy=sample_strategy,
-            config_space=config_space,
-            num_objectives=num_objectives,
-            num_constraints=num_constraints,
-            batch_size=batch_size,
-            batch_strategy=batch_strategy,
-            initial_trials=initial_runs,
-            initial_configurations=initial_configurations,
-            init_strategy=init_strategy,
-            transfer_learning_history=transfer_learning_history,
-            optimization_strategy=sample_strategy,
-            surrogate_type=surrogate_type,
-            acq_type=acq_type,
-            acq_optimizer_type=acq_optimizer_type,
-            ref_point=ref_point,
-            task_id=task_id,
-            output_dir=logging_dir,
-            random_state=random_state,
-            logger_kwargs={'force_init': False},
-            **advisor_kwargs
-        )
+        _logger_kwargs = {'force_init': False}  # do not init logger in advisor
+        if parallel_strategy == 'sync':
+            self.config_advisor = SyncBatchAdvisor(config_space,
+                                                   num_objectives=num_objectives,
+                                                   num_constraints=num_constraints,
+                                                   batch_size=batch_size,
+                                                   batch_strategy=batch_strategy,
+                                                   initial_trials=initial_runs,
+                                                   initial_configurations=initial_configurations,
+                                                   init_strategy=init_strategy,
+                                                   transfer_learning_history=transfer_learning_history,
+                                                   optimization_strategy=sample_strategy,
+                                                   surrogate_type=surrogate_type,
+                                                   acq_type=acq_type,
+                                                   acq_optimizer_type=acq_optimizer_type,
+                                                   ref_point=ref_point,
+                                                   task_id=task_id,
+                                                   output_dir=logging_dir,
+                                                   random_state=random_state,
+                                                   logger_kwargs=_logger_kwargs,
+                                                   **advisor_kwargs)
+        elif parallel_strategy == 'async':
+            self.config_advisor = AsyncBatchAdvisor(config_space,
+                                                    num_objectives=num_objectives,
+                                                    num_constraints=num_constraints,
+                                                    batch_size=batch_size,
+                                                    batch_strategy=batch_strategy,
+                                                    initial_trials=initial_runs,
+                                                    initial_configurations=initial_configurations,
+                                                    init_strategy=init_strategy,
+                                                    transfer_learning_history=transfer_learning_history,
+                                                    optimization_strategy=sample_strategy,
+                                                    surrogate_type=surrogate_type,
+                                                    acq_type=acq_type,
+                                                    acq_optimizer_type=acq_optimizer_type,
+                                                    ref_point=ref_point,
+                                                    task_id=task_id,
+                                                    output_dir=logging_dir,
+                                                    random_state=random_state,
+                                                    logger_kwargs=_logger_kwargs,
+                                                    **advisor_kwargs)
+        else:
+            raise ValueError('Invalid parallel strategy - %s.' % parallel_strategy)
 
     def async_run(self):
         config_num = 0

@@ -21,7 +21,7 @@
 
 ## OpenBox: 通用高效的黑盒优化系统
 **OpenBox** 是解决黑盒优化（超参数优化）问题的高效且通用的开源系统，支持以下特性： 1) **多目标与带约束的黑盒优化**。2) 
-**迁移学习**。3) **分布式并行验证**。4) **多精度优化加速**。5) **早停机制**。6) **搜索空间压缩**。
+**迁移学习**。3) **分布式并行验证**。4) **多精度优化加速**。5) **早停机制**。
 OpenBox是由北京大学[DAIR实验室](http://net.pku.edu.cn/~cuibin/)自动化机器学习（AutoML）小组设计并开发的，目标是
 使黑盒优化在学术界和工业界的应用更加便捷，并促进数据科学的发展。
 
@@ -108,19 +108,8 @@ OpenBox是一个提供通用黑盒优化服务的系统。用户可以使用REST
            <li>Interleaved RS and LS</li>
            <li>Differential Evolution</li>
            <li>L-BFGS-B</li>
-           <li>CMA-ES</li>
-           <li>Upper Bound Maximizer</li>
           </ul>
         </ul>
-      <ul>
-        <li><b>Search Space Compressor</b></li>
-        <ul>
-          <li>Dimension Selection (SHAP, Correlation, Adaptive, Expert)</li>
-          <li>Range Compression (Boundary, KDE, SHAP-weighted)</li>
-          <li>Projection (REMBO, HesBO, KPCA)</li>
-          <li>Quantization &amp; Filling</li>
-        </ul>
-      </ul>
       </td>
       <td align="left" >
         <ul>

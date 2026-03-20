@@ -28,14 +28,9 @@ class MFGPE(BaseTLSurrogate):
         self.iteration_id = 0
 
     def update_mf_trials(self, mf_hpo_data: List[History]):
-        if len(mf_hpo_data) == 0:
-            return
-        if self.K <= 0:
-            self.K = max(len(mf_hpo_data) - 1, 0)
-            if self.K > 0:
-                self.w = [1. / self.K] * self.K + [0.]
-            else:
-                self.w = [1.]
+        if self.K == 0:
+            self.K = len(mf_hpo_data) - 1  # K is the number of low-fidelity groups
+            self.w = [1. / self.K] * self.K + [0.]
             self.snapshot_w = self.w
         self.source_hpo_data = mf_hpo_data
         # Refit the base surrogates.

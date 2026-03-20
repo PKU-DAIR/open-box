@@ -181,10 +181,7 @@ class MCAdvisor(Advisor):
         num_config_successful = history.get_success_count()
 
         if num_config_evaluated < self.init_num:
-            config = self.initial_config_provider.get_config(num_config_evaluated)
-            if config is not None:
-                return config
-            return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
+            return self.initial_configurations[num_config_evaluated]
 
         if self.optimization_strategy == 'random':
             return self.sample_random_configs(self.config_space, 1, excluded_configs=history.configurations)[0]
@@ -233,6 +230,16 @@ class MCAdvisor(Advisor):
                                                       num_points=5000,
                                                       turbo_state=self.turbo_state)
 
+            # is_repeated_config = True
+            # repeated_time = 0
+            # cur_config = None
+            # while is_repeated_config:
+            #     cur_config = challengers[repeated_time]
+            #     if cur_config in history.configurations:
+            #         repeated_time += 1
+            #     else:
+            #         is_repeated_config = False
+            # return cur_config
             for config in challengers:
                 if config not in history.configurations:
                     return config
@@ -242,12 +249,6 @@ class MCAdvisor(Advisor):
 
         else:
             raise ValueError('Unknown optimization strategy: %s.' % self.optimization_strategy)
-
-    def get_suggestions(self, batch_size=1, history=None):
-        if batch_size is None:
-            batch_size = 1
-        batch_size = int(batch_size)
-        return [self.get_suggestion(history=history) for _ in range(batch_size)]
 
     def update_observation(self, observation: Observation):
         super().update_observation(observation)

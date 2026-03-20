@@ -10,7 +10,6 @@ from openbox.utils.util_funcs import check_random_state, deprecate_kwarg
 from openbox.utils.early_stop import EarlyStopAlgorithm, EarlyStopException
 from openbox.utils.history import Observation, History
 from openbox.utils.constants import MAXINT
-from openbox.core.space_adapter import IdentitySpaceAdapter, CompressorSpaceAdapter
 
 
 class BaseAdvisor(object, metaclass=abc.ABCMeta):
@@ -52,9 +51,6 @@ class BaseAdvisor(object, metaclass=abc.ABCMeta):
             task_id='OpenBox',
             random_state=None,
             logger_kwargs: dict = None,
-            compressor=None,
-            compressor_type='none',
-            compressor_kwargs=None,
     ):
 
         self.timestamp = datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f')
@@ -72,32 +68,6 @@ class BaseAdvisor(object, metaclass=abc.ABCMeta):
         self.config_space_seed = self.rng.randint(MAXINT)
         self.config_space.seed(self.config_space_seed)
         self.ref_point = ref_point
-        self.sample_space = self.config_space
-        self.surrogate_space = self.config_space
-
-        # space compression setting
-        if compressor is not None:
-            self.space_adapter = CompressorSpaceAdapter(
-                config_space=self.config_space,
-                compressor=compressor,
-            )
-        elif compressor_type is not None and str(compressor_type).lower() == 'none':
-            logger.info('compressor_type=none, using identity space adapter.')
-            self.space_adapter = IdentitySpaceAdapter(self.config_space)
-        elif compressor_type is not None or compressor_kwargs is not None:
-            compressor = self._build_compressor(
-                config_space=self.config_space,
-                compressor_type=compressor_type,
-                compressor_kwargs=compressor_kwargs,
-                seed=self.config_space_seed,
-            )
-            self.space_adapter = CompressorSpaceAdapter(
-                config_space=self.config_space,
-                compressor=compressor,
-            )
-        else:
-            logger.info('No compressor is provided, using identity space adapter.')
-            self.space_adapter = IdentitySpaceAdapter(self.config_space)
 
         # init history
         self.history = History(
@@ -112,130 +82,6 @@ class BaseAdvisor(object, metaclass=abc.ABCMeta):
         self.early_stop_algorithm = EarlyStopAlgorithm(**early_stop_kwargs) if self.early_stop else None
         if self.early_stop:
             logger.info(f'Early stop is enabled.')
-
-    @staticmethod
-    def _build_compressor(config_space, compressor_type, compressor_kwargs, seed):
-        from openbox.compressor import Compressor
-        from openbox.compressor.api import (
-            create_steps_from_strings,
-            create_filling_from_config,
-            create_filling_from_string,
-        )
-
-        kwargs = dict(compressor_kwargs or {})
-        kwargs.setdefault('seed', seed)
-
-        step_params = kwargs.pop('step_params', {})
-        filling_config = kwargs.pop('filling_config', None)
-        filling_type = kwargs.pop('filling_type', None)
-        fixed_values = kwargs.pop('fixed_values', None)
-
-        filling_strategy = None
-        if filling_config is not None:
-            filling_strategy = create_filling_from_config(filling_config)
-        elif filling_type is not None or fixed_values is not None:
-            filling_strategy = create_filling_from_string(
-                filling_str=filling_type or 'default',
-                fixed_values=fixed_values,
-            )
-
-        raw_steps = kwargs.pop('steps', None)
-        if raw_steps is not None:
-            if len(raw_steps) > 0 and isinstance(raw_steps[0], str):
-                steps = create_steps_from_strings(raw_steps, step_params=step_params)
-            else:
-                steps = raw_steps
-            return Compressor(
-                config_space=config_space,
-                steps=steps,
-                filling_strategy=filling_strategy,
-                **kwargs,
-            )
-
-        step_strings = kwargs.pop('step_strings', None)
-        if step_strings is not None:
-            steps = create_steps_from_strings(step_strings, step_params=step_params)
-            return Compressor(
-                config_space=config_space,
-                steps=steps,
-                filling_strategy=filling_strategy,
-                **kwargs,
-            )
-
-        compressor_type = (compressor_type or 'none').lower()
-        step_strings = []
-        mapped_step_params = {}
-
-        if compressor_type == 'none':
-            step_strings = []
-        elif compressor_type == 'pipeline':
-            raise ValueError('compressor_type="pipeline" requires `steps` or `step_strings` in compressor_kwargs.')
-        elif compressor_type in ('shap', 'expert'):
-            if compressor_type == 'shap':
-                step_strings.append('d_shap')
-                mapped_step_params['d_shap'] = {
-                    'topk': kwargs.pop('topk', 20),
-                    'exclude_params': kwargs.pop('exclude_params', None),
-                }
-            else:
-                step_strings.append('d_expert')
-                mapped_step_params['d_expert'] = {
-                    'expert_params': kwargs.pop('expert_params', []),
-                    'exclude_params': kwargs.pop('exclude_params', None),
-                }
-            top_ratio = kwargs.pop('top_ratio', 0.8)
-            sigma = kwargs.pop('sigma', 2.0)
-            if top_ratio < 1.0 or sigma > 0:
-                step_strings.append('r_boundary')
-                mapped_step_params['r_boundary'] = {
-                    'top_ratio': top_ratio,
-                    'sigma': sigma,
-                    'enable_mixed_sampling': kwargs.pop('enable_mixed_sampling', True),
-                    'initial_prob': kwargs.pop('initial_prob', 0.9),
-                }
-        elif compressor_type == 'llamatune':
-            max_num_values = kwargs.pop('max_num_values', None)
-            adapter_alias = kwargs.pop('adapter_alias', 'none')
-            low_dim = kwargs.pop('le_low_dim', 10)
-
-            if max_num_values is not None:
-                step_strings.append('p_quant')
-                mapped_step_params['p_quant'] = {'max_num_values': max_num_values, 'seed': kwargs.get('seed', seed)}
-            if adapter_alias == 'rembo':
-                step_strings.append('p_rembo')
-                mapped_step_params['p_rembo'] = {
-                    'low_dim': low_dim,
-                    'max_num_values': max_num_values,
-                    'seed': kwargs.get('seed', seed),
-                }
-            elif adapter_alias == 'hesbo':
-                step_strings.append('p_hesbo')
-                mapped_step_params['p_hesbo'] = {
-                    'low_dim': low_dim,
-                    'max_num_values': max_num_values,
-                    'seed': kwargs.get('seed', seed),
-                }
-            elif adapter_alias != 'none':
-                raise ValueError(f'Unknown adapter_alias: {adapter_alias}.')
-        else:
-            raise ValueError(f'Unknown compressor_type: {compressor_type}.')
-
-        step_params = {**mapped_step_params, **step_params}
-        steps = create_steps_from_strings(step_strings, step_params=step_params)
-        return Compressor(
-            config_space=config_space,
-            steps=steps,
-            filling_strategy=filling_strategy,
-            **kwargs,
-        )
-
-    def setup_space_adapter(self, transfer_learning_history=None):
-        transformed_history = self.space_adapter.setup(transfer_learning_history)
-        self.sample_space = self.space_adapter.sample_space
-        self.surrogate_space = self.space_adapter.surrogate_space
-        self.sample_space.seed(self.config_space_seed)
-        self.surrogate_space.seed(self.config_space_seed)
-        return transformed_history
 
     def early_stop_perf(self, history):
         if not self.early_stop:
@@ -289,7 +135,6 @@ class BaseAdvisor(object, metaclass=abc.ABCMeta):
         observation: Observation
             Observation of the objective function.
         """
-        self.space_adapter.cache_observation(observation)   # low_dim_config
         return self.history.update_observation(observation)
 
     def update_observations(self, observations: List[Observation]):

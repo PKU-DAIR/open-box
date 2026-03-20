@@ -1,7 +1,6 @@
 # License: MIT
 
 import time
-import inspect
 from typing import List
 from tqdm import tqdm
 import numpy as np
@@ -119,45 +118,6 @@ class SMBO(BOBase):
         Additional keyword arguments for logger.
     advisor_kwargs : dict, optional
         Additional keyword arguments for advisor.
-    scheduler_type : str, default='full'
-        Type of fidelity scheduler for multi-fidelity optimization.
-        - 'full' (default): Full fidelity scheduler (resource_ratio=1.0). Behaves like standard single-fidelity BO.
-        - 'bohb': BOHB-style successive halving scheduler
-        - 'flatten': Flattened BOHB scheduler with expanded full-fidelity brackets
-        - 'mfes': MFES-style multi-fidelity scheduler  
-        - 'mfes_flatten': Flattened MFES scheduler
-        - 'fixed': Fixed fidelity levels (requires scheduler_kwargs)
-    scheduler_kwargs : dict, optional
-        Additional keyword arguments for scheduler initialization.
-        For BOHB/MFES schedulers:
-        - R : int, default=9
-            Maximum resource allocation
-        - eta : int, default=3
-            Reduction factor for successive halving
-        - num_nodes : int, default=1
-            Number of parallel nodes (for distributed optimization)
-        For fixed scheduler:
-        - n_resources : List[int]
-            Number of configurations at each stage
-        - r_resources : List[int]
-            Resource allocations at each stage
-        - fidelity_levels : List[float]
-            Available fidelity levels
-    
-    Notes
-    -----
-    Multi-Fidelity Optimization:
-        When using scheduler_type other than 'full', the objective function should accept
-        a `resource_ratio` keyword argument (float, 0.0 to 1.0) to control the evaluation fidelity.
-        For example, in hyperparameter optimization:
-        - resource_ratio=0.1: Train on 10% of data
-        - resource_ratio=1.0: Train on full dataset
-        
-        The optimizer function signature should be:
-        def objective_function(config, resource_ratio=1.0):
-            # Use resource_ratio to control fidelity
-            ...
-            return result
     """
     @deprecate_kwarg('num_objs', 'num_objectives', 'a future version')
     @deprecate_kwarg('time_limit_per_trial', 'max_runtime_per_trial', 'a future version')
@@ -190,8 +150,6 @@ class SMBO(BOBase):
             random_state=None,
             logger_kwargs: dict = None,
             advisor_kwargs: dict = None,
-            scheduler_type: str = 'full',
-            scheduler_kwargs: dict = None,
     ):
 
         if task_id is None:
@@ -208,60 +166,84 @@ class SMBO(BOBase):
 
         self.advisor_type = advisor_type
         advisor_kwargs = advisor_kwargs or {}
-        
-        from openbox.optimizer.scheduler import build_scheduler, check_scheduler
-        scheduler_kwargs = scheduler_kwargs or {}
-        self.scheduler_type = scheduler_type
-        self.scheduler = build_scheduler(scheduler_type, **scheduler_kwargs)
-        logger.info(f'Using scheduler: {scheduler_type} with fidelity levels: '
-                   f'{self.scheduler.get_fidelity_levels()}')
-        # Check if objective function supports resource_ratio for multi-fidelity optimization
-        self._supports_resource_ratio = check_scheduler(objective_function, scheduler_type)
-
-        from openbox.core import build_advisor
-        self.config_advisor = build_advisor(
-            advisor_type=advisor_type,
-            config_space=config_space,
-            num_objectives=num_objectives,
-            num_constraints=num_constraints,
-            initial_trials=initial_runs,
-            init_strategy=init_strategy,
-            initial_configurations=initial_configurations,
-            optimization_strategy=sample_strategy,
-            surrogate_type=surrogate_type,
-            acq_type=acq_type,
-            acq_optimizer_type=acq_optimizer_type,
-            ref_point=ref_point,
-            transfer_learning_history=transfer_learning_history,
-            early_stop=early_stop,
-            early_stop_kwargs=early_stop_kwargs,
-            task_id=task_id,
-            output_dir=logging_dir,
-            random_state=random_state,
-            logger_kwargs={'force_init': False},  # do not init logger in advisor
-            scheduler_type=scheduler_type,
-            **advisor_kwargs
-        )
+        _logger_kwargs = {'force_init': False}  # do not init logger in advisor
+        if advisor_type == 'default':
+            from openbox.core.generic_advisor import Advisor
+            self.config_advisor = Advisor(config_space,
+                                          num_objectives=num_objectives,
+                                          num_constraints=num_constraints,
+                                          initial_trials=initial_runs,
+                                          init_strategy=init_strategy,
+                                          initial_configurations=initial_configurations,
+                                          optimization_strategy=sample_strategy,
+                                          surrogate_type=surrogate_type,
+                                          acq_type=acq_type,
+                                          acq_optimizer_type=acq_optimizer_type,
+                                          ref_point=ref_point,
+                                          transfer_learning_history=transfer_learning_history,
+                                          early_stop=early_stop,
+                                          early_stop_kwargs=early_stop_kwargs,
+                                          task_id=task_id,
+                                          output_dir=logging_dir,
+                                          random_state=random_state,
+                                          logger_kwargs=_logger_kwargs,
+                                          **advisor_kwargs)
+        elif advisor_type == 'mcadvisor':
+            from openbox.core.mc_advisor import MCAdvisor
+            self.config_advisor = MCAdvisor(config_space,
+                                            num_objectives=num_objectives,
+                                            num_constraints=num_constraints,
+                                            initial_trials=initial_runs,
+                                            init_strategy=init_strategy,
+                                            initial_configurations=initial_configurations,
+                                            optimization_strategy=sample_strategy,
+                                            surrogate_type=surrogate_type,
+                                            acq_type=acq_type,
+                                            acq_optimizer_type=acq_optimizer_type,
+                                            ref_point=ref_point,
+                                            transfer_learning_history=transfer_learning_history,
+                                            task_id=task_id,
+                                            output_dir=logging_dir,
+                                            random_state=random_state,
+                                            logger_kwargs=_logger_kwargs,
+                                            **advisor_kwargs)
+        elif advisor_type == 'tpe':
+            from openbox.core.tpe_advisor import TPE_Advisor
+            assert num_objectives == 1 and num_constraints == 0
+            self.config_advisor = TPE_Advisor(config_space, task_id=task_id, random_state=random_state,
+                                              logger_kwargs=_logger_kwargs, **advisor_kwargs)
+        elif advisor_type == 'ea':
+            from openbox.core.ea_advisor import EA_Advisor
+            assert num_objectives == 1 and num_constraints == 0
+            self.config_advisor = EA_Advisor(config_space,
+                                             num_objectives=num_objectives,
+                                             num_constraints=num_constraints,
+                                             optimization_strategy=sample_strategy,
+                                             batch_size=1,
+                                             task_id=task_id,
+                                             output_dir=logging_dir,
+                                             random_state=random_state,
+                                             logger_kwargs=_logger_kwargs,
+                                             **advisor_kwargs)
+        elif advisor_type == 'random':
+            from openbox.core.random_advisor import RandomAdvisor
+            self.config_advisor = RandomAdvisor(config_space,
+                                                num_objectives=num_objectives,
+                                                num_constraints=num_constraints,
+                                                ref_point=ref_point,
+                                                task_id=task_id,
+                                                output_dir=logging_dir,
+                                                random_state=random_state,
+                                                logger_kwargs=_logger_kwargs,
+                                                **advisor_kwargs)
+        else:
+            raise ValueError('Invalid advisor type!')
 
         self.visualizer = build_visualizer(
             option=visualization, history=self.get_history(),
             logging_dir=self.output_dir, optimizer=self, advisor=None, auto_open_html=auto_open_html,
         )
         self.visualizer.setup()
-        self._fidelity_support = self._check_fidelity_support()
-
-    def _check_fidelity_support(self) -> bool:
-        try:
-            signature = inspect.signature(self.config_advisor.update_observation)
-        except (TypeError, ValueError):
-            return False
-        return 'resource_ratio' in signature.parameters
-
-    def _update_advi_obs(self, observation: Observation, resource_ratio: float):
-        if self._fidelity_support:
-            self.config_advisor.update_observation(observation, resource_ratio=resource_ratio)
-        else:
-            self.config_advisor.update_observation(observation)
 
     def run(self) -> History:
         for idx in tqdm(range(self.iteration_id, self.max_runs)):
@@ -278,18 +260,10 @@ class SMBO(BOBase):
             self.time_left -= runtime
         return self.get_history()
 
-    def _evaluate_single_config(self, config, resource_ratio=1.0, time_left=None) -> Observation:
-        """
-        Evaluate a single configuration with specified resource ratio.
-        
-        Args:
-            config: Configuration to evaluate
-            resource_ratio: Resource ratio for multi-fidelity (0.0 to 1.0)
-            time_left: Remaining time budget
-            
-        Returns:
-            Observation object containing evaluation results
-        """
+    def iterate(self, time_left=None) -> Observation:
+        # get configuration suggestion from advisor
+        config = self.config_advisor.get_suggestion()
+
         if config in self.config_advisor.history.configurations:
             logger.warning('Evaluating duplicated configuration: %s' % config)
 
@@ -303,11 +277,7 @@ class SMBO(BOBase):
             timeout = None
 
         # evaluate configuration on objective_function
-        # pass resource_ratio to objective function for multi-fidelity support
-        if self._supports_resource_ratio:
-            obj_args, obj_kwargs = (config,), dict(resource_ratio=resource_ratio)
-        else:
-            obj_args, obj_kwargs = (config,), dict()
+        obj_args, obj_kwargs = (config,), dict()
         result = run_obj_func(self.objective_function, obj_args, obj_kwargs, timeout)
 
         # parse result
@@ -330,80 +300,14 @@ class SMBO(BOBase):
             config=config, objectives=objectives, constraints=constraints,
             trial_state=trial_state, elapsed_time=elapsed_time, extra_info=extra_info,
         )
-        
-        return observation
+        self.config_advisor.update_observation(observation)
 
-    def iterate(self, time_left=None) -> Observation:
         self.iteration_id += 1
-        
-        # Initial runs: always use full fidelity (resource_ratio=1.0)
-        if self.iteration_id <= self.config_advisor.init_num:
-            configs = self.config_advisor.get_suggestions(batch_size=1)
-            config = configs[0]
-            observation = self._evaluate_single_config(config, resource_ratio=1.0, time_left=time_left)
-            self._update_advi_obs(observation, resource_ratio=1.0)
-            
-            if self.num_constraints > 0:
-                logger.info('Iter %d (init), objectives: %s, constraints: %s, resource_ratio: 1.0' % 
-                          (self.iteration_id, observation.objectives, observation.constraints))
-            else:
-                logger.info('Iter %d (init), objectives: %s, resource_ratio: 1.0' % 
-                          (self.iteration_id, observation.objectives))
-            
-            self.visualizer.update()
-            return observation
-        
-        # After initialization: use scheduler for multi-fidelity optimization
-        iter_full_eval_observations = []
-        candidates = []
-        
-        # Get bracket index based on current iteration
-        s = self.scheduler.get_bracket_index(self.iteration_id - self.config_advisor.init_num - 1)
-        
-        # Execute successive halving within the bracket
-        # For 'full' scheduler: s=0, only 1 stage, 1 config, ratio=1.0
-        for stage in range(s + 1):
-            n_configs, n_resource = self.scheduler.get_stage_params(s=s, stage=stage)
-            resource_ratio = self.scheduler.calculate_resource_ratio(n_resource=n_resource)
-            
-            if self.scheduler_type != 'full':
-                logger.info(f'Bracket {s} Stage {stage}: n_configs={n_configs}, '
-                           f'resource={n_resource}, ratio={resource_ratio:.3f}')
-            
-            # First stage: sample new configurations
-            if stage == 0:
-                candidates = self.config_advisor.get_suggestions(batch_size=n_configs)
-                if self.scheduler_type != 'full' and len(candidates) > 1:
-                    logger.info(f'Generated {len(candidates)} initial candidates for stage {stage}')
-            
-            # Evaluate all candidates at current fidelity
-            observations = []
-            perfs = []
-            for config in candidates:
-                obs = self._evaluate_single_config(config, resource_ratio, time_left)
-                observations.append(obs)
-                perfs.append(obs.objectives[0])  # Use first objective for elimination
-                
-                # Update advisor if scheduler says so
-                if self.scheduler.should_update_history(resource_ratio):
-                    self._update_advi_obs(obs, resource_ratio=resource_ratio)
-                    if self.num_constraints > 0:
-                        logger.info('Iter %d, objectives: %s, constraints: %s, '
-                                    'resource_ratio: %.3f' % 
-                                    (self.iteration_id, obs.objectives, obs.constraints, resource_ratio))
-                    else:
-                        logger.info('Iter %d, objectives: %s, resource_ratio: %.3f' % 
-                                    (self.iteration_id, obs.objectives, resource_ratio))
-                    
-            # Eliminate poor performing candidates for next stage
-            if stage < s:
-                candidates, perfs = self.scheduler.eliminate_candidates(
-                    candidates, perfs, s=s, stage=stage
-                )
-                logger.info(f'After elimination: {len(candidates)} candidates remain')
-            else:
-                # Last stage: these are full-fidelity evaluations
-                iter_full_eval_observations.extend(observations)
-        
+        # Logging
+        if self.num_constraints > 0:
+            logger.info('Iter %d, objectives: %s. constraints: %s.' % (self.iteration_id, objectives, constraints))
+        else:
+            logger.info('Iter %d, objectives: %s.' % (self.iteration_id, objectives))
+
         self.visualizer.update()
-        return iter_full_eval_observations[-1] if iter_full_eval_observations else None
+        return observation

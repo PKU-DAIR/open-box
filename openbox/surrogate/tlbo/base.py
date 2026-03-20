@@ -72,22 +72,14 @@ class BaseTLSurrogate(object):
         logger.info('Start to train base surrogates.')
         start_time = time.time()
         self.source_surrogates = list()
-        if self.num_src_hpo_trial is None or self.num_src_hpo_trial < 0:
-            end = None
-        else:
-            end = self.num_src_hpo_trial
         for task_history in self.source_hpo_data:
             assert isinstance(task_history, History)
-            X = task_history.get_config_array(transform=normalize)[:end]
-            y = task_history.get_objectives(transform='infeasible')[:end]
-            y = y.reshape(-1)  # single objective
-
-            if y.shape[0] == 0:
-                logger.warning('Skip one empty source history when building TL surrogates.')
-                continue
-
             model = build_surrogate(self.surrogate_type, self.config_space,
                                     np.random.RandomState(self.random_seed))
+
+            X = task_history.get_config_array(transform=normalize)[:self.num_src_hpo_trial]
+            y = task_history.get_objectives(transform='infeasible')[:self.num_src_hpo_trial]
+            y = y.reshape(-1)  # single objective
 
             if (y == y[0]).all():
                 y[0] += 1e-4
