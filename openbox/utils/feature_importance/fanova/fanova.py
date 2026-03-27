@@ -17,6 +17,35 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, UniformFloatH
 from openbox import logger
 
 
+def _check_pyrfr_swig_bindings():
+    """Verify that pyrfr SWIG bindings are functional.
+
+    On Python versions without pre-built wheels (e.g. 3.11+), pyrfr may be
+    compiled from source with an incompatible SWIG version, producing raw
+    SwigPyObject instances instead of proper wrapper objects.
+
+    Returns True if bindings work, False otherwise.
+    """
+    try:
+        stat = pyrfr.util.weighted_running_stats()
+        stat.push(1.0, 1.0)
+        _ = stat.mean()
+        _ = stat.sum_of_weights()
+        return True
+    except (AttributeError, TypeError):
+        return False
+
+
+_PYRFR_BINDINGS_OK = _check_pyrfr_swig_bindings()
+
+if not _PYRFR_BINDINGS_OK:
+    logger.warning(
+        'pyrfr SWIG bindings are broken (likely compiled with an incompatible '
+        'SWIG version for this Python). fANOVA will fall back to NaN for '
+        'marginal predictions.'
+    )
+
+
 class fANOVA(object):
     def __init__(self, X, Y, config_space=None,
                  n_trees=16, seed=None, bootstrapping=True,
@@ -293,9 +322,14 @@ class fANOVA(object):
             for i, (m, s) in enumerate(zip(prod_midpoints, prod_sizes)):
                 sample[list(dimensions)] = list(m)
                 ls = self.the_forest.marginal_prediction_stat_of_tree(tree_idx, sample.tolist())
-                # logger.debug("%s, %s", (sample, ls.mean()))
-                if not np.isnan(ls.mean()):
-                    stat.push(ls.mean(), np.prod(np.array(s)) * ls.sum_of_weights())
+                try:
+                    ls_mean = ls.mean()
+                    ls_weight = ls.sum_of_weights()
+                except AttributeError:
+                    # pyrfr SWIG bindings are broken: ls is a raw SwigPyObject
+                    continue
+                if not np.isnan(ls_mean):
+                    stat.push(ls_mean, np.prod(np.array(s)) * ls_weight)
 
             # line 10 in algorithm 2
             # note that V_U^2 can be computed by var(\hat a)^2 - \sum_{subU} var(f_subU)^2
@@ -304,13 +338,23 @@ class fANOVA(object):
             V_U_total = np.nan
             V_U_individual = np.nan
 
-            if stat.sum_of_weights() > 0:
-                V_U_total = stat.variance_population()
-                V_U_individual = stat.variance_population()
-                for k in range(1, len(dimensions)):
-                    for sub_dims in it.combinations(dimensions, k):
-                        V_U_individual -= self.V_U_individual[sub_dims][tree_idx]
-                V_U_individual = np.clip(V_U_individual, 0, np.inf)
+            try:
+                weight_sum = stat.sum_of_weights()
+            except AttributeError:
+                weight_sum = 0
+
+            if weight_sum > 0:
+                try:
+                    V_U_total = stat.variance_population()
+                    V_U_individual = stat.variance_population()
+                except AttributeError:
+                    V_U_total = np.nan
+                    V_U_individual = np.nan
+                else:
+                    for k in range(1, len(dimensions)):
+                        for sub_dims in it.combinations(dimensions, k):
+                            V_U_individual -= self.V_U_individual[sub_dims][tree_idx]
+                    V_U_individual = np.clip(V_U_individual, 0, np.inf)
 
             self.V_U_individual[dimensions].append(V_U_individual)
             self.V_U_total[dimensions].append(V_U_total)
@@ -383,7 +427,10 @@ class fANOVA(object):
         for i in range(len(dimlist)):
             sample[dimlist[i]] = values_to_predict[i]
 
-        return self.the_forest.marginal_mean_variance_prediction(sample)
+        try:
+            return self.the_forest.marginal_mean_variance_prediction(sample)
+        except (AttributeError, TypeError):
+            return (np.nan, np.nan)
 
     def get_most_important_pairwise_marginals(self, params=None, n=10):
         """

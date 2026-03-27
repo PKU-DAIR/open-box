@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from openbox.surrogate.base.gp import GaussianProcess
 from ConfigSpace import ConfigurationSpace
 from openbox.surrogate.base.gp_base_prior import LognormalPrior
-from openbox.surrogate.base.gp_kernels import ConstantKernel
+from openbox.surrogate.base.gp_kernels import ConstantKernel, RBF
 from skopt.learning.gaussian_process import GaussianProcessRegressor
 
 
@@ -19,6 +19,10 @@ class GaussianProcessTests(unittest.TestCase):
         self.kernel = ConstantKernel(
             2.0,
             constant_value_bounds=(np.exp(-10), np.exp(2)),
+            prior=LognormalPrior(mean=0.0, sigma=1.0, rng=rng),
+        ) * RBF(
+            1.0,
+            length_scale_bounds=(np.exp(-6.754111155189306), np.exp(0.0858637988771976)),
             prior=LognormalPrior(mean=0.0, sigma=1.0, rng=rng),
         )
         self.instance_features = np.array([[0, 1], [1, 0]])
