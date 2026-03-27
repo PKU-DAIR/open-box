@@ -980,7 +980,7 @@ class MESMO_Maximizer(AcquisitionFunctionMaximizer):
         # L-BFGS-B
         x_seed = self.rng.uniform(low=bound[0], high=bound[1], size=(self.num_opt, d))
         for i in range(x_seed.shape[0]):
-            x0 = x_seed[i].reshape(1, -1)
+            x0 = x_seed[i]
             result = self.minimizer(inverse_acquisition, x0=x0, method='L-BFGS-B', bounds=bounds)
             if not result.success:
                 continue

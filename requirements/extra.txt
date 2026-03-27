@@ -4,3 +4,4 @@ lightgbm
 hiplot
 cma
 xgboost
+seaborn

@@ -32,15 +32,21 @@ def get_fanova_importance(X: np.ndarray, Y: np.ndarray, config_space: Configurat
             'https://open-box.readthedocs.io/en/latest/installation/install_pyrfr.html'
         )
         raise
+
+    from openbox.utils.feature_importance.fanova.fanova import _PYRFR_BINDINGS_OK
+    if not _PYRFR_BINDINGS_OK:
+        logger.warning(
+            'pyrfr SWIG bindings are broken. fANOVA importance will return '
+            'uniform (NaN) values.'
+        )
+
     from openbox.utils.feature_importance.fanova import fANOVA
 
     assert X.ndim == 2 and X.shape[0] > 0
     assert Y.ndim == 1 and Y.shape[0] == X.shape[0]
 
-    # create an instance of fanova with data for the random forest and the configSpace
     f = fANOVA(X=X, Y=Y, config_space=config_space, seed=1, **kwargs)
 
-    # marginal for individual parameter
     feature_importance = []
     for param in config_space.get_hyperparameter_names():
         p_list = (param,)

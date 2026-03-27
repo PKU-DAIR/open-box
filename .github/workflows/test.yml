@@ -19,9 +19,11 @@ env:
   test-requires: "[test,extra]"
   test-dir: test
   pytest-args: >-
+    --no-cov
     -rap
     --durations=20
     --verbose
+  MPLBACKEND: Agg
 
 # todo: Lint with flake8
 # todo: tests conda
@@ -36,9 +38,9 @@ jobs:
         os: [ "macos-latest", "ubuntu-latest", "windows-latest" ]
         python-version: [ "3.8", "3.9", "3.10", "3.11" ]
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install Homebrew for MacOs
@@ -73,10 +75,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install --upgrade wheel setuptools
         pip install ".${{ env.test-requires }}"
-    - name: Uninstall package openbox for MacOs
-      if: matrix.os == 'macos-latest'
-      run: |
-        pip uninstall -y openbox
+    # - name: Uninstall package openbox for MacOs
+    #   if: matrix.os == 'macos-latest'
+    #   run: |
+    #     pip uninstall -y openbox
     - name: Run tests
       run: |
         pytest ${{ env.pytest-args }} ${{ env.test-dir }}
