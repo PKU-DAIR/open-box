@@ -19,11 +19,13 @@ requires-python = ">=3.7"
 license = {file = "LICENSE"}
 authors = [
     {name = "DAIR Lab @ Peking University"},
+    {name = "Yang Li"},
+    {name = "Huaijun Jiang"},
+    {name = "Yu Shen"},
 ]
 maintainers = [
-    {name = "Yang Li", email = "liyang.cs@pku.edu.cn"},
-    {name = "Huaijun Jiang", email = "jianghuaijun@pku.edu.cn"},
-    {name = "Yu Shen", email = "shenyu@pku.edu.cn"},
+    {name = "Beicheng Xu", email = "beichengxu@stu.pku.edu.cn"},
+    {name = "Lingching Tung", email = "lingchingtung@stu.pku.edu.cn"},
 ]
 keywords = [
     "blackbox optimization",

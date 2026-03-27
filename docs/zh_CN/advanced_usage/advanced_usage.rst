@@ -10,3 +10,5 @@
     自动化算法选择 <auto_algorithm_selection>
     早停 <early_stop>
     迁移学习 <transfer_learning>
+    空间压缩 <space_compression>
+    多精度优化 <multi_fidelity>

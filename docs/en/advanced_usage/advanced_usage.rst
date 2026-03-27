@@ -10,3 +10,5 @@ Advanced Usage
     Automatic Algorithm Selection <auto_algorithm_selection>
     Early Stopping <early_stop>
     Transfer Learning <transfer_learning>
+    Space Compression <space_compression>
+    Multi-Fidelity Optimization <multi_fidelity>
